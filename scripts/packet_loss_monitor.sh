@@ -57,6 +57,7 @@ ping_cmd="$ping_cmd -c $ping_count $host"
 while : ; do
     output="$($ping_cmd  | grep loss)"
     this_time_percent_loss=$(echo "$output" | awk -v a="$packet_loss_param_no" '{print $a}' | sed s/%// )
+    [ -z "$this_time_percent_loss" ] && this_time_percent_loss=100 # no output assume no connection
     sqlite3 "$db" "INSERT INTO packet_loss (loss) values ($this_time_percent_loss);"
     log_it "stored [$this_time_percent_loss] in db"
 done

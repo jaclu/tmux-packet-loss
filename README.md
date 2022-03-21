@@ -1,10 +1,14 @@
 # tmux-packet-loss
 
-warns if there is packet losses
+Warns if there are packet losses
+
+## Dependency
+
+Sqlite3
 
 ## Status
 
-Early testing, not useable yet!
+testing, works, but not documented yet
 
 ## Variables that can be set
 
@@ -15,9 +19,9 @@ To disable a setting, set it to " ", spaces will be trimmed and thus nothing wil
 | @packet-loss-ping_host   | 8.8.4.4       | What host to ping                     |
 | @packet-loss-ping_count  | 10            | this many pings per statistics update |
 |                          |               |
-| @packet-loss_level_disp  | 0.1           | Display loss if this or higher        |
-| @packet-loss_level_alert | 1.0           |
-| @packet-loss_level_crit  | 5.0           | If % loss equals or is higher         |
+| @packet-loss_level_disp  | 0.1           | Display loss if this or higher level  |
+| @packet-loss_level_alert | 2.0           |
+| @packet-loss_level_crit  | 8.0           | If % loss equals or is higher         |
 |                          |               |
 | @packet-loss_color_alert | yellow        |
 | @packet-loss_color_crit  | red           |

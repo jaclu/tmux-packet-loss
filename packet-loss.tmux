@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-menus
 #
-#   Version: 0.0.0a 2022-03-20
+#   Version: 0.0.0a 2022-03-21
 #
 
 

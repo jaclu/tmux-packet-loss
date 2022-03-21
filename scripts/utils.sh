@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-menus
 #
-#   Version: 0.0.0a 2022-03-20
+#   Version: 0.0.0a 2022-03-21
 #
 #  Common stuff
 #
@@ -35,8 +35,8 @@ default_host="8.8.4.4"
 
 
 default_lvl_display=0.1 # float, display loss if this or higher
-default_lvl_alert=1.0  # float, this or higher triggers alert
-default_lvl_crit=5.0   # float, this or higher triggers critical
+default_lvl_alert=2.0  # float, this or higher triggers alert color
+default_lvl_crit=8.0   # float, this or higher triggers critical color
 default_color_alert="yellow"
 default_color_crit="red"
 default_color_bg="black"  # only used for displaying alert/crit

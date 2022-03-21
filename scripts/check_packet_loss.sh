@@ -1,5 +1,13 @@
 #!/bin/sh
-# keep
+#
+#   Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#   License: MIT
+#
+#   Part of https://github.com/jaclu/tmux-menus
+#
+#   Version: 0.0.0a 2022-03-21
+#
+
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 . "$CURRENT_DIR/utils.sh"
 

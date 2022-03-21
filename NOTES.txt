@@ -1,0 +1,46 @@
+## kill proc
+
+ps |grep tmux_packet_loss |grep -v grep
+
+
+
+
+
+INSERT INTO packet_loss (timestamp,loss) values (now,loss);
+
+
+SELECT loss from packet_loss ORDER BY rowid DESC LIMIT 1
+
+SELECT avg(loss) from packet_loss
+
+SELECT host, count FROM params
+
+
+
+
+
+CREATE TABLE packet_loss (
+    timestamp   text,
+    loss        float
+)
+CREATE TABLE params (
+    host        text,
+    count       int,
+    hist_size   int
+)
+
+CREATE TRIGGER triggername AFTER INSERT ON packet_loss
+BEGIN
+    delete from packet_loss where (select count(\*) from packet_loss)=(SELECT hist_size from params);
+END;
+
+
+
+-- Example table
+CREATE TABLE ring_buffer (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT);
+CREATE TABLE packet_loss (loss float, datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL);
+-- Number 10 on where statement defines the ring buffer's size
+CREATE TRIGGER delete_tail AFTER INSERT ON packet_loss
+BEGIN
+   DELETE FROM packet_loss where rowid < NEW.rowid-5;
+END;

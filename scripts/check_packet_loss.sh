@@ -21,7 +21,7 @@ log_it "lvl_disp [$lvl_disp]"
 
 
 log_it "comparing [$current_loss] [$lvl_disp] 6 < eq 1"
-if [ $(bc <<< "$current_loss < $lvl_disp") -eq 1 ]; then
+if [ $(echo "$current_loss < $lvl_disp" | bc) -eq 1 ]; then
     log_it "below threshold"
     current_loss="" # no output if bellow threshold
 fi

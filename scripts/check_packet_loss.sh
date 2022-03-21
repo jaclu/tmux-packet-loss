@@ -17,10 +17,9 @@ log_it "raw loss [$current_loss]"
 
 
 lvl_disp="$(get_tmux_option "@packet-loss_level_disp" "$default_lvl_display")"
-log_it "lvl_disp [$lvl_disp]"
+#log_it "lvl_disp [$lvl_disp]"
 
 
-log_it "comparing [$current_loss] [$lvl_disp] 6 < eq 1"
 if [ $(echo "$current_loss < $lvl_disp" | bc) -eq 1 ]; then
     log_it "below threshold"
     current_loss="" # no output if bellow threshold

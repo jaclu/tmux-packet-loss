@@ -46,7 +46,7 @@ if [ -n "$current_loss" ]; then
     current_loss="$loss_prefix$current_loss"
 fi
 
-log_it "reported loss [$current_loss]"
+log_it "[$(date)] reported loss [$current_loss]"
 echo "$current_loss"
 
 

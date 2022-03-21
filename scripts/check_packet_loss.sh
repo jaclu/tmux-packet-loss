@@ -10,7 +10,7 @@ db="$CURRENT_DIR/$sqlite_db"
 #current_loss="$(sqlite3 "$db" "SELECT loss from packet_loss ORDER BY rowid DESC LIMIT 1")"
 
 # average over hist_size polls
-current_loss="$(sqlite3 "$db" "SELECT round(avg(loss),2) from packet_loss")"
+current_loss="$(sqlite3 "$db" "SELECT round(avg(loss),1) from packet_loss")"
 
 # log_it "raw loss [$current_loss]"
 [ "$current_loss" = "0.0" ] && current_loss="" # no output if zero loss

@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-menus
 #
-#   Version: 0.0.0a 2022-03-21
+#   Version: 0.0.1 2022-03-22
 #
 
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -21,7 +21,7 @@ db="$CURRENT_DIR/$sqlite_db"
 
 # average over hist_size polls
 current_loss="$(sqlite3 "$db" "SELECT round(avg(loss),1) from packet_loss")"
-# log_it "raw loss [$current_loss]"
+log_it "raw loss [$current_loss]"
 
 
 lvl_disp="$(get_tmux_option "@packet-loss_level_disp" "$default_lvl_display")"
@@ -58,10 +58,11 @@ if [ -n "$current_loss" ]; then
     loss_prefix="$(get_tmux_option "@packet-loss_prefix" "$default_prefix")"
     # log_it "loss_prefix [$loss_prefix]"
     loss_suffix="$(get_tmux_option "@packet-loss_suffix" "$default_suffix")"
+    # log_it "loss_suffix [$loss_suffix]"
     current_loss="$loss_prefix$current_loss$loss_suffix"
 fi
 
-# log_it "[$(date)] reported loss [$current_loss]"
+log_it "[$(date)] reported loss [$current_loss]"
 echo "$current_loss"
 
 

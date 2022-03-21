@@ -21,11 +21,11 @@ monitoring_process="$SCRIPTS_DIR/packet_loss_monitor.sh"
 monitor_pidfile="$SCRIPTS_DIR/$monitor_pidfile"
 
 
-keyboard_interpolation=(
+pkt_loss_interpolation=(
     "\#{packet_loss_stat}"
 )
 
-keyboard_commands=(
+pkt_loss_commands=(
     "#($SCRIPTS_DIR/check_packet_loss.sh)"
 )
 
@@ -71,8 +71,8 @@ set_tmux_option() {
 
 do_interpolation() {
     local all_interpolated="$1"
-    for ((i=0; i<${#keyboard_commands[@]}; i++)); do
-        all_interpolated=${all_interpolated//${keyboard_interpolation[$i]}/${keyboard_commands[$i]}}
+    for ((i=0; i<${#pkt_loss_commands[@]}; i++)); do
+        all_interpolated=${all_interpolated//${pkt_loss_interpolation[$i]}/${pkt_loss_commands[$i]}}
     done
     echo "$all_interpolated"
 }

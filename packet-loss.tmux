@@ -117,10 +117,10 @@ set_db_params
 log_it "Started monitoring process"
 
 
-main() {
-    update_tmux_option "status-right"
-    update_tmux_option "status-left"
-}
+#main() {
+update_tmux_option "status-right"
+update_tmux_option "status-left"
+#}
 
 
-main
+#main

@@ -13,8 +13,8 @@
 
 
 
-db_version=11   # Sanity check that DB structure is correct
-hist_size=10  # how many rounds of pings to keep in db for average calculations
+db_version=11  # Sanity check that DB structure is correct
+hist_size=100  # how many rounds of pings to keep in db for average calculations
 
 #
 #  how often to report packet loss statistics

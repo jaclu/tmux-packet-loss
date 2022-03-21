@@ -82,17 +82,17 @@ while : ; do
     output="$($ping_cmd  | grep loss)"
     echo "ping [$output] done!"
     if [ -n "$output" ]; then
-        this_time_percent_loss=$(echo "$output" | awk -v a="$packet_loss_param_no" '{print $a}' | sed s/%// )
+        this_time_percent_loss=$(echo "$output" | awk -v percent_loss_param="$packet_loss_param_no" '{print $percent_loss_param}' | sed s/%// )
         if [ -z "$this_time_percent_loss" ]; then
             log_it "ERROR: Failed to parse ping output!"
             this_time_percent_loss="100"
         fi
     else
-        this_time_percent_loss="100"
         #
         #  no output assume no connection, since not an error in this software
         #  just log a notice
         #
+        this_time_percent_loss="100"
         log_it "No ping outpput, will sleep $ping_count seconds"
         #
         #  Some pings instantly aborts on no connection, this will keep

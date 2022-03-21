@@ -9,18 +9,30 @@
 #
 
 
+#
+#  Dependency check
+#
+if ! command -v sqlite3 > /dev/null 2>&1; then
+    tmux display "tmux-packet-loss ERROR: missing dependency sqlite3"
+    exit 1
+fi
+
+
+
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-
 SCRIPTS_DIR="$CURRENT_DIR/scripts"
-
 . "$SCRIPTS_DIR/utils.sh"
 
-db="$SCRIPTS_DIR/$sqlite_db"
 
+db="$SCRIPTS_DIR/$sqlite_db"
 monitoring_process="$SCRIPTS_DIR/packet_loss_monitor.sh"
 monitor_pidfile="$SCRIPTS_DIR/$monitor_pidfile"
 
 
+
+#
+#  Match tag with polling script
+#
 pkt_loss_interpolation=(
     "\#{packet_loss_stat}"
 )
@@ -53,9 +65,9 @@ set_db_params() {
     log_it "ping_count=[$ping_count]"
 
     # First clear table to assure only one row present
-    sql=" \
-        DELETE FROM params; \
-        INSERT INTO params (host, ping_count, hist_size) values ("
+    sqlite3 "$db" "DELETE FROM params"
+
+    sql="INSERT INTO params (host, ping_count, hist_size) values ("
     sql="$sql"'"'"$ping_host"'"'", $ping_count, $hist_size);"
     sqlite3 "$db" "$sql"
     log_it "db params set"
@@ -68,6 +80,7 @@ set_tmux_option() {
 
     tmux set-option -gq "$option" "$value"
 }
+
 
 do_interpolation() {
     local all_interpolated="$1"
@@ -89,38 +102,48 @@ update_tmux_option() {
 }
 
 
-#
-#  By printing a NL and date, its easier to keep separate runs apart
-#
-log_it ""
-log_it "$(date)"
+main() {
+    #
+    #  By printing a NL and date, its easier to keep separate runs apart
+    #
+    log_it ""
+    log_it "$(date)"
 
-if ! command -v sqlite3; then
-    tmux display "tmux-packet-loss ERROR: missing dependency sqlite3"
-    exit 1
-fi
-
-if [ -f "$monitor_pidfile" ]; then
-    pid="$(cat $monitor_pidfile)"
-    if [ -n "$(ps |grep "$monitoring_process" | grep "$pid" )" ]; then
-        kill "$pid"
-        log_it "killed running monitor"
+    #
+    #  Removing any current monitor process.
+    #  monitor is always started with current settings.
+    #  Since params might have changed
+    #
+    if [ -f "$monitor_pidfile" ]; then
+        pid="$(cat "$monitor_pidfile")"
+        if [ -n "$(ps |grep "$monitoring_process" | grep "$pid" )" ]; then
+            kill "$pid"
+            log_it "killed running monitor"
+        fi
     fi
-fi
-
-[ "$(sqlite3 "$db" "PRAGMA user_version")" != "$db_version" ] && create_db
-
-# Should be done every time, since settings might have changed
-set_db_params
-
-"$monitoring_process" &
-log_it "Started monitoring process"
 
 
-#main() {
-update_tmux_option "status-right"
-update_tmux_option "status-left"
-#}
+    #
+    #  Create fresh database if it is missing or obsolete
+    #
+    [ "$(sqlite3 "$db" "PRAGMA user_version")" != "$db_version" ] && create_db
 
 
-#main
+    # Should be done every time, since settings might have changed
+    set_db_params
+
+    #
+    #  Starting a fresh monitor, will use current db_params to define operation
+    #
+    nohup "$monitoring_process" > "$SCRIPTS_DIR/monitor_output.log" 2>&1 &
+    log_it "Started monitoring process"
+
+
+    #
+    #  Activate pkt_loss_interpolation tag if used
+    #
+    update_tmux_option "status-left"
+    update_tmux_option "status-right"
+}
+
+main

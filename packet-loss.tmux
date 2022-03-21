@@ -135,7 +135,7 @@ main() {
     #
     #  Starting a fresh monitor, will use current db_params to define operation
     #
-    nohup "$monitoring_process" > "$SCRIPTS_DIR/monitor_output.log" 2>&1 &
+    nohup "$monitoring_process" > /dev/null 2>&1 &
     log_it "Started monitoring process"
 
 

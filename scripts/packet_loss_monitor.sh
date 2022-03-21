@@ -1,19 +1,32 @@
 #!/bin/sh
-# keep
-CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
+CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 . "$CURRENT_DIR/utils.sh"
 
 db="$CURRENT_DIR/$sqlite_db"
 
-echo "$$" > "$CURRENT_DIR/$monitor_pidfile"
 
+#
+#  Getting params from DB
+#
 ping_count="$(sqlite3 "$db" "SELECT ping_count FROM params")"
 host="$(sqlite3 "$db" "SELECT host FROM params")"
 
 
+#
+#  Save pid for easier kill from packet-loss.tmux
+#
+echo "$$" > "$CURRENT_DIR/$monitor_pidfile"
 
+
+
+#
+#  Figuring out the nature of the available ping cmd
+#
+
+#
 # Argh, even the position for % packet loss is not constant...
+#
 packet_loss_param_no="7"
 
 # triggering an error printing valid parameters...
@@ -37,6 +50,10 @@ fi
 ping_cmd="$ping_cmd -c $ping_count $host"
 
 
+
+#
+#  Main
+#
 while : ; do
     output="$($ping_cmd  | grep loss)"
     this_time_percent_loss=$(echo "$output" | awk -v a="$packet_loss_param_no" '{print $a}' | sed s/%// )

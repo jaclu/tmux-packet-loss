@@ -11,10 +11,17 @@
 #
 
 
+#
+#  If log_file is empty or undefined, no logging will occur,
+#  so comment it out for normal usage.
+#
+log_file="/tmp/tmux-packet-loss.log"  # Trigger LF to separate runs of this script
 
 
-db_version=11  # Sanity check that DB structure is correct
+
+db_version=11  # Sanity check that DB structure is current
 hist_size=100  # how many rounds of pings to keep in db for average calculations
+
 
 #
 #  how often to report packet loss statistics
@@ -27,21 +34,16 @@ default_ping_count=5
 default_host="8.8.4.4"
 
 
-default_lvl_alert=1
-default_lvl_crit=5
+default_lvl_alert=1.0  # float, this or higher triggers alert
+default_lvl_crit=5.0   # float, this or higher triggers critical
 default_color_alert="yellow"
 default_color_crit="red"
-default_color_bg="black"
+default_color_bg="black"  # only used for displaying alert/crit
 default_prefix="pkt loss: "
 
-sqlite_db="packet_loss.sqlite" # in scripts
-monitor_pidfile="monitor.pid"  # in scripts
+sqlite_db="packet_loss.sqlite" # assumed to be in scripts
+monitor_pidfile="monitor.pid"  # assumed to be in scripts
 
-#
-#  If log_file is empty or undefined, no logging will occur,
-#  so comment it out for normal usage.
-#
-log_file="/tmp/tmux-packet-loss.log"  # Trigger LF to separate runs of this script
 
 
 #

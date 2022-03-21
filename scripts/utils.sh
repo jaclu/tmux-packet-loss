@@ -26,7 +26,7 @@ hist_size=100  # how many rounds of pings to keep in db for average calculations
 #
 #  how often to report packet loss statistics
 #
-default_ping_count=5
+default_ping_count=10
 
 #
 #  Default host to ping

@@ -13,7 +13,7 @@
 
 
 
-db_version=3   # Sanity check that DB structure is correct
+db_version=2   # Sanity check that DB structure is correct
 hist_size=100  # how many rounds of pings to keep in db for average calculations
 
 #

@@ -20,6 +20,7 @@ db="$SCRIPTS_DIR/$sqlite_db"
 monitoring_process="$SCRIPTS_DIR/packet_loss_monitor.sh"
 monitor_pidfile="$SCRIPTS_DIR/$monitor_pidfile"
 
+
 keyboard_interpolation=(
     "\#{packet_loss_stat}"
 )
@@ -27,14 +28,6 @@ keyboard_interpolation=(
 keyboard_commands=(
     "#($SCRIPTS_DIR/check_packet_loss.sh)"
 )
-
-
-set_tmux_option() {
-    local option="$1"
-    local value="$2"
-
-    tmux set-option -gq "$option" "$value"
-}
 
 
 create_db() {
@@ -69,11 +62,19 @@ set_db_params() {
 }
 
 
+set_tmux_option() {
+    local option="$1"
+    local value="$2"
+
+    tmux set-option -gq "$option" "$value"
+}
+
 do_interpolation() {
     local all_interpolated="$1"
     for ((i=0; i<${#keyboard_commands[@]}; i++)); do
         all_interpolated=${all_interpolated//${keyboard_interpolation[$i]}/${keyboard_commands[$i]}}
     done
+    echo "$all_interpolated"
 }
 
 
@@ -82,7 +83,6 @@ update_tmux_option() {
     local option_value
     local new_option_value
 
-    log_it "processing [$option]"
     option_value="$(get_tmux_option "$option")"
     new_option_value="$(do_interpolation "$option_value")"
     set_tmux_option "$option" "$new_option_value"
@@ -117,5 +117,10 @@ set_db_params
 log_it "Started monitoring process"
 
 
-update_tmux_option "status-left"
-update_tmux_option "status-right"
+main() {
+    update_tmux_option "status-right"
+    update_tmux_option "status-left"
+}
+
+
+main

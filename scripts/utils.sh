@@ -40,8 +40,8 @@ default_lvl_crit=5.0   # float, this or higher triggers critical
 default_color_alert="yellow"
 default_color_crit="red"
 default_color_bg="black"  # only used for displaying alert/crit
-default_prefix="| pkt loss: "
-default_suffix=" | "
+default_prefix=" pkt loss: "
+default_suffix=" "
 
 sqlite_db="packet_loss.sqlite" # assumed to be in scripts
 monitor_pidfile="monitor.pid"  # assumed to be in scripts

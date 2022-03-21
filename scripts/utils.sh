@@ -43,8 +43,13 @@ default_color_bg="black"  # only used for displaying alert/crit
 default_prefix=" pkt loss: "
 default_suffix=" "
 
-sqlite_db="packet_loss.sqlite" # assumed to be in scripts
-monitor_pidfile="monitor.pid"  # assumed to be in scripts
+#
+#  These files are assumed to be in scripts, so depending on location
+#  for the script using this, use the correct location prefix!
+#
+sqlite_db="packet_loss.sqlite"
+monitor_process="packet_loss_monitor.sh"
+monitor_pidfile="monitor.pid"
 
 
 

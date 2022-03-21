@@ -5,19 +5,34 @@ CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 db="$CURRENT_DIR/$sqlite_db"
 
+pidfile="$CURRENT_DIR/$monitor_pidfile"
+
+
+#
+#  Ensure only one instance is running.
+#  No need to clean up old pidfiles here, that has already been done by packet-loss.tmux
+#
+if [ -e "$pidfile" ]; then
+    msg="tmux-packet-loss ERROR: packet_loss_monitor.sh seems to already be running, aborting!"
+    log_it "$msg"
+    tmux display "$msg"
+    exit 1
+fi
+
+
+#
+#  Save pid for easier kill from packet-loss.tmux
+#
+log_it "Saving new pid [$$] into pidfile"
+echo "$$" > "$pidfile"
+
+
 
 #
 #  Getting params from DB
 #
 ping_count="$(sqlite3 "$db" "SELECT ping_count FROM params")"
 host="$(sqlite3 "$db" "SELECT host FROM params")"
-
-
-#
-#  Save pid for easier kill from packet-loss.tmux
-#
-echo "$$" > "$CURRENT_DIR/$monitor_pidfile"
-
 
 
 #

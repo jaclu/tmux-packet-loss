@@ -25,8 +25,8 @@ SCRIPTS_DIR="$CURRENT_DIR/scripts"
 
 
 db="$SCRIPTS_DIR/$sqlite_db"
-monitoring_process="$SCRIPTS_DIR/packet_loss_monitor.sh"
-monitor_pidfile="$SCRIPTS_DIR/$monitor_pidfile"
+monitor_proc_full_name="$SCRIPTS_DIR/$monitor_process"
+pidfile="$SCRIPTS_DIR/$monitor_pidfile"
 
 
 
@@ -114,12 +114,20 @@ main() {
     #  monitor is always started with current settings.
     #  Since params might have changed
     #
-    if [ -f "$monitor_pidfile" ]; then
-        pid="$(cat "$monitor_pidfile")"
-        if [ -n "$(ps |grep "$monitoring_process" | grep "$pid" )" ]; then
-            kill "$pid"
-            log_it "killed running monitor"
-        fi
+    if [ -e "$pidfile" ]; then
+        pid="$(cat "$pidfile")"
+        log_it "Killing $monitor_process: [$pid]"
+        kill "$pid"
+        rm -f "$pidfile"
+    fi
+
+
+    #
+    #  Check if shutdown is requested
+    #
+    if [ "$1" = "stop" ]; then
+        echo "Requested to stop $monitor_proc_full_name"
+        exit 1
     fi
 
 
@@ -135,8 +143,8 @@ main() {
     #
     #  Starting a fresh monitor, will use current db_params to define operation
     #
-    nohup "$monitoring_process" > /dev/null 2>&1 &
-    log_it "Started monitoring process"
+    nohup "$monitor_proc_full_name" > /dev/null 2>&1 &
+    log_it "Started $monitor_process"
 
 
     #
@@ -146,4 +154,4 @@ main() {
     update_tmux_option "status-right"
 }
 
-main
+main "$*"

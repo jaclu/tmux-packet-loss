@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-menus
 #
-#   Version: 0.0.0a 2022-03-21
+#   Version: 0.0.1 2022-03-22
 #
 
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)

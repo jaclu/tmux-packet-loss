@@ -3,9 +3,9 @@
 #   Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
-#   Part of https://github.com/jaclu/tmux-menus
+#   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.1 2022-03-22
+#   Version: 0.0.2 2022-03-22
 #
 
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)

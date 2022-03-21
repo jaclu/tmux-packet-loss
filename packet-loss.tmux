@@ -3,9 +3,15 @@
 #   Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
-#   Part of https://github.com/jaclu/tmux-menus
+#   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.1 2022-03-22
+#   Version: 0.0.2 2022-03-22
+#
+#   This is the coordination script
+#    - ensures the database is present and up to date
+#    - sets params in the database
+#    - ensures packet_loss_monitor is running
+#    - binds  #{packet_loss_stat} to check_packet_loss.sh
 #
 
 
@@ -109,10 +115,11 @@ main() {
     log_it ""
     log_it "$(date)"
 
+
     #
     #  Removing any current monitor process.
     #  monitor is always started with current settings.
-    #  Since params might have changed
+    #  Dur to the fact that params might have changed
     #
     if [ -e "$pidfile" ]; then
         pid="$(cat "$pidfile")"
@@ -123,7 +130,9 @@ main() {
 
 
     #
-    #  Check if shutdown is requested
+    #  Check if shutdown is requested.
+    #  If not packet_loss_monitor will be fired up to run
+    #  in the background
     #
     if [ "$1" = "stop" ]; then
         echo "Requested to stop $monitor_proc_full_name"

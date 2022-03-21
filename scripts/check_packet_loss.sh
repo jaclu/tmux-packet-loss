@@ -6,15 +6,25 @@ CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 db="$CURRENT_DIR/$sqlite_db"
 
 
+
+
 # last poll
 #current_loss="$(sqlite3 "$db" "SELECT loss from packet_loss ORDER BY rowid DESC LIMIT 1")"
 
 # average over hist_size polls
 current_loss="$(sqlite3 "$db" "SELECT round(avg(loss),1) from packet_loss")"
+log_it "raw loss [$current_loss]"
 
-# log_it "raw loss [$current_loss]"
-[ "$current_loss" = "0.0" ] && current_loss="" # no output if zero loss
 
+lvl_disp="$(get_tmux_option "@packet-loss_level_crit" "$default_lvl_display")"
+log_it "lvl_disp [$lvl_disp]"
+
+
+log_it "comparing [$current_loss] [$lvl_disp] 6 < eq 1"
+if [ $(bc <<< "$current_loss < $lvl_disp") -eq 1 ]; then
+    log_it "below threshold"
+    current_loss="" # no output if bellow threshold
+fi
 
 #
 #  To minimize cpu hogging, only fetch options when needed
@@ -40,7 +50,8 @@ if [ -n "$current_loss" ]; then
     fi
     loss_prefix="$(get_tmux_option "@packet-loss_prefix" "$default_prefix")"
     # log_it "loss_prefix [$loss_prefix]"
-    current_loss="$loss_prefix$current_loss"
+    loss_suffix="$(get_tmux_option "@packet-loss_suffix" "$default_suffix")"
+    current_loss="$loss_prefix$current_loss$loss_suffix"
 fi
 
 log_it "[$(date)] reported loss [$current_loss]"

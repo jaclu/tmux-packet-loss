@@ -78,5 +78,5 @@ while : ; do
         sleep "$ping_count"
     fi
     sqlite3 "$db" "INSERT INTO packet_loss (loss) values ($this_time_percent_loss);"
-    log_it "[$(date)] stored [$this_time_percent_loss] in db"
+    # log_it "[$(date)] stored [$this_time_percent_loss] in db"
 done

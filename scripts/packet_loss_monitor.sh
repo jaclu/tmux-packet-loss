@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.2 2022-03-22
+#   Version: 0.0.3 2022-03-22
 #
 
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -78,9 +78,9 @@ ping_cmd="$ping_cmd -c $ping_count $host"
 #  Main
 #
 while : ; do
-    echo "will ping"
+    # echo "will ping"
     output="$($ping_cmd  | grep loss)"
-    echo "ping [$output] done!"
+    # echo "ping [$output] done!"
     if [ -n "$output" ]; then
         this_time_percent_loss=$(echo "$output" | awk -v percent_loss_param="$packet_loss_param_no" '{print $percent_loss_param}' | sed s/%// )
         if [ -z "$this_time_percent_loss" ]; then

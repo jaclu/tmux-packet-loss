@@ -83,22 +83,32 @@ set_db_params() {
 #  When last session terminates, shut down monitor process in order
 #  not to leave any trailing processes once tmux is shut down.
 #
-set_hook_session_closed() {
+hook_session_closed() {
+    action="$1"
     tmux_vers="$(tmux display -p '#{version}')"
     log_it "set_hook_session_closed($tmux_vers)"
 
-    if [ $(echo "$tmux_vers >= 3.0" | bc) -eq 1 ]; then
-        # hook arrays are available, use a random number in order not to
-        # collide with other stuff using the same hook
-        tmux set-hook -g session-closed[1819] "run $SCRIPTS_DIR/check_shutdown.sh"
-    elif [ $(echo "$tmux_vers >= 2.4" | bc) -eq 1 ]; then
-        log_it "Using non array hook, might have overwritten other hook action"
-        tmux set-hook -g session-closed "run $SCRIPTS_DIR/check_shutdown.sh"
+    . "$SCRIPTS_DIR/adv_vers_compare.sh"
+
+    if adv_vers_compare $tmux_vers ">=" "3.0"; then
+        hook_name="session-closed[$hook_array_idx]"
+    elif adv_vers_compare $tmux_vers ">=" "2.4"; then
+        hook_name="session-closed"
     else
         log_it "before tmux 2.4 session-closed hook is not available, so can not shut down monitor process when tmux exits"
     fi
+    if [ -n "$hook_name" ]; then
+        if [ "$action" = "set" ]; then
+            tmux set-hook -g "$hook_name" "run $SCRIPTS_DIR/check_shutdown.sh"
+            log_it "binding packet-loss shutdown to [$hook_name]"
+        elif [ "$action" = "clear" ]; then
+            tmux set-hook -ug "$hook_name"
+            log_it "releasing [$hook_name]"
+        else
+            log_it "ERROR: set_hook_session_closed must be called with param set or clear!"
+        fi
+    fi
 }
-
 
 #
 #  Removing any current monitor process.
@@ -164,6 +174,7 @@ main() {
     #
     if [ "$1" = "stop" ]; then
         echo "Requested to shut-down"
+        hook_session_closed clear
         exit 1
     fi
 
@@ -188,7 +199,7 @@ main() {
     #  When last session terminates, shut down monitor process in order
     #  not to leave any trailing processes once tmux is shut down.
     #
-    set_hook_session_closed
+    hook_session_closed set
 
 
     #

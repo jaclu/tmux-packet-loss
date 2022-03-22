@@ -21,7 +21,7 @@ log_file="/tmp/tmux-packet-loss.log"  # Trigger LF to separate runs of this scri
 
 db_version=11  # Sanity check that DB structure is current
 hist_size=100  # how many rounds of pings to keep in db for average calculations
-hook_array_idx=1819  # random hopefully unique nr to avoid colliding with other
+hook_array_idx=1819  # random hopefully unique id to avoid colliding with other
                      # hook handling utilities
 
 #

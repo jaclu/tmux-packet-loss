@@ -104,7 +104,7 @@ hook_handler() {
             log_it "binding packet-loss shutdown to: $hook_name"
         elif [ "$action" = "clear" ]; then
             tmux set-hook -ug "$hook_name"
-            log_it "releasing [$hook_name]"
+            log_it "releasing: $hook_name"
         else
             log_it "ERROR: set_hook_session_closed must be called with param set or clear!"
         fi

@@ -2,13 +2,15 @@
 
 Warns if there are packet losses
 
-## Dependency
-
-Sqlite3
-
 ## Status
 
 testing, works, but not documented yet
+
+## Dependencies
+
+`tmux 1.9` or higher
+
+Sqlite3
 
 ## Variables that can be set
 

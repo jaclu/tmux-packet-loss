@@ -35,7 +35,6 @@ log_it "Saving new pid [$$] into pidfile"
 echo "$$" > "$pidfile"
 
 
-
 #
 #  Getting params from DB
 #
@@ -73,7 +72,6 @@ fi
 ping_cmd="$ping_cmd -c $ping_count $host"
 
 
-
 #
 #  Main
 #
@@ -96,7 +94,7 @@ while : ; do
         log_it "No ping outpput, will sleep $ping_count seconds"
         #
         #  Some pings instantly aborts on no connection, this will keep
-        #  the poll rate normal and rapidly fill the DB with bad data
+        #  the poll rate normal and avoid rapidly filling the DB with bad data
         #
         sleep "$ping_count"
     fi

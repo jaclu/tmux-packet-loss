@@ -86,7 +86,7 @@ set_db_params() {
 hook_session_closed() {
     action="$1"
     tmux_vers="$(tmux display -p '#{version}')"
-    log_it "set_hook_session_closed($tmux_vers)"
+    log_it "hook_session_closed($action) tmux vers: $tmux_vers"
 
     . "$SCRIPTS_DIR/adv_vers_compare.sh"
 

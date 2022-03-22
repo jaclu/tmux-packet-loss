@@ -84,7 +84,16 @@ set_db_params() {
 #  not to leave any trailing processes once tmux is shut down.
 #
 set_hook_session_closed() {
-    tmux set-hook -g session-closed[1819] "run $SCRIPTS_DIR/check_shutdown.sh"
+    tmux_vers="$(tmux display -p '#{version}')"
+    log_it "set_hook_session_closed($tmux_vers)"
+
+    if [ $(echo "$tmux_vers >= 3.0" | bc) -eq 1 ]; then
+        # hook arrays are available, use a random number in order not to
+        # collide with other stuff using the same hook
+        tmux set-hook -g session-closed[1819] "run $SCRIPTS_DIR/check_shutdown.sh"
+    else
+        tmux set-hook -g session-closed "run $SCRIPTS_DIR/check_shutdown.sh"
+    fi
 }
 
 

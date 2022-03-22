@@ -2,10 +2,6 @@
 
 Displays % packet loss to selected host
 
-## Status
-
-operational, but not fully documented yet
-
 ## Operation
 
 This plugin runs a background process using repeated runs of ping to evaluate % package loss. On modern tmux versions this background process is terminated when tmux exits, see Tmux Compatibility for more details about versions and limitations.

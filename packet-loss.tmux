@@ -85,7 +85,8 @@ set_db_params() {
 #
 hook_handler() {
     action="$1"
-    tmux_vers="$(tmux display -p '#{version}')"
+    #tmux_vers="$(tmux display -p '#{version}')"
+    tmux_vers="$(tmux -V | cut -d' ' -f2)"
     log_it "hook_handler($action) tmux vers: $tmux_vers"
 
     . "$SCRIPTS_DIR/adv_vers_compare.sh"

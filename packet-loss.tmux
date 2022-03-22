@@ -54,6 +54,9 @@ pkt_loss_commands=(
 create_db() {
     rm -f "$db"
     log_it "old_db removed"
+    #
+    #  packet_loss is limited to $hist_size rows, in order to make statistics consistent
+    #
     sqlite3 "$db" " \
         CREATE TABLE packet_loss (loss float, datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL); \
         CREATE TRIGGER delete_tail AFTER INSERT ON packet_loss \
@@ -77,7 +80,7 @@ set_db_params() {
     ping_count=$(get_tmux_option "@packet-loss-ping_count" "$default_ping_count")
     log_it "ping_count=[$ping_count]"
 
-    # First clear table to assure only one row present
+    # First clear table to assure only one row is present
     sqlite3 "$db" "DELETE FROM params"
 
     sql="INSERT INTO params (host, ping_count, hist_size) values ("

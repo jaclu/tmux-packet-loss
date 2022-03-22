@@ -24,7 +24,6 @@ if ! command -v sqlite3 > /dev/null 2>&1; then
 fi
 
 
-
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SCRIPTS_DIR="$CURRENT_DIR/scripts"
 . "$SCRIPTS_DIR/utils.sh"
@@ -63,6 +62,10 @@ create_db() {
 
 
 set_db_params() {
+    local ping_host
+    local ping_count
+    local sql
+
     ping_host=$(get_tmux_option "@packet-loss-ping_host" "$default_host")
     log_it "ping_host=[$ping_host]"
 
@@ -84,11 +87,14 @@ set_db_params() {
 #  not to leave any trailing processes once tmux is shut down.
 #
 hook_handler() {
-    action="$1"
-    #tmux_vers="$(tmux display -p '#{version}')"
+    local action="$1"
+    local tmux_vers
+    local hook_name
+
     tmux_vers="$(tmux -V | cut -d' ' -f2)"
     log_it "hook_handler($action) tmux vers: $tmux_vers"
 
+    # needed to be able to handle versions like 3.2a
     . "$SCRIPTS_DIR/adv_vers_compare.sh"
 
     if adv_vers_compare $tmux_vers ">=" "3.0"; then
@@ -111,12 +117,15 @@ hook_handler() {
     fi
 }
 
+
 #
 #  Removing any current monitor process.
 #  monitor is always started with current settings due to the fact that
 #  parameters might have changed since it was last started
 #
 kill_running_monitor() {
+    local pid
+
     log_it "kill_running_monitor($pid_file)"
 
     if [ -e "$pid_file" ]; then
@@ -167,6 +176,10 @@ main() {
     log_it "$(date)"
 
 
+    #
+    #  Always get rid of potentially running background process, since it might
+    #  not use current params for host and ping_count
+    #
     kill_running_monitor
 
 
@@ -189,6 +202,7 @@ main() {
     # Should be done every time, since settings might have changed
     set_db_params
 
+
     #
     #  Starting a fresh monitor, will use current db_params to define operation
     #
@@ -209,5 +223,6 @@ main() {
     update_tmux_option "status-left"
     update_tmux_option "status-right"
 }
+
 
 main "$*"

@@ -39,7 +39,7 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 
 | Version   | Notice                                                                                                                                                                                                            |
 | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 3.0 >=    | Background process is shut down when tmux exits using session-closed hook with an array suffix.                                                                                                                   |
+| 3.0 <=    | Background process is shut down when tmux exits using session-closed hook with an array suffix.                                                                                                                   |
 | 2.4 - 2.9 | Will shut down background process, but since hooks doesn't support arrays, binding to session-closed might interfere with other stuff using the same hook.                                                        |
 | 1.9 - 2.3 | session-closed hook not available. If you want to kill of the background monitoring process after tmux shutdown, you need to add `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux |
 
@@ -49,7 +49,7 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 | -------------- | ------------------------------------------------------------- |
 | #{packet_loss} | Displays packet loss % if at or above @packet-loss_level_disp |
 
-## Variables that can be set
+## Variables
 
 To disable a setting, set it to " ", spaces will be trimmed and thus nothing will end up being printed, if you set it to "" it will be ignored and the default value will be used.
 

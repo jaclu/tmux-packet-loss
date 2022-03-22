@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.2 2022-03-22
+#   Version: 0.0.3 2022-03-22
 #
 
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -13,6 +13,12 @@ CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 db="$CURRENT_DIR/$sqlite_db"
 
+if [ ! -e "$db" ]; then
+    msg="tmux-packet-loss ERROR: DB [$db] not found!"
+    log_it "$msg"
+    tmux display "$msg"
+    exit 1
+fi
 
 
 

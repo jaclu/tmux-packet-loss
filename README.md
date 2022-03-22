@@ -49,7 +49,7 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 | -------------- | ------------------------------------------------------------- |
 | #{packet_loss} | Displays packet loss % if at or above @packet-loss_level_disp |
 
-## Variables that can be set
+## Variables
 
 To disable a setting, set it to " ", spaces will be trimmed and thus nothing will end up being printed, if you set it to "" it will be ignored and the default value will be used.
 

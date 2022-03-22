@@ -83,10 +83,10 @@ set_db_params() {
 #  When last session terminates, shut down monitor process in order
 #  not to leave any trailing processes once tmux is shut down.
 #
-hook_session_closed() {
+hook_handler() {
     action="$1"
     tmux_vers="$(tmux display -p '#{version}')"
-    log_it "hook_session_closed($action) tmux vers: $tmux_vers"
+    log_it "hook_handler($action) tmux vers: $tmux_vers"
 
     . "$SCRIPTS_DIR/adv_vers_compare.sh"
 
@@ -174,7 +174,7 @@ main() {
     #
     if [ "$1" = "stop" ]; then
         echo "Requested to shut-down"
-        hook_session_closed clear
+        hook_handler clear
         exit 1
     fi
 
@@ -199,7 +199,7 @@ main() {
     #  When last session terminates, shut down monitor process in order
     #  not to leave any trailing processes once tmux is shut down.
     #
-    hook_session_closed set
+    hook_handler set
 
 
     #

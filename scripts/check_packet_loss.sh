@@ -28,7 +28,7 @@ fi
 # average over hist_size polls
 current_loss="$(sqlite3 "$db" "SELECT round(avg(loss),1) from packet_loss")"
 
-#log_it "raw loss [$current_loss]"
+log_it "raw loss [$current_loss]"
 lvl_disp="$(get_tmux_option "@packet-loss_level_disp" "$default_lvl_display")"
 # log_it "lvl_disp [$lvl_disp]"
 
@@ -67,5 +67,5 @@ if [ -n "$current_loss" ]; then
     current_loss="$loss_prefix$current_loss$loss_suffix"
 fi
 
-# log_it "[$(date)] reported loss [$current_loss]"
+log_it "reported loss [$current_loss]"
 echo "$current_loss"

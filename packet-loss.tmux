@@ -11,7 +11,7 @@
 #    - ensures the database is present and up to date
 #    - sets params in the database
 #    - ensures packet_loss_monitor is running
-#    - binds  #{packet_loss_stat} to check_packet_loss.sh
+#    - binds  #{packet_loss} to check_packet_loss.sh
 #
 
 
@@ -38,7 +38,7 @@ pid_file="$SCRIPTS_DIR/$monitor_pidfile"
 #  Match tag with polling script
 #
 pkt_loss_interpolation=(
-    "\#{packet_loss_stat}"
+    "\#{packet_loss}"
 )
 
 pkt_loss_commands=(
@@ -223,7 +223,7 @@ main() {
 
 
     #
-    #  Activate #{packet_loss_stat} tag if used
+    #  Activate #{packet_loss} tag if used
     #
     update_tmux_option "status-left"
     update_tmux_option "status-right"

@@ -101,7 +101,7 @@ hook_handler() {
     if [ -n "$hook_name" ]; then
         if [ "$action" = "set" ]; then
             tmux set-hook -g "$hook_name" "run $SCRIPTS_DIR/check_shutdown.sh"
-            log_it "binding packet-loss shutdown to [$hook_name]"
+            log_it "binding packet-loss shutdown to: $hook_name"
         elif [ "$action" = "clear" ]; then
             tmux set-hook -ug "$hook_name"
             log_it "releasing [$hook_name]"

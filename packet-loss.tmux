@@ -46,6 +46,11 @@ pkt_loss_commands=(
 )
 
 
+#
+#  Functions only used here are kept here, in order to minimize overhead
+#  for sourcing utils.sh in the other scripts.
+#
+
 create_db() {
     rm -f "$db"
     log_it "old_db removed"

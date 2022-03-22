@@ -94,15 +94,15 @@ set_hook_session_closed() {
 #  parameters might have changed since it was last started
 #
 kill_running_monitor() {
-    log_it "kill_running_monitor($pidfile)"
+    log_it "kill_running_monitor($pid_file)"
 
-    if [ -e "$pidfile" ]; then
-        pid="$(cat "$pidfile")"
+    if [ -e "$pid_file" ]; then
+        pid="$(cat "$pid_file")"
         log_it "Killing $monitor_process: [$pid]"
         kill "$pid"
-        rm -f "$pidfile"
+        rm -f "$pid_file"
     else
-        log_it "pidfile not found, assuming no process running"
+        log_it "pid_file not found, assuming no process running"
     fi
 }
 

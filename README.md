@@ -39,7 +39,7 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 
 | Version   | Notice                                                                                                                                                                                                            |
 | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 3.0 >=    | Background process is shut down when tmux exits using session-closed hook with an array suffix.                                                                                                                   |
+| 3.0 <=    | Background process is shut down when tmux exits using session-closed hook with an array suffix.                                                                                                                   |
 | 2.4 - 2.9 | Will shut down background process, but since hooks doesn't support arrays, binding to session-closed might interfere with other stuff using the same hook.                                                        |
 | 1.9 - 2.3 | session-closed hook not available. If you want to kill of the background monitoring process after tmux shutdown, you need to add `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux |
 

@@ -32,8 +32,7 @@ SCRIPTS_DIR="$CURRENT_DIR/scripts"
 
 db="$SCRIPTS_DIR/$sqlite_db"
 monitor_proc_full_name="$SCRIPTS_DIR/$monitor_process"
-pidfile="$SCRIPTS_DIR/$monitor_pidfile"
-
+pid_file="$SCRIPTS_DIR/$monitor_pidfile"
 
 
 #
@@ -80,6 +79,35 @@ set_db_params() {
 }
 
 
+#
+#  When last session terminates, shut down monitor process in order
+#  not to leave any trailing processes once tmux is shut down.
+#
+set_hook_session_closed() {
+    tmux set-hook -g session-closed[1819] "run $SCRIPTS_DIR/check_shutdown.sh"
+}
+
+
+#
+#  Removing any current monitor process.
+#  monitor is always started with current settings due to the fact that
+#  parameters might have changed since it was last started
+#
+kill_running_monitor() {
+    log_it "kill_running_monitor($pidfile)"
+
+    if [ -e "$pidfile" ]; then
+        pid="$(cat "$pidfile")"
+        log_it "Killing $monitor_process: [$pid]"
+        kill "$pid"
+        rm -f "$pidfile"
+    else
+        log_it "pidfile not found, assuming no process running"
+    fi
+}
+
+
+
 set_tmux_option() {
     local option="$1"
     local value="$2"
@@ -116,26 +144,14 @@ main() {
     log_it "$(date)"
 
 
-    #
-    #  Removing any current monitor process.
-    #  monitor is always started with current settings.
-    #  Dur to the fact that params might have changed
-    #
-    if [ -e "$pidfile" ]; then
-        pid="$(cat "$pidfile")"
-        log_it "Killing $monitor_process: [$pid]"
-        kill "$pid"
-        rm -f "$pidfile"
-    fi
+    kill_running_monitor
 
 
     #
     #  Check if shutdown is requested.
-    #  If not packet_loss_monitor will be fired up to run
-    #  in the background
     #
     if [ "$1" = "stop" ]; then
-        echo "Requested to stop $monitor_proc_full_name"
+        echo "Requested to shut-down"
         exit 1
     fi
 
@@ -157,7 +173,14 @@ main() {
 
 
     #
-    #  Activate pkt_loss_interpolation tag if used
+    #  When last session terminates, shut down monitor process in order
+    #  not to leave any trailing processes once tmux is shut down.
+    #
+    set_hook_session_closed
+
+
+    #
+    #  Activate #{packet_loss_stat} tag if used
     #
     update_tmux_option "status-left"
     update_tmux_option "status-right"

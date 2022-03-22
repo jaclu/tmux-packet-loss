@@ -91,8 +91,11 @@ set_hook_session_closed() {
         # hook arrays are available, use a random number in order not to
         # collide with other stuff using the same hook
         tmux set-hook -g session-closed[1819] "run $SCRIPTS_DIR/check_shutdown.sh"
-    else
+    elif [ $(echo "$tmux_vers >= 2.4" | bc) -eq 1 ]; then
+        log_it "Using non array hook, might have overwritten other hook action"
         tmux set-hook -g session-closed "run $SCRIPTS_DIR/check_shutdown.sh"
+    else
+        log_it "before tmux 2.4 session-closed hook is not available, so can not shut down monitor process when tmux exits"
     fi
 }
 

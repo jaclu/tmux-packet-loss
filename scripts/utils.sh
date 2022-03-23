@@ -68,7 +68,8 @@ log_it() {
 get_tmux_option() {
     gtm_option=$1
     gtm_default=$2
-    gtm_value=$(tmux show-option -gqv "$gtm_option")
+    # pipe to /dev/null to avoid error msg if run outside tmux
+    gtm_value="$(tmux show-option -gqv "$gtm_option" 2&> /dev/null)"
     if [ -z "$gtm_value" ]; then
         echo "$gtm_default"
     else

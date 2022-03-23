@@ -12,7 +12,8 @@ On modern tmux versions this background process is terminated when tmux exits, s
 
 ## Dependencies
 
-`tmux 1.9` - will shutdown background process for tmux 2.4 or higher.<br>
+`tmux 1.9`
+
 `sqlite3`
 
 ## Install
@@ -49,7 +50,7 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 
 | Code           | Action                                                        |
 | -------------- | ------------------------------------------------------------- |
-| #{packet_loss} | Displays packet loss % if at or above @packet-loss_level_disp |
+| #{packet_loss} | Displays average packet loss % if at or above @packet-loss_level_disp |
 
 ## Variables
 

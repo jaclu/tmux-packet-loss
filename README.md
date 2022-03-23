@@ -6,7 +6,9 @@ Displays % packet loss to selected host
 
 Only appears if losses are at or above threshold level. Convenient way to see if there are connectivity issues.
 
-This plugin runs a background process using repeated runs of ping to evaluate % package loss. On modern tmux versions this background process is terminated when tmux exits, see Tmux Compatibility for more details about versions and limitations.
+This plugin runs a background process using repeated runs of ping to evaluate % package loss. Loss level is calculated as the average of the stored data points.
+
+On modern tmux versions this background process is terminated when tmux exits, see Tmux Compatibility for more details about versions and limitations.
 
 ## Dependencies
 
@@ -58,23 +60,24 @@ To disable a setting, set it to " ", spaces will be trimmed and thus nothing wil
 | @packet-loss-ping_host    | 8.8.4.4       | What host to ping                                                   |
 | @packet-loss-ping_count   | 10            | This many pings per statistics update.                              |
 |                           |               |
-| @packet-loss-history_size | 100           | How many ping results should be kept, for calculating average loss. |
+| @packet-loss-history_size | 100           | How many statistics results should be kept,<br>when calculating average loss. |
 |                           |               |
 | @packet-loss_level_disp   | 0.1           | Display loss if this or higher level                                |
 | @packet-loss_level_alert  | 2.0           | Color loss with color_alert                                         |
 | @packet-loss_level_crit   | 8.0           | Color loss with color_crit                                          |
 |                           |               |
-| @packet-loss_color_alert  | yellow        | Use this color if loss is at or above @packet-loss_level_alert      |
-| @packet-loss_color_crit   | red           | Use this color if loss is at or above @packet-loss_level_crit       |
-| @packet-loss_color_bg     | black         | bg color when alert/crit colors are used in display                 |
+| @packet-loss_color_alert  | yellow        | Use this color if loss is at or above<br>@packet-loss_level_alert      |
+| @packet-loss_color_crit   | red           | Use this color if loss is at or above<br>@packet-loss_level_crit       |
+| @packet-loss_color_bg     | black         | bg color when alert/crit colors<br>are used in display                 |
 |                           |               |
 | @packet-loss_prefix       | " pkt loss: " | Prefix for status when displayed                                    |
 | @packet-loss_suffix       | " "           | Suffix for status when displayed                                    |
 
-## My config and resulting outputs
+## My config and sample outputs
 
 ```
 set -g @packet-loss-ping_count "5"
+set -g @packet-loss-history_size "50"
 set -g @packet-loss_level_alert "1.7"
 set -g @packet-loss_color_alert "colour181"
 set -g @packet-loss_prefix "|"
@@ -88,9 +91,9 @@ set -g @packet-loss_suffix "| "
 | Display                                                                                                            | Status              |
 | ------------------------------------------------------------------------------------------------------------------ | ------------------- |
 | ![no_loss](https://user-images.githubusercontent.com/5046648/159600959-23efe878-e28c-4988-86df-b43875701f6a.png)   | under threshold     |
-| ![lvl_low](https://user-images.githubusercontent.com/5046648/159604267-3345f827-3541-49f7-aec7-6f0091e59a5f.png)   | low loss level      |
-| ![lvl_alert](https://user-images.githubusercontent.com/5046648/159602048-90346c8c-396a-4f0b-be26-152ef13c806f.png) | alert loss level    |
-| ![lvl_crit](https://user-images.githubusercontent.com/5046648/159601876-9f097499-3fb9-4c53-8490-759665ff555f.png)  | critical loss level |
+| ![lvl_low](https://user-images.githubusercontent.com/5046648/159604267-3345f827-3541-49f7-aec7-6f0091e59a5f.png)   | low level losses     |
+| ![lvl_alert](https://user-images.githubusercontent.com/5046648/159602048-90346c8c-396a-4f0b-be26-152ef13c806f.png) | alert level losses    |
+| ![lvl_crit](https://user-images.githubusercontent.com/5046648/159601876-9f097499-3fb9-4c53-8490-759665ff555f.png)  | critical level losses |
 
 ## Contributing
 

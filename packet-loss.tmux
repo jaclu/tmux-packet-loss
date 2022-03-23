@@ -80,6 +80,11 @@ set_db_params() {
     ping_count=$(get_tmux_option "@packet-loss-ping_count" "$default_ping_count")
     log_it "ping_count=[$ping_count]"
 
+    hist_size=$(get_tmux_option "@packet-loss-history_size" "$default_hist_size")
+    log_it "hist_size=[$hist_size]"
+
+
+
     # First clear table to assure only one row is present
     sqlite3 "$db" "DELETE FROM params"
 

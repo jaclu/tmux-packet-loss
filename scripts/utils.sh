@@ -20,7 +20,6 @@ log_file="/tmp/tmux-packet-loss.log"  # Trigger LF to separate runs of this scri
 
 
 db_version=11  # Sanity check that DB structure is current
-hist_size=100  # how many rounds of pings to keep in db for average calculations
 hook_array_idx=1819  # random hopefully unique id to avoid colliding with other
                      # hook handling utilities
 
@@ -43,7 +42,7 @@ default_color_crit="red"
 default_color_bg="black"  # only used for displaying alert/crit
 default_prefix=" pkt loss: "
 default_suffix=" "
-
+default_hist_size=100  # how many rounds of pings to keep in db for average calculations
 #
 #  These files are assumed to be in scripts, so depending on location
 #  for the script using this, use the correct location prefix!
@@ -61,7 +60,7 @@ log_it() {
     if [ -z "$log_file" ]; then
         return
     fi
-    printf "%s\n" "$@" >> "$log_file"
+    printf "[%s] %s\n" "$(date '+%H:%M:%S')" "$@" >> "$log_file"
 }
 
 

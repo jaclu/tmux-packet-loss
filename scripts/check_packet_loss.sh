@@ -28,13 +28,13 @@ fi
 # average over hist_size polls
 current_loss="$(sqlite3 "$db" "SELECT round(avg(loss),1) from packet_loss")"
 
-log_it "raw loss [$current_loss]"
+# log_it "raw loss [$current_loss]"
 lvl_disp="$(get_tmux_option "@packet-loss_level_disp" "$default_lvl_display")"
 # log_it "lvl_disp [$lvl_disp]"
 
 
 if [ $(echo "$current_loss < $lvl_disp" | bc) -eq 1 ]; then
-    # log_it "below threshold"
+    # log_it "$current_loss is below threshold $lvl_disp"
     current_loss="" # no output if bellow threshold
 fi
 

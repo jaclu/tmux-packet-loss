@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.3 2022-03-22
+#   Version: 0.0.4 2022-03-23
 #
 
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -22,13 +22,15 @@ fi
 
 
 
-# last poll
-#current_loss="$(sqlite3 "$db" "SELECT loss from packet_loss ORDER BY rowid DESC LIMIT 1")"
+# display last poll
+# current_loss="$(sqlite3 "$db" "SELECT loss from packet_loss ORDER BY rowid DESC LIMIT 1")"
 
-# average over hist_size polls
+# display average over hist_size polls
 current_loss="$(sqlite3 "$db" "SELECT round(avg(loss),1) from packet_loss")"
 
 # log_it "raw loss [$current_loss]"
+
+
 lvl_disp="$(get_tmux_option "@packet-loss_level_disp" "$default_lvl_display")"
 # log_it "lvl_disp [$lvl_disp]"
 
@@ -39,7 +41,7 @@ if [ $(echo "$current_loss < $lvl_disp" | bc) -eq 1 ]; then
 fi
 
 #
-#  To minimize cpu hogging, only fetch options when needed
+#  To minimize CPU hogging, only fetch options when needed
 #
 if [ -n "$current_loss" ]; then
     lvl_crit="$(get_tmux_option "@packet-loss_level_crit" "$default_lvl_crit")"
@@ -60,6 +62,7 @@ if [ -n "$current_loss" ]; then
     else
         current_loss="$current_loss%"
     fi
+
     loss_prefix="$(get_tmux_option "@packet-loss_prefix" "$default_prefix")"
     # log_it "loss_prefix [$loss_prefix]"
     loss_suffix="$(get_tmux_option "@packet-loss_suffix" "$default_suffix")"

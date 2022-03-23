@@ -69,7 +69,27 @@ To disable a setting, set it to " ", spaces will be trimmed and thus nothing wil
 | @packet-loss_prefix      | " pkt loss: " | Prefix for status when displayed
 | @packet-loss_suffix      | " "           | Suffix for status when displayed
 
+## My config and resulting outputs
+```
+set -g @packet-loss-ping_count "5"
+set -g @packet-loss_level_alert "1.7"
+set -g @packet-loss_color_alert "colour181"
+set -g @packet-loss_prefix "|"
+set -g @packet-loss_suffix "| "
+
+# Partial statusbar config, takes no place when under threshold
+# @packet-loss-suffix ensures spacing to date when something is displayed
+...#{battery_smart} #{packet_loss}%a %h-%d %H:%M ...
+```
+| Display | Status |
+|-|-|
+|![no_loss](https://user-images.githubusercontent.com/5046648/159600959-23efe878-e28c-4988-86df-b43875701f6a.png) | under threshold
+|![lvl_low](https://user-images.githubusercontent.com/5046648/159601029-91229634-a549-49c9-a04a-eb528d94adaa.png) | low loss level
+|![lvl_alert](https://user-images.githubusercontent.com/5046648/159602048-90346c8c-396a-4f0b-be26-152ef13c806f.png)| alert loss level
+|![lvl_crit](https://user-images.githubusercontent.com/5046648/159601876-9f097499-3fb9-4c53-8490-759665ff555f.png)| critical loss level|
+
 ## Contributing
+
 
 Contributions are welcome, and they are greatly appreciated! Every little bit helps, and credit will always be given.
 

@@ -15,7 +15,7 @@
 #  If log_file is empty or undefined, no logging will occur,
 #  so comment it out for normal usage.
 #
-#log_file="/tmp/tmux-packet-loss.log"  # Trigger LF to separate runs of this script
+log_file="/tmp/tmux-packet-loss.log"  # Trigger LF to separate runs of this script
 
 
 
@@ -69,7 +69,7 @@ get_tmux_option() {
     gtm_option=$1
     gtm_default=$2
     # pipe to /dev/null to avoid error msg if run outside tmux
-    gtm_value="$(tmux show-option -gqv "$gtm_option" 2&> /dev/null)"
+    gtm_value="$(tmux show-option -gqv "$gtm_option")"
     if [ -z "$gtm_value" ]; then
         echo "$gtm_default"
     else

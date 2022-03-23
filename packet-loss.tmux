@@ -125,7 +125,7 @@ hook_handler() {
             tmux set-hook -ug "$hook_name"
             log_it "releasing: $hook_name"
         else
-            log_it "ERROR: set_hook_session_closed must be called with param set or clear!"
+            log_it "ERROR: set_hook_handler must be called with param set or clear!"
         fi
     fi
 }
@@ -150,7 +150,6 @@ kill_running_monitor() {
         log_it "pid_file not found, assuming no process running"
     fi
 }
-
 
 
 set_tmux_option() {

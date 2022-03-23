@@ -54,8 +54,6 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 
 ## Variables
 
-To disable a setting, set it to " ", spaces will be trimmed and thus nothing will end up being printed, if you set it to "" it will be ignored and the default value will be used.
-
 | Variable                  | Default       | Purpose                                                             |
 | ------------------------- | ------------- | ------------------------------------------------------------------- |
 | @packet-loss-ping_host    | 8.8.4.4       | What host to ping                                                   |
@@ -95,6 +93,21 @@ set -g @packet-loss_suffix "| "
 | ![lvl_low](https://user-images.githubusercontent.com/5046648/159604267-3345f827-3541-49f7-aec7-6f0091e59a5f.png)   | low level losses     |
 | ![lvl_alert](https://user-images.githubusercontent.com/5046648/159602048-90346c8c-396a-4f0b-be26-152ef13c806f.png) | alert level losses    |
 | ![lvl_crit](https://user-images.githubusercontent.com/5046648/159601876-9f097499-3fb9-4c53-8490-759665ff555f.png)  | critical level losses |
+
+## Nerdy stuff
+
+When deciding on how long history you want for loss statistics, the two params of importance are:
+
+- @packet-loss-ping_count - Since normally ping is almost instantaneous if this is set to 10 it in practical terms means you will get an average loss saved every 9 seconds if the host is responding. It will be longer if there are any dropped packets or other timeouts.
+- @packet-loss-history_size - how many samples are kept
+
+So multiplying  (ping_count - 1) with history_size should give an aproximate length in seconds for the time-span the average is calculated over.
+
+You can check the DB to get the timestamp for oldest kept record by doing:
+
+```
+sqlite3 ~/.tmux/plugins/tmux-packet-loss/scripts/packet_loss.sqlite 'select * from packet_loss limit 1'
+```
 
 ## Contributing
 

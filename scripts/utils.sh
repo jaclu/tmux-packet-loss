@@ -18,31 +18,24 @@
 # log_file="/tmp/tmux-packet-loss.log"  # Trigger LF to separate runs of this script
 
 
-
 db_version=11  # Sanity check that DB structure is current
 hook_array_idx=1819  # random hopefully unique id to avoid colliding with other
                      # hook handling utilities
 
-#
-#  how often to report packet loss statistics
-#
-default_ping_count=10
 
-#
-#  Default host to ping
-#
-default_host="8.8.4.4"
-
-
-default_lvl_display=0.1 # float, display loss if this or higher
-default_lvl_alert=2.0  # float, this or higher triggers alert color
-default_lvl_crit=8.0   # float, this or higher triggers critical color
+default_ping_count=10   #  how often to report packet loss statistics
+default_host="8.8.4.4"  #  Default host to ping
+default_lvl_display=0.1  # float, display loss if this or higher
+default_lvl_alert=2.0    # float, this or higher triggers alert color
+default_lvl_crit=8.0     # float, this or higher triggers critical color
 default_color_alert="yellow"
 default_color_crit="red"
 default_color_bg="black"  # only used for displaying alert/crit
 default_prefix=" pkt loss: "
 default_suffix=" "
 default_hist_size=100  # how many rounds of pings to keep in db for average calculations
+
+
 #
 #  These files are assumed to be in scripts, so depending on location
 #  for the script using this, use the correct location prefix!

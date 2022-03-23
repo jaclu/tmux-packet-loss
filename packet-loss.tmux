@@ -5,11 +5,11 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.2 2022-03-22
+#   Version: 0.0.3 2022-03-23
 #
 #   This is the coordination script
 #    - ensures the database is present and up to date
-#    - sets params in the database
+#    - sets parameters in the database
 #    - ensures packet_loss_monitor is running
 #    - binds  #{packet_loss} to check_packet_loss.sh
 #
@@ -19,7 +19,9 @@
 #  Dependency check
 #
 if ! command -v sqlite3 > /dev/null 2>&1; then
-    tmux display "tmux-packet-loss ERROR: missing dependency sqlite3"
+    msg = "tmux-packet-loss ERROR: missing dependency sqlite3"
+    log_it "$msg"
+    tmux display "$msg"
     exit 1
 fi
 
@@ -51,6 +53,7 @@ pkt_loss_commands=(
 #  for sourcing utils.sh in the other scripts.
 #
 
+
 create_db() {
     rm -f "$db"
     log_it "old_db removed"
@@ -69,6 +72,10 @@ create_db() {
 }
 
 
+#
+#  Each time the monitor process will be started the params table is
+#  populated from current settings.
+#
 set_db_params() {
     local ping_host
     local ping_count
@@ -82,7 +89,6 @@ set_db_params() {
 
     hist_size=$(get_tmux_option "@packet-loss-history_size" "$default_hist_size")
     log_it "hist_size=[$hist_size]"
-
 
 
     # First clear table to assure only one row is present
@@ -190,7 +196,7 @@ main() {
 
     #
     #  Always get rid of potentially running background process, since it might
-    #  not use current params for host and ping_count
+    #  not use current parameters for host and ping_count
     #
     kill_running_monitor
 

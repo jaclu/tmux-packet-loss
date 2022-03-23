@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.3 2022-03-22
+#   Version: 0.0.4 2022-03-23
 #
 
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -91,7 +91,7 @@ while : ; do
         #  just log a notice
         #
         this_time_percent_loss="100"
-        log_it "No ping outpput, will sleep $ping_count seconds"
+        log_it "No ping output, will sleep $ping_count seconds"
         #
         #  Some pings instantly aborts on no connection, this will keep
         #  the poll rate normal and avoid rapidly filling the DB with bad data

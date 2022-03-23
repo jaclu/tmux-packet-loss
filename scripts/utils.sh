@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.2 2022-03-22
+#   Version: 0.0.3 2022-03-23
 #
 #  Common stuff
 #
@@ -67,7 +67,6 @@ log_it() {
 get_tmux_option() {
     gtm_option=$1
     gtm_default=$2
-    # pipe to /dev/null to avoid error msg if run outside tmux
     gtm_value="$(tmux show-option -gqv "$gtm_option")"
     if [ -z "$gtm_value" ]; then
         echo "$gtm_default"

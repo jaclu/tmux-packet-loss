@@ -5,20 +5,18 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.4 2022-03-23
+#   Version: 0.0.5 2022-03-23
 #
 
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 . "$CURRENT_DIR/utils.sh"
 
 db="$CURRENT_DIR/$sqlite_db"
-
 pidfile="$CURRENT_DIR/$monitor_pidfile"
 
 
 #
 #  Ensure only one instance is running.
-#  No need to clean up old pidfiles here, that has already been done by packet-loss.tmux
 #
 if [ -e "$pidfile" ]; then
     msg="tmux-packet-loss ERROR: packet_loss_monitor.sh seems to already be running, aborting!"
@@ -36,7 +34,7 @@ echo "$$" > "$pidfile"
 
 
 #
-#  Getting params from DB
+#  Getting parameters from DB
 #
 ping_count="$(sqlite3 "$db" "SELECT ping_count FROM params")"
 host="$(sqlite3 "$db" "SELECT host FROM params")"
@@ -46,9 +44,7 @@ host="$(sqlite3 "$db" "SELECT host FROM params")"
 #  Figuring out the nature of the available ping cmd
 #
 
-#
 # Argh, even the position for % packet loss is not constant...
-#
 packet_loss_param_no="7"
 
 # triggering an error printing valid parameters...
@@ -76,9 +72,7 @@ ping_cmd="$ping_cmd -c $ping_count $host"
 #  Main
 #
 while : ; do
-    # echo "will ping"
     output="$($ping_cmd  | grep loss)"
-    # echo "ping [$output] done!"
     if [ -n "$output" ]; then
         this_time_percent_loss=$(echo "$output" | awk -v percent_loss_param="$packet_loss_param_no" '{print $percent_loss_param}' | sed s/%// )
         if [ -z "$this_time_percent_loss" ]; then
@@ -87,15 +81,15 @@ while : ; do
         fi
     else
         #
-        #  no output assume no connection, since not an error in this software
+        #  no output, assume no connection since not an error in this software,
         #  just log a notice
         #
         this_time_percent_loss="100"
-        log_it "No ping output, will sleep $ping_count seconds"
         #
         #  Some pings instantly aborts on no connection, this will keep
-        #  the poll rate normal and avoid rapidly filling the DB with bad data
+        #  the poll rate kind of normal and avoid rapidly filling the DB with bad data
         #
+        log_it "No ping output, will sleep $ping_count seconds"
         sleep "$ping_count"
     fi
     sqlite3 "$db" "INSERT INTO packet_loss (loss) values ($this_time_percent_loss);"

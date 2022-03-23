@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.3 2022-03-23
+#   Version: 0.0.4 2022-03-23
 #
 #   This is the coordination script
 #    - ensures the database is present and up to date
@@ -52,6 +52,7 @@ pkt_loss_commands=(
 #  Functions only used here are kept here, in order to minimize overhead
 #  for sourcing utils.sh in the other scripts.
 #
+
 
 
 create_db() {
@@ -109,6 +110,7 @@ hook_handler() {
     local action="$1"
     local tmux_vers
     local hook_name
+    local msg
 
     tmux_vers="$(tmux -V | cut -d' ' -f2)"
     log_it "hook_handler($action) tmux vers: $tmux_vers"
@@ -131,7 +133,9 @@ hook_handler() {
             tmux set-hook -ug "$hook_name"
             log_it "releasing: $hook_name"
         else
-            log_it "ERROR: set_hook_handler must be called with param set or clear!"
+            msg="tmux-packet-loss ERROR: set_hook_handler must be called with param set or clear!"
+            log_it "$msg"
+            tmux display "$msg"
         fi
     fi
 }

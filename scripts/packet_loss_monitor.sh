@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.5 2022-03-23
+#   Version: 0.0.6 2022-03-23
 #
 
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -81,7 +81,7 @@ while : ; do
         fi
     else
         #
-        #  no output, assume no connection since not an error in this software,
+        #  no output, assume no connection to the host and
         #  just log a notice
         #
         this_time_percent_loss="100"

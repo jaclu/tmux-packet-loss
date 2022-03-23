@@ -84,7 +84,7 @@ set -g @packet-loss_suffix "| "
 | Display | Status |
 |-|-|
 |![no_loss](https://user-images.githubusercontent.com/5046648/159600959-23efe878-e28c-4988-86df-b43875701f6a.png) | under threshold
-|![lvl_low](https://user-images.githubusercontent.com/5046648/159601029-91229634-a549-49c9-a04a-eb528d94adaa.png) | low loss level
+|![lvl_low](https://user-images.githubusercontent.com/5046648/159604267-3345f827-3541-49f7-aec7-6f0091e59a5f.png) | low loss level
 |![lvl_alert](https://user-images.githubusercontent.com/5046648/159602048-90346c8c-396a-4f0b-be26-152ef13c806f.png)| alert loss level
 |![lvl_crit](https://user-images.githubusercontent.com/5046648/159601876-9f097499-3fb9-4c53-8490-759665ff555f.png)| critical loss level|
 

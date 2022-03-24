@@ -5,15 +5,16 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.4 2022-03-24
+#   Version: 0.0.5 2022-03-24
 #
 #  Common stuff
 #
 
-
 #
-#  If log_file is empty or undefined, no logging will occur,
-#  so comment it out for normal usage.
+#  log_it is used to display status to $log_file if it is defined.
+#  Good for testing and monitoring actions. If $log_file is unset
+#  no output will happen. This should be the case for normal operations.
+#  So unless you want logging, comment the next line out.
 #
 # log_file="/tmp/tmux-packet-loss.log"
 
@@ -42,9 +43,11 @@ default_suffix=" "
 #  Since this is sourced the prefix can not be determined here.
 #
 sqlite_db="packet_loss.sqlite"
-monitor_process="packet_loss_monitor.sh"
+monitor_process_scr="packet_loss_monitor.sh"
 monitor_pidfile="monitor.pid"
+no_sessions_shutdown_scr="shutdown_if_no_sessions.sh"
 
+plugin_name="tmux-packet-loss"
 
 
 #

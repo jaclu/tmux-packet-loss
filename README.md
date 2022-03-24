@@ -17,6 +17,7 @@ On modern tmux versions this background process is terminated when tmux exits, s
 `sqlite3`
 
 ## Verified to work in the following envrionments
+
 `MacOS`
 `Linux`
 `iSH`
@@ -60,29 +61,29 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 
 ## Variables
 
-| Variable                  | Default       | Purpose                                                                       |
-| ------------------------- | ------------- | ----------------------------------------------------------------------------- |
-| @packet-loss-ping_host    | 8.8.4.4       | What host to ping                                                             |
-| @packet-loss-ping_count   | 6             | This many pings per statistics update.                                        |
+| Variable                  | Default       | Purpose                                                                                                                                                                                                     |
+| ------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| @packet-loss-ping_host    | 8.8.4.4       | What host to ping                                                                                                                                                                                           |
+| @packet-loss-ping_count   | 6             | This many pings per statistics update.                                                                                                                                                                      |
 |                           |               |
-| @packet-loss-history_size | 50            | How many statistics results should be kept,<br>when calculating average loss. |
+| @packet-loss-history_size | 10            | How many results should be kept,<br>when calculating average loss.<br>I would recomend to keep it low, since it will<br>in most cases be more interesting to see <br>current status over long-term average. |
 |                           |               |
-| @packet-loss_level_disp   | 0.1           | Display loss if this or higher level                                          |
-| @packet-loss_level_alert  | 2.0           | Color loss with color_alert                                                   |
-| @packet-loss_level_crit   | 8.0           | Color loss with color_crit                                                    |
+| @packet-loss_level_disp   | 0.1           | Display loss if this or higher level                                                                                                                                                                        |
+| @packet-loss_level_alert  | 2.0           | Color loss with color_alert                                                                                                                                                                                 |
+| @packet-loss_level_crit   | 8.0           | Color loss with color_crit                                                                                                                                                                                  |
 |                           |               |
-| @packet-loss_color_alert  | yellow        | Use this color if loss is at or above<br>@packet-loss_level_alert             |
-| @packet-loss_color_crit   | red           | Use this color if loss is at or above<br>@packet-loss_level_crit              |
-| @packet-loss_color_bg     | black         | bg color when alert/crit colors<br>are used in display                        |
+| @packet-loss_color_alert  | yellow        | Use this color if loss is at or above<br>@packet-loss_level_alert                                                                                                                                           |
+| @packet-loss_color_crit   | red           | Use this color if loss is at or above<br>@packet-loss_level_crit                                                                                                                                            |
+| @packet-loss_color_bg     | black         | bg color when alert/crit colors<br>are used in display                                                                                                                                                      |
 |                           |               |
-| @packet-loss_prefix       | " pkt loss: " | Prefix for status when displayed                                              |
-| @packet-loss_suffix       | " "           | Suffix for status when displayed                                              |
+| @packet-loss_prefix       | " pkt loss: " | Prefix for status when displayed                                                                                                                                                                            |
+| @packet-loss_suffix       | " "           | Suffix for status when displayed                                                                                                                                                                            |
 
 ## My config and sample outputs
 
 ```
 set -g @packet-loss-ping_count "6"
-set -g @packet-loss-history_size "50"
+set -g @packet-loss-history_size "10"
 set -g @packet-loss_level_alert "1.7"
 set -g @packet-loss_color_alert "colour181"
 set -g @packet-loss_prefix "|"

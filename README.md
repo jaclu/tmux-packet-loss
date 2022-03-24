@@ -16,6 +16,12 @@ On modern tmux versions this background process is terminated when tmux exits, s
 
 `sqlite3`
 
+## Verified to work in the following envrionments
+`MacOS`
+`Linux`
+`iSH`
+`Windows Subsystem for Linux (WSL)`
+
 ## Install
 
 ### Installation with [Tmux Plugin Manager](https://github.com/tmux-plugins/tpm) (recommended)

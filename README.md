@@ -57,9 +57,9 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 | Variable                  | Default       | Purpose                                                                       |
 | ------------------------- | ------------- | ----------------------------------------------------------------------------- |
 | @packet-loss-ping_host    | 8.8.4.4       | What host to ping                                                             |
-| @packet-loss-ping_count   | 10            | This many pings per statistics update.                                        |
+| @packet-loss-ping_count   | 6             | This many pings per statistics update.                                        |
 |                           |               |
-| @packet-loss-history_size | 100           | How many statistics results should be kept,<br>when calculating average loss. |
+| @packet-loss-history_size | 50            | How many statistics results should be kept,<br>when calculating average loss. |
 |                           |               |
 | @packet-loss_level_disp   | 0.1           | Display loss if this or higher level                                          |
 | @packet-loss_level_alert  | 2.0           | Color loss with color_alert                                                   |
@@ -76,7 +76,7 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 
 ```
 set -g @packet-loss-ping_count "6"
-set -g @packet-loss-history_size "100"
+set -g @packet-loss-history_size "50"
 set -g @packet-loss_level_alert "1.7"
 set -g @packet-loss_color_alert "colour181"
 set -g @packet-loss_prefix "|"

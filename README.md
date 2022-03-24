@@ -18,6 +18,8 @@ On modern tmux versions this background process is terminated when tmux exits, s
 
 ## Verified to work in the following envrionments
 
+Tested to make sure ps and ping params are interpreted correctly.
+
 `MacOS`
 `Linux`
 `iSH`

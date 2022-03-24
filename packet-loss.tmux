@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.4 2022-03-23
+#   Version: 0.0.5 2022-03-24
 #
 #   This is the coordination script
 #    - ensures the database is present and up to date
@@ -15,25 +15,25 @@
 #
 
 
-#
-#  Dependency check
-#
-if ! command -v sqlite3 > /dev/null 2>&1; then
-    msg = "tmux-packet-loss ERROR: missing dependency sqlite3"
-    log_it "$msg"
-    tmux display "$msg"
-    exit 1
-fi
-
-
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SCRIPTS_DIR="$CURRENT_DIR/scripts"
 . "$SCRIPTS_DIR/utils.sh"
 
 
 db="$SCRIPTS_DIR/$sqlite_db"
-monitor_proc_full_name="$SCRIPTS_DIR/$monitor_process"
 pid_file="$SCRIPTS_DIR/$monitor_pidfile"
+monitor_proc_full_name="$SCRIPTS_DIR/$monitor_process_scr"
+no_sessions_shutdown_full_name="$SCRIPTS_DIR/$no_sessions_shutdown_scr"
+
+#
+#  Dependency check
+#
+if ! command -v sqlite3 > /dev/null 2>&1; then
+    msg="ERROR: missing dependency sqlite3"
+    log_it "$msg"
+    tmux display "$plugin_name $msg"
+    exit 1
+fi
 
 
 #
@@ -123,19 +123,19 @@ hook_handler() {
     elif adv_vers_compare $tmux_vers ">=" "2.4"; then
         hook_name="session-closed"
     else
-        log_it "before tmux 2.4 session-closed hook is not available, so can not shut down monitor process when tmux exits"
+        log_it "WARNING: previous to tmux 2.4 session-closed hook is not available, so can not shut down monitor process when tmux exits!"
     fi
     if [ -n "$hook_name" ]; then
         if [ "$action" = "set" ]; then
-            tmux set-hook -g "$hook_name" "run $SCRIPTS_DIR/shutdown_if_no_sessions.sh"
+            tmux set-hook -g "$hook_name" "run $no_sessions_shutdown_full_name"
             log_it "binding packet-loss shutdown to: $hook_name"
         elif [ "$action" = "clear" ]; then
             tmux set-hook -ug "$hook_name"
-            log_it "releasing: $hook_name"
+            log_it "releasing hook: $hook_name"
         else
-            msg="tmux-packet-loss ERROR: set_hook_handler must be called with param set or clear!"
+            msg="ERROR: hook_handler must be called with param set or clear!"
             log_it "$msg"
-            tmux display "$msg"
+            tmux display "$plugin_name $msg"
         fi
     fi
 }
@@ -143,21 +143,52 @@ hook_handler() {
 
 #
 #  Removing any current monitor process.
-#  monitor is always started with current settings due to the fact that
+#  monitor will always be restarted with current settings due to the fact that
 #  parameters might have changed since it was last started
 #
 kill_running_monitor() {
     local pid
+    local pid_param
+    local remaining_procs
+    local msg
 
     log_it "kill_running_monitor($pid_file)"
 
     if [ -e "$pid_file" ]; then
         pid="$(cat "$pid_file")"
-        log_it "Killing $monitor_process: [$pid]"
-        kill "$pid"
+        log_it "Killing $monitor_process_scr: [$pid]"
+        kill "$pid" 2&> /dev/null
         rm -f "$pid_file"
+    fi
+
+
+    #
+    #  Each time ping is run, a process with monitor_process_scr name is spawned.
+    #  Kill that one and sometimes left overs if packet_loss.tmux
+    #  was run repeatedly in quick succession
+    #
+    if [ -n "$monitor_process_scr" ]; then
+        #
+        #  Figure our what ps is available, in order to determine
+        #  which param is the pid
+        #
+        if [ -n "$(ls -l $(command -v ps) | grep busybox)" ]; then
+            pid_param=1
+        else
+            pid_param=2
+        fi
+
+        remaining_procs="$(ps axu | grep "$monitor_process_scr" | grep -v grep | awk -v p=$pid_param '{ print $p }' )"
+        if [ -n "$remaining_procs" ]; then
+            # log_it "### About to kill: [$remaining_procs]"
+            echo "$remaining_procs" | xargs kill 2&> /dev/null
+        fi
     else
-        log_it "pid_file not found, assuming no process running"
+        msg="ERROR: monitor_process_scr not defined, can NOT attempt to kill remaining background processes!"
+        log_it "$msg"
+        echo  "$msg"
+        tmux display "$plugin_name $msg"
+        exit 1
     fi
 }
 
@@ -192,10 +223,10 @@ update_tmux_option() {
 
 main() {
     #
-    #  By printing a NL and date, its easier to keep separate runs apart
+    #  By printing some empty lines its easier to keep separate runs apart
     #
     log_it ""
-    log_it "$(date)"
+    log_it ""
 
 
     #
@@ -229,7 +260,7 @@ main() {
     #  Starting a fresh monitor, will use current db_params to define operation
     #
     nohup "$monitor_proc_full_name" > /dev/null 2>&1 &
-    log_it "Started $monitor_process"
+    log_it "Started background process: $monitor_process_scr"
 
 
     #

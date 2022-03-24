@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.1 2022-03-22
+#   Version: 0.0.2 2022-03-24
 #
 
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -15,7 +15,7 @@ PARRENT_DIR="$(dirname -- "$CURRENT_DIR")"
 
 ses_count="$(tmux ls | wc -l)"
 
-log_it "check_shutdown.sh, session count [$ses_count]"
+log_it "$no_sessions_shutdown_scr - session count [$ses_count]"
 
 if [ "$ses_count" -eq 0 ]; then
     log_it "No remaining sessions, shutting down monitor process"

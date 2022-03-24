@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.5 2022-03-24
+#   Version: 0.1.0 2022-03-24
 #
 #   This is the coordination script
 #    - ensures the database is present and up to date
@@ -61,8 +61,12 @@ create_db() {
     #
     #  packet_loss is limited to $hist_size rows, in order to make statistics consistent
     #
+    # datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, \
     sqlite3 "$db" " \
-        CREATE TABLE packet_loss (loss float, datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL); \
+        CREATE TABLE packet_loss ( \
+            datetime TIMESTAMP DEFAULT (datetime('now','localtime')) NOT NULL, \
+            loss float \
+        ); \
         CREATE TRIGGER delete_tail AFTER INSERT ON packet_loss \
         BEGIN \
             DELETE FROM packet_loss where rowid < NEW.rowid-(SELECT hist_size from params)+1; \

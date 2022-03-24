@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.6 2022-03-23
+#   Version: 0.0.7 2022-03-24
 #
 
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -19,9 +19,9 @@ pidfile="$CURRENT_DIR/$monitor_pidfile"
 #  Ensure only one instance is running.
 #
 if [ -e "$pidfile" ]; then
-    msg="tmux-packet-loss ERROR: packet_loss_monitor.sh seems to already be running, aborting!"
+    msg="ERROR: $monitor_process_scr seems to already be running, aborting!"
     log_it "$msg"
-    tmux display "$msg"
+    tmux display "$plugin_name $msg"
     exit 1
 fi
 
@@ -44,24 +44,27 @@ host="$(sqlite3 "$db" "SELECT host FROM params")"
 #  Figuring out the nature of the available ping cmd
 #
 
-# Argh, even the position for % packet loss is not constant...
-packet_loss_param_no="7"
-
-# triggering an error printing valid parameters...
+#
+#  Detecting what ping command is present, in order to figure out the
+#  right timeout param
+#
 timeout_help="$(ping -h 2> /dev/stdout| grep timeout)"
 
 if [ "${timeout_help#*-t}" != "$timeout_help" ]; then
-    timeout_flag="t"
+    timeout_parameter="t"
 elif [ "${timeout_help#*-W}" != "$timeout_help" ]; then
-    timeout_flag="W"
-    packet_loss_param_no="6"
+    timeout_parameter="W"
 else
-    timeout_flag=""
+    timeout_parameter=""
 fi
 
-if [ -n "$timeout_flag" ]; then
-    ping_cmd="ping -$timeout_flag $ping_count"
+if [ -n "$timeout_parameter" ]; then
+    ping_cmd="ping -$timeout_parameter $ping_count"
 else
+    #
+    #  Without a timeout flag and no response, ping might end up taking
+    #  2 * ping_count seconds to complete...
+    #
     ping_cmd="ping"
 fi
 
@@ -74,17 +77,21 @@ ping_cmd="$ping_cmd -c $ping_count $host"
 while : ; do
     output="$($ping_cmd  | grep loss)"
     if [ -n "$output" ]; then
-        this_time_percent_loss=$(echo "$output" | awk -v percent_loss_param="$packet_loss_param_no" '{print $percent_loss_param}' | sed s/%// )
-        if [ -z "$this_time_percent_loss" ]; then
+        #
+        #  We cant rely on the absolute position of the %loss, since sometimes it is prepended with stuff like:
+        #  "+1 duplicates,"
+        #  To handle this we search for "packet loss" and use the word just before it.
+        #
+        percent_loss="$(echo "$output" | sed 's/packet loss/\|/' | cut -d\| -f 1 | awk 'NF>1{print $NF}' | sed s/%// )"
+        if [ -z "$percent_loss" ]; then
             log_it "ERROR: Failed to parse ping output!"
-            this_time_percent_loss="100"
+            percent_loss="101"  #  indicate this error by giving high value
         fi
     else
         #
-        #  no output, assume no connection to the host and
-        #  just log a notice
+        #  No output, usually no connection to the host
         #
-        this_time_percent_loss="100"
+        percent_loss="102"  #  indicate this error by giving high value
         #
         #  Some pings instantly aborts on no connection, this will keep
         #  the poll rate kind of normal and avoid rapidly filling the DB with bad data
@@ -92,6 +99,6 @@ while : ; do
         log_it "No ping output, will sleep $ping_count seconds"
         sleep "$ping_count"
     fi
-    sqlite3 "$db" "INSERT INTO packet_loss (loss) values ($this_time_percent_loss);"
-    log_it "stored [$this_time_percent_loss] in db"
+    sqlite3 "$db" "INSERT INTO packet_loss (loss) values ($percent_loss);"
+    log_it "stored in DB [$percent_loss]"
 done

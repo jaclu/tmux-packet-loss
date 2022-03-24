@@ -5,7 +5,9 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.2 2022-03-24
+#   Version: 0.0.3 2022-03-24
+#
+#  If no more sessions are running, terminate background packet loss processes
 #
 
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)

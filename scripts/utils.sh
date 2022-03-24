@@ -19,14 +19,14 @@
 # log_file="/tmp/tmux-packet-loss.log"
 
 
-db_version=11        # Sanity check that DB structure is current
+db_version=2         # Sanity check that DB structure is current
 hook_array_idx=1819  # random hopefully unique id to avoid colliding with other
                      # hook handling utilities
 
 
 default_host="8.8.4.4"   #  Default host to ping
 default_ping_count=6     #  how often to report packet loss statistics
-default_hist_size=50     # how many rounds of pings to keep in db for average calculations
+default_hist_size=10     # how many rounds of pings to keep in db for average calculations
 default_lvl_display=0.1  # float, display loss if this or higher
 default_lvl_alert=2.0    # float, this or higher triggers alert color
 default_lvl_crit=8.0     # float, this or higher triggers critical color

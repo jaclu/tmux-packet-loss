@@ -16,7 +16,7 @@
 #  Shorthand, to avoid manually typing package name on multiple
 #  locations, easily getting out of sync.
 #
-plugin_name="tmux-packet-loss"
+# plugin_name="tmux-packet-loss"
 
 
 #

@@ -18,7 +18,7 @@ On modern tmux versions this background process is terminated when tmux exits, s
 
 ## Verified to work in the following environments
 
-Tested to make sure ps and ping params are interpreted correctly
+Tested to make sure ps and ping parameters are interpreted correctly
 
 `MacOS`
 `Linux`
@@ -63,23 +63,23 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 
 ## Variables
 
-| Variable                  | Default       | Purpose                                                                                                                                                                                                    |
-| ------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| @packet-loss-ping_host    | 8.8.4.4       | What host to ping                                                                                                                                                                                          |
-| @packet-loss-ping_count   | 6             | This many pings per statistics update.                                                                                                                                                                     |
+| Variable                  | Default       | Purpose                                                                                                                                                                                                     |
+| ------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| @packet-loss-ping_host    | 8.8.4.4       | What host to ping                                                                                                                                                                                           |
+| @packet-loss-ping_count   | 6             | This many pings per statistics update.                                                                                                                                                                      |
 |                           |               |
-| @packet-loss-history_size | 6             | How many results should be kept<br>when calculating average loss.<br>I would recomend to keep it low, since it will<br>in most cases be more interesting to see <br>current status over long-term average. |
+| @packet-loss-history_size | 6             | How many results should be kept<br>when calculating average loss.<br>I would recommend to keep it low, since it will<br>in most cases be more interesting to see <br>current status over long-term average. |
 |                           |               |
-| @packet-loss_level_disp   | 0.1           | Display loss if this or higher level                                                                                                                                                                       |
-| @packet-loss_level_alert  | 2.0           | Color loss with color_alert                                                                                                                                                                                |
-| @packet-loss_level_crit   | 8.0           | Color loss with color_crit                                                                                                                                                                                 |
+| @packet-loss_level_disp   | 0.1           | Display loss if this or higher level                                                                                                                                                                        |
+| @packet-loss_level_alert  | 2.0           | Color loss with color_alert                                                                                                                                                                                 |
+| @packet-loss_level_crit   | 8.0           | Color loss with color_crit                                                                                                                                                                                  |
 |                           |               |
-| @packet-loss_color_alert  | yellow        | Use this color if loss is at or above<br>@packet-loss_level_alert                                                                                                                                          |
-| @packet-loss_color_crit   | red           | Use this color if loss is at or above<br>@packet-loss_level_crit                                                                                                                                           |
-| @packet-loss_color_bg     | black         | bg color when alert/crit colors<br>are used in display                                                                                                                                                     |
+| @packet-loss_color_alert  | yellow        | Use this color if loss is at or above<br>@packet-loss_level_alert                                                                                                                                           |
+| @packet-loss_color_crit   | red           | Use this color if loss is at or above<br>@packet-loss_level_crit                                                                                                                                            |
+| @packet-loss_color_bg     | black         | bg color when alert/crit colors<br>are used in display                                                                                                                                                      |
 |                           |               |
-| @packet-loss_prefix       | " pkt loss: " | Prefix for status when displayed                                                                                                                                                                           |
-| @packet-loss_suffix       | " "           | Suffix for status when displayed                                                                                                                                                                           |
+| @packet-loss_prefix       | " pkt loss: " | Prefix for status when displayed                                                                                                                                                                            |
+| @packet-loss_suffix       | " "           | Suffix for status when displayed                                                                                                                                                                            |
 
 ## My config and sample outputs
 
@@ -91,7 +91,7 @@ set -g @packet-loss_color_alert "colour181"
 set -g @packet-loss_prefix "|"
 set -g @packet-loss_suffix "| "
 
-# Partial statusbar config, takes no place when under threshold
+# Partial status bar config, takes no place when under threshold
 # @packet-loss-suffix ensures spacing to date when something is displayed
 ...#{battery_smart} #{packet_loss}%a %h-%d %H:%M ...
 ```
@@ -105,12 +105,12 @@ set -g @packet-loss_suffix "| "
 
 ## Nerdy stuff
 
-When deciding on how long history you want for loss statistics, the two params of importance are:
+When deciding on how long history you want for loss statistics, the two parameters of importance are:
 
 -   @packet-loss-ping_count - Since normally ping is almost instantaneous if this is set to 10 it in practical terms means you will get an average loss saved every 9 seconds if the host is responding. It will be longer if there are any dropped packets or other timeouts.
 -   @packet-loss-history_size - how many samples are kept
 
-So multiplying (ping_count - 1) with history_size should give an aproximate length in seconds for the time-span the average is calculated over.
+So multiplying (ping_count - 1) with history_size should give an approximate length in seconds for the time-span the average is calculated over.
 
 You can check the DB to get the timestamp for oldest kept record by doing:
 

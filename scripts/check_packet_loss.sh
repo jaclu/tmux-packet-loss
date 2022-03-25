@@ -11,7 +11,8 @@
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 . "$CURRENT_DIR/utils.sh"
 
-db="$CURRENT_DIR/$sqlite_db"
+db="$(dirname -- "$CURRENT_DIR")/data/$sqlite_db"
+
 
 if [ ! -e "$db" ]; then
     msg="ERROR: DB [$db] not found!"
@@ -70,5 +71,5 @@ if [ -n "$current_loss" ]; then
     current_loss="$loss_prefix$current_loss$loss_suffix"
 fi
 
-# log_it "reported loss [$current_loss]"
+log_it "reported loss [$current_loss]"
 echo "$current_loss"

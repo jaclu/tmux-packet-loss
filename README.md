@@ -16,9 +16,9 @@ On modern tmux versions this background process is terminated when tmux exits, s
 
 `sqlite3`
 
-## Verified to work in the following envrionments
+## Verified to work in the following environments
 
-Tested to make sure ps and ping params are interpreted correctly.
+Tested to make sure ps and ping params are interpreted correctly
 
 `MacOS`
 `Linux`

@@ -11,12 +11,19 @@
 #
 
 #
+#  Shorthand, to avoid manually typing package name on multiple
+#  locations, easily getting out of sync.
+#
+plugin_name="tmux-packet-loss"
+
+
+#
 #  log_it is used to display status to $log_file if it is defined.
 #  Good for testing and monitoring actions. If $log_file is unset
 #  no output will happen. This should be the case for normal operations.
 #  So unless you want logging, comment the next line out.
 #
-# log_file="/tmp/tmux-packet-loss.log"
+# log_file="/tmp/$plugin_name.log"
 
 
 db_version=2         # Sanity check that DB structure is current
@@ -38,16 +45,21 @@ default_suffix=" "
 
 
 #
-#  These files are assumed to be in scripts, so depending on location
-#  for the script using this, use the correct location prefix!
-#  Since this is sourced the prefix can not be determined here.
+#  These files are assumed to be in the directory scripts, so depending
+#  on location for the script using this, use the correct location prefix!
+#  Since this is sourced, the prefix can not be determined here.
 #
-sqlite_db="packet_loss.sqlite"
 monitor_process_scr="packet_loss_monitor.sh"
-monitor_pidfile="monitor.pid"
 no_sessions_shutdown_scr="shutdown_if_no_sessions.sh"
 
-plugin_name="tmux-packet-loss"
+
+#
+#  These files are assumed to be in the directory data, so depending
+#  on location for the script using this, use the correct location prefix!
+#  Since this is sourced, the prefix can not be determined here.
+#
+sqlite_db="packet_loss.sqlite"
+monitor_pidfile="monitor.pid"
 
 
 #

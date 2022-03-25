@@ -1,2 +1,2 @@
-scripts/packet_loss.sqlite
-scripts/monitor.pid
+data/packet_loss.sqlite
+data/monitor.pid

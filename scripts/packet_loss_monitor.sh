@@ -11,8 +11,8 @@
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 . "$CURRENT_DIR/utils.sh"
 
-db="$CURRENT_DIR/$sqlite_db"
-pidfile="$CURRENT_DIR/$monitor_pidfile"
+db="$(dirname -- "$CURRENT_DIR")/data/$sqlite_db"
+pidfile="$(dirname -- "$CURRENT_DIR")/data/$monitor_pidfile"
 
 
 #

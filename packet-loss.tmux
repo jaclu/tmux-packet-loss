@@ -17,13 +17,23 @@
 
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SCRIPTS_DIR="$CURRENT_DIR/scripts"
+DATA_DIR="$CURRENT_DIR/data"
 . "$SCRIPTS_DIR/utils.sh"
 
 
-db="$SCRIPTS_DIR/$sqlite_db"
-pid_file="$SCRIPTS_DIR/$monitor_pidfile"
 monitor_proc_full_name="$SCRIPTS_DIR/$monitor_process_scr"
 no_sessions_shutdown_full_name="$SCRIPTS_DIR/$no_sessions_shutdown_scr"
+
+db="$DATA_DIR/$sqlite_db"
+pid_file="$DATA_DIR/$monitor_pidfile"
+
+
+#
+#  Removal of obsolete files, will be removed eventually.
+#
+rm -f "$SCRIPTS_DIR/$sqlite_db"
+rm -f "$SCRIPTS_DIR/$monitor_pidfile"
+
 
 #
 #  Dependency check

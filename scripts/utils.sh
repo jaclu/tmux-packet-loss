@@ -1,11 +1,13 @@
 #!/bin/sh
+# shellcheck disable=SC2034
+#  Directives for shellcheck directly after bang path are global
 #
 #   Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.5 2022-03-24
+#   Version: 0.1.0 2022-03-25
 #
 #  Common stuff
 #

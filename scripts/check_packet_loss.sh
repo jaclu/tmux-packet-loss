@@ -1,14 +1,18 @@
 #!/bin/sh
+# shellcheck disable=SC2154
+#  Directives for shellcheck directly after bang path are global
 #
 #   Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.5 2022-03-24
+#   Version: 0.1.0 2022-03-25
 #
 
+# shellcheck disable=SC1007
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck disable=SC1091
 . "$CURRENT_DIR/utils.sh"
 
 db="$(dirname -- "$CURRENT_DIR")/data/$sqlite_db"
@@ -36,7 +40,7 @@ lvl_disp="$(get_tmux_option "@packet-loss_level_disp" "$default_lvl_display")"
 # log_it "lvl_disp [$lvl_disp]"
 
 
-if [ $(echo "$current_loss < $lvl_disp" | bc) -eq 1 ]; then
+if [ "$(echo "$current_loss < $lvl_disp" | bc)" -eq 1 ]; then
     # log_it "$current_loss is below threshold $lvl_disp"
     current_loss="" # no output if bellow threshold
 fi
@@ -47,6 +51,7 @@ fi
 if [ -n "$current_loss" ]; then
     lvl_crit="$(get_tmux_option "@packet-loss_level_crit" "$default_lvl_crit")"
     # log_it "lvl_crit [$lvl_crit]"
+
     lvl_alert="$(get_tmux_option "@packet-loss_level_alert" "$default_lvl_alert")"
     # log_it "lvl_alert [$lvl_alert]"
     #
@@ -66,6 +71,7 @@ if [ -n "$current_loss" ]; then
 
     loss_prefix="$(get_tmux_option "@packet-loss_prefix" "$default_prefix")"
     # log_it "loss_prefix [$loss_prefix]"
+
     loss_suffix="$(get_tmux_option "@packet-loss_suffix" "$default_suffix")"
     # log_it "loss_suffix [$loss_suffix]"
     current_loss="$loss_prefix$current_loss$loss_suffix"

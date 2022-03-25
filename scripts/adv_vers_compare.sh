@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.2 2022-03-22
+#   Version: 0.1.0 2022-03-25
 #
 
 
@@ -39,6 +39,7 @@ adv_vers_compare() { # $1-a $2-op $3-$b
     printf -v a $fmt $ai$bp; printf -v a "%s-%${w}s" $a $al
     printf -v b $fmt $bi$ap; printf -v b "%s-%${w}s" $b $bl
 
+    # shellcheck disable=SC1009,SC1072,SC1073
     case $op in
         '<='|'>=' ) [ "$a" ${op:0:1} "$b" ] || [ "$a" = "$b" ] ;;
         * )         [ "$a" $op "$b" ] ;;

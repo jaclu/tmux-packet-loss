@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2154
+#  Directives for shellcheck directly after bang path are global
 #
 #   Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.1 2022-03-24
+#   Version: 0.1.0 2022-03-25
 #
 #   This is the coordination script
 #    - ensures the database is present and up to date
@@ -15,9 +17,12 @@
 #
 
 
+
+# shellcheck disable=SC1007
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SCRIPTS_DIR="$CURRENT_DIR/scripts"
 DATA_DIR="$CURRENT_DIR/data"
+# shellcheck disable=SC1091
 . "$SCRIPTS_DIR/utils.sh"
 
 
@@ -130,11 +135,12 @@ hook_handler() {
     log_it "hook_handler($action) tmux vers: $tmux_vers"
 
     # needed to be able to handle versions like 3.2a
+    # shellcheck disable=SC1091
     . "$SCRIPTS_DIR/adv_vers_compare.sh"
 
-    if adv_vers_compare $tmux_vers ">=" "3.0"; then
+    if adv_vers_compare "$tmux_vers" ">=" "3.0"; then
         hook_name="session-closed[$hook_array_idx]"
-    elif adv_vers_compare $tmux_vers ">=" "2.4"; then
+    elif adv_vers_compare "$tmux_vers" ">=" "2.4"; then
         hook_name="session-closed"
     else
         log_it "WARNING: previous to tmux 2.4 session-closed hook is not available, so can not shut down monitor process when tmux exits!"
@@ -186,12 +192,15 @@ kill_running_monitor() {
         #  Figure our what ps is available, in order to determine
         #  which param is the pid
         #
-        if [ -n "$(ls -l $(command -v ps) | grep busybox)" ]; then
+        if readlink "$(command -v ps)" | grep -q busybox; then
+            log_it "ps param: 1"
             pid_param=1
         else
+            log_it "ps param: 2"
             pid_param=2
         fi
 
+        # shellcheck disable=SC2009
         remaining_procs="$(ps axu | grep "$monitor_process_scr" | grep -v grep | awk -v p=$pid_param '{ print $p }' )"
         if [ -n "$remaining_procs" ]; then
             # log_it "### About to kill: [$remaining_procs]"

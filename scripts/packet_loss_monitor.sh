@@ -1,19 +1,23 @@
 #!/bin/sh
+# shellcheck disable=SC2154
+#  Directives for shellcheck directly after bang path are global
 #
 #   Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.0.7 2022-03-24
+#   Version: 0.1.0 2022-03-25
 #
 
+
+# shellcheck disable=SC1007
 CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck disable=SC1091
 . "$CURRENT_DIR/utils.sh"
 
 db="$(dirname -- "$CURRENT_DIR")/data/$sqlite_db"
 pidfile="$(dirname -- "$CURRENT_DIR")/data/$monitor_pidfile"
-
 
 #
 #  Ensure only one instance is running.

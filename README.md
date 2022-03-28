@@ -8,7 +8,7 @@ Only appears if losses are at or above threshold level. Convenient way to see if
 
 This plugin runs a background process using repeated runs of ping to evaluate % package loss. Loss level is calculated as a weighted average of the stored data points, making the latest few checks standout. Past the decline point, the average of all samples is used.
 
-On modern tmux versions this background process is terminated when tmux exits, see Tmux Compatibility for more details about versions and limitations when it comes to shutting down this background process.
+On modern tmux versions this background process is terminated when tmux exits, see ![Tmux Compatibility](#tmux-compatibility) for more details about versions and limitations when it comes to shutting down this background process.
 
 ## Dependencies
 

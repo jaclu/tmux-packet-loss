@@ -119,9 +119,9 @@ set -g @packet-loss_level_alert "20"
 set -g @packet-loss_color_crit "45"
 ```
 
-### Five (or ten) minutes history gives a better understanding of average link quality
+### Five (or ten) minutes of history gives a better understanding of average link quality
 
-History of 5 minutes, will give you a better understanding of packet loss over time, but since it can not indicate when the last loss happened, it does not give much information about the current state of affairs. If weighted_average is set to 1, the latest 7 samples will be given emphasis.
+This gives a better understanding of packet loss over time, but since it can not indicate when the last loss happened, it does not give much information about the current state of affairs. If weighted_average is set to 1, the latest 7 samples will be given emphasis.
 
 ```
 set -g @packet-loss-ping_count "11"
@@ -151,7 +151,7 @@ set -g status-interval 10
 
 ## Nerdy Stuff
 
-To give loss a declining history weighting, it is rounded to one decimal and displayed as the largest of:
+If @packet-loss_weighted_average is set to 1 (the default) losses are displayed as the largest of:
 
 1. last value
 1. avg of last 2
@@ -161,23 +161,6 @@ To give loss a declining history weighting, it is rounded to one decimal and dis
 1. avg of last 6
 1. avg of last 7
 1. avg of all
-
-It can be changed in scripts/check_packet_loss.sh around line 40
-
-```
-select round(
-  max(
-      (select loss from packet_loss Order By Rowid desc limit 1),
-      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 2)),
-      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 3)),
-      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 4)),
-      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 5)),
-      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 6)),
-      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 7)),
-      (select avg(loss) from packet_loss)
-     )
-  ,1)
-```
 
 You can check the DB to get the timestamp for the oldest kept record by running:
 

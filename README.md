@@ -51,9 +51,9 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 
 | Version   | Notice                                                                                                                                                                                                              |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 3.0 <=    | Background process is shut down when tmux exits using session-closed hook with an array suffix.                                                                                                                     |
-| 2.4 - 2.9 | Will shut down background process, but since hooks doesn't support arrays, binding to session-closed might interfere with other stuff using the same hook.                                                          |
-| 1.9 - 2.3 | session-closed hook not available. If you want to kill of the background monitoring process after tmux shutdown, you need to add `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux |
+| 3.0 <=    | Background process is shut down when tmux exits using a session-closed hook with an array suffix.                                                                                                                     |
+| 2.4 - 2.9 | Will shut down background process, but since hooks don't support arrays, binding to session-closed might interfere with other stuff using the same hook.                                                          |
+| 1.9 - 2.3 | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux |
 
 ## Supported Format Strings
 
@@ -68,7 +68,7 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 | @packet-loss-ping_host    | 8.8.4.4       | What host to ping                                                                                                                                                                                           |
 | @packet-loss-ping_count   | 6             | This many pings per statistics update.                                                                                                                                                                      |
 |                           |               |
-| @packet-loss-history_size | 6             | How many results should be kept<br>when calculating average loss.<br>I would recommend to keep it low, since it will<br>in most cases be more interesting to see <br>current status over long-term average. |
+| @packet-loss-history_size | 6             | How many results should be kept<br>when calculating average loss.<br>I would recommend keeping it low since it will<br>in most cases be more interesting to see <br>current status over the long-term average. |
 |                           |               |
 | @packet-loss_level_disp   | 0.1           | Display loss if this or higher level                                                                                                                                                                        |
 | @packet-loss_level_alert  | 2.0           | Color loss with color_alert                                                                                                                                                                                 |
@@ -107,7 +107,7 @@ set -g @packet-loss_suffix "| "
 
 ### Quick turnaround
 
-History of 30 seconds. Focuses on current state. Due to the weighting of results, a given loss report will quickly decrease as it gets further back in the history. High alert & crit levels increases likelihood the warning will shrink below the alert levels as it ages. Further focusing attention to current situation.
+History of 30 seconds. Focuses on the current state. Due to the weighting of results, a given loss report will quickly decrease as it gets further back in history. High alert & crit levels increase the likelihood the warning will shrink below the alert levels as it ages. Further focusing attention on the current situation.
 
 ```
 set -g @packet-loss-ping_count "6"
@@ -116,9 +116,9 @@ set -g @packet-loss_level_alert "20"
 set -g @packet-loss_color_crit "45"
 ```
 
-### 5 minutes history gives better understanding of average link quality
+### 5 minutes history gives a better understanding of average link quality
 
-History of 5 minutes, will give you a better understanding of packet loss over time, but since it can not indicate when last loss happened, it does not give much information about current state of affairs. The weighted results will still make the latest few checks stand out, but once it passes this decline, the loss will remain the same until it is eventually pushed off the list of stored results.
+History of 5 minutes, will give you a better understanding of packet loss over time, but since it can not indicate when the last loss happened, it does not give much information about the current state of affairs. The weighted results will still make the latest few checks stand out, but once it passes this decline, the loss will remain the same until it is eventually pushed off the list of stored results.
 
 ```
 set -g @packet-loss-ping_count "11"
@@ -127,9 +127,9 @@ set -g @packet-loss-history_size "30"
 
 ## Balancing it
 
-There is no point in getting updates more often than you update your status bar. By using a higher ping count you also get a better statistical analysis of the situation. If you only check 2 packets per round, the only results would be 0%, 50% or 100% The higher the ping count, the more nuanced the result will be. But obviously over a certain limit the time for each test will delay reporting until it is not really representative of the current link status, assuming you are focusing on that.
+There is no point in getting updates more often than you update your status bar. By using a higher ping count you also get a better statistical analysis of the situation. If you only check 2 packets per round, the only results would be 0%, 50% or 100% The higher the ping count, the more nuanced the result will be. But, over a certain limit, the time for each test will delay reporting until it is not representative of the current link status, assuming you are focusing on that.
 
-Since ping is normally close to instantaneous, to match reporting with status bar updates, ping count is recommended to be set to one higher. If they are the same, reporting will drift over time, and you will generate updates that you will never see in the first place. Not that big of a deal, but by setting ping count to one higher, they will more or less match in update frequency, and you will get one more data point per update!
+Since ping is normally close to instantaneous, to match reporting with status bar updates, ping count is recommended to be set to one higher. If they are the same, reporting will quickly drift over time, and you will generate updates that you will never see in the first place. Not that big of a deal, but by setting ping count to one higher, they will more or less match in update frequency, and you will get one more data point per update!
 
 | status-interval | @packet-loss-ping_count |
 | --------------- | ----------------------- |
@@ -138,7 +138,7 @@ Since ping is normally close to instantaneous, to match reporting with status ba
 | 15              | 16                      |
 | ...             | ...                     |
 
-You are recommended to also consider changing status-interval to keep the update rate for this plugin relevant for your reporting needs.
+You are recommended to also consider changing status-interval to keep the update rate for this plugin relevant to your reporting needs.
 
 ```
 set -g status-interval 10
@@ -174,7 +174,7 @@ select round(
   ,1)
 ```
 
-You can check the DB to get the timestamp for oldest kept record by running:
+You can check the DB to get the timestamp for the oldest kept record by running:
 
 ```
 sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'select * from packet_loss limit 1'
@@ -182,7 +182,7 @@ sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'select * from 
 
 ## Contributing
 
-Contributions are welcome, and they are greatly appreciated! Every little bit helps, and credit will always be given.
+Contributions are welcome, and they are greatly appreciated! Every little bit helps, and a credit will always be given.
 
 The best way to send feedback is to file an issue at https://github.com/jaclu/tmux-packet-loss/issues
 

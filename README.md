@@ -1,14 +1,14 @@
 # tmux-packet-loss
 
-Displays % packet loss to selected host
+Displays % packet loss to the selected host
 
 ## Operation
 
-Only appears if losses are at or above threshold level. Convenient way to see if there are connectivity issues.
+Only appears if losses are at or above the threshold level. A convenient way to see if there are connectivity issues.
 
-This plugin runs a background process using repeated runs of ping to evaluate % package loss. Loss level is calculated as a weighted average of the stored data points, making the latest few checks standout. Past the decline point, the average of all samples is used.
+This plugin runs a background process using repeated runs of ping to evaluate % package loss. Loss level is calculated as a weighted average of the stored data points, making the latest few checks stand out. Past the decline point, the average of all samples is used.
 
-On modern tmux versions this background process is terminated when tmux exits, see ![Tmux Compatibility](#tmux-compatibility) for more details about versions and limitations when it comes to shutting down this background process.
+On modern tmux versions, this background process is terminated when tmux exits, see Tmux Compatibility for more details about versions and limitations when it comes to shutting down this background process.
 
 ## Dependencies
 
@@ -118,7 +118,7 @@ set -g @packet-loss_color_crit "45"
 
 ### 5 minutes history gives better understanding of average link quality
 
-History of 5 minutes, will give you a better understanding of packet loss over time, but since it can not indicate when last loss happened, it does not give much information about current state of affairs. The weighted results will still make the latest few checks standout, but once it passes this decline, the loss will remain the same until it is eventually pushed off the list or stored results.
+History of 5 minutes, will give you a better understanding of packet loss over time, but since it can not indicate when last loss happened, it does not give much information about current state of affairs. The weighted results will still make the latest few checks stand out, but once it passes this decline, the loss will remain the same until it is eventually pushed off the list of stored results.
 
 ```
 set -g @packet-loss-ping_count "11"

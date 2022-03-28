@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.0 2022-03-25
+#   Version: 0.1.1 2022-03-29
 #
 #   This is the coordination script
 #    - ensures the database is present and up to date
@@ -118,6 +118,9 @@ set_db_params() {
     sql="$sql"'"'"$ping_host"'"'", $ping_count, $hist_size);"
     sqlite3 "$db" "$sql"
     log_it "db params set"
+
+    # Routine maintenance, should be done every now and then
+    sqlite3 "$db" "PRAGMA optimize"
 }
 
 

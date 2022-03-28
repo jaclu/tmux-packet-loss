@@ -6,9 +6,9 @@ Displays % packet loss to selected host
 
 Only appears if losses are at or above threshold level. Convenient way to see if there are connectivity issues.
 
-This plugin runs a background process using repeated runs of ping to evaluate % package loss. Loss level is calculated as the average of the stored data points.
+This plugin runs a background process using repeated runs of ping to evaluate % package loss. Loss level is calculated as a weighted average of the stored data points, making the latest few checks standout. Past the decline point, the average of all samples is used.
 
-On modern tmux versions this background process is terminated when tmux exits, see Tmux Compatibility for more details about versions and limitations.
+On modern tmux versions this background process is terminated when tmux exits, see Tmux Compatibility for more details about versions and limitations when it comes to shutting down this background process.
 
 ## Dependencies
 
@@ -91,7 +91,7 @@ set -g @packet-loss_color_alert "colour181"
 set -g @packet-loss_prefix "|"
 set -g @packet-loss_suffix "| "
 
-# Partial status bar config, takes no place when under threshold
+# Partial status bar config, this plugin takes no space when under @packet-loss_level_disp
 # @packet-loss-suffix ensures spacing to date when something is displayed
 ...#{battery_smart} #{packet_loss}%a %h-%d %H:%M ...
 ```
@@ -103,19 +103,81 @@ set -g @packet-loss_suffix "| "
 | ![lvl_alert](https://user-images.githubusercontent.com/5046648/159602048-90346c8c-396a-4f0b-be26-152ef13c806f.png) | alert level losses    |
 | ![lvl_crit](https://user-images.githubusercontent.com/5046648/159601876-9f097499-3fb9-4c53-8490-759665ff555f.png)  | critical level losses |
 
-## Nerdy stuff
+## Sample settings
 
-When deciding on how long history you want for loss statistics, the two parameters of importance are:
+### Quick turnaround
 
--   @packet-loss-ping_count - Since normally ping is almost instantaneous if this is set to 10 it in practical terms means you will get an average loss saved every 9 seconds if the host is responding. It will be longer if there are any dropped packets or other timeouts.
--   @packet-loss-history_size - how many samples are kept
-
-So multiplying (ping_count - 1) with history_size should give an approximate length in seconds for the time-span the average is calculated over.
-
-You can check the DB to get the timestamp for oldest kept record by doing:
+History of 30 seconds. Focuses on current state. Due to the weighting of results, a given loss report will quickly decrease as it gets further back in the history. High alert & crit levels increases likelihood the warning will shrink below the alert levels as it ages. Further focusing attention to current situation.
 
 ```
-sqlite3 ~/.tmux/plugins/tmux-packet-loss/scripts/packet_loss.sqlite 'select * from packet_loss limit 1'
+set -g @packet-loss-ping_count "6"
+set -g @packet-loss-history_size "6"
+set -g @packet-loss_level_alert "20"
+set -g @packet-loss_color_crit "45"
+```
+
+### 5 minutes history gives better understanding of average link quality
+
+History of 5 minutes, will give you a better understanding of packet loss over time, but since it can not indicate when last loss happened, it does not give much information about current state of affairs. The weighted results will still make the latest few checks standout, but once it passes this decline, the loss will remain the same until it is eventually pushed off the list or stored results.
+
+```
+set -g @packet-loss-ping_count "11"
+set -g @packet-loss-history_size "30"
+```
+
+## Balancing it
+
+There is no point in getting updates more often than you update your status bar. By using a higher ping count you also get a better statistical analysis of the situation. If you only check 2 packets per round, the only results would be 0%, 50% or 100% The higher the ping count, the more nuanced the result will be. But obviously over a certain limit the time for each test will delay reporting until it is not really representative of the current link status, assuming you are focusing on that.
+
+Since ping is normally close to instantaneous, to match reporting with status bar updates, ping count is recommended to be set to one higher. If they are the same, reporting will drift over time, and you will generate updates that you will never see in the first place. Not that big of a deal, but by setting ping count to one higher, they will more or less match in update frequency, and you will get one more data point per update!
+
+| status-interval | @packet-loss-ping_count |
+| --------------- | ----------------------- |
+| 5               | 6                       |
+| 10              | 11                      |
+| 15              | 16                      |
+| ...             | ...                     |
+
+You are recommended to also consider changing status-interval to keep the update rate for this plugin relevant for your reporting needs.
+
+```
+set -g status-interval 10
+```
+
+## Nerdy Stuff
+
+To give loss a declining history weighting, it is rounded to one decimal and displayed as the largest of:
+
+1. last value
+1. avg of last 2
+1. avg of last 3
+1. avg of last 4
+1. avg of last 5
+1. avg of last 6
+1. avg of last 7
+1. avg of all
+
+It can be changed in scripts/check_packet_loss.sh around line 40
+
+```
+select round(
+  max(
+      (select loss from packet_loss Order By Rowid desc limit 1),
+      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 2)),
+      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 3)),
+      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 4)),
+      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 5)),
+      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 6)),
+      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 7)),
+      (select avg(loss) from packet_loss)
+     )
+  ,1)
+```
+
+You can check the DB to get the timestamp for oldest kept record by running:
+
+```
+sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'select * from packet_loss limit 1'
 ```
 
 ## Contributing

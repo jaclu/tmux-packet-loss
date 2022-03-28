@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.0 2022-03-25
+#   Version: 0.1.1 2022-03-28
 #
 
 # shellcheck disable=SC1007
@@ -26,12 +26,26 @@ if [ ! -e "$db" ]; then
 fi
 
 
-
-# display last poll
-# current_loss="$(sqlite3 "$db" "SELECT loss from packet_loss ORDER BY rowid DESC LIMIT 1")"
-
-# display average over hist_size polls
-current_loss="$(sqlite3 "$db" "SELECT round(avg(loss),1) from packet_loss")"
+#
+#  To give loss a declining history weighting, it is rounded to one decimal
+#  and calculated as the max of:
+#    1 last value
+#    2 avg of last 2
+#    3 avg of last 3
+#    4 avg of last 4
+#    5 avg of all
+#
+current_loss="$(sqlite3 "$db" "select \
+    round( \
+      max( \
+        (select loss from packet_loss Order By Rowid desc limit 1), \
+        (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 2)), \
+        (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 3)), \
+        (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 4)), \
+        (select avg(loss) from packet_loss) \
+      ), \
+      1 \
+    )")"
 
 # log_it "raw loss [$current_loss]"
 

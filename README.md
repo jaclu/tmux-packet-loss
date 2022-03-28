@@ -49,10 +49,10 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 
 ## Tmux Compatibility
 
-| Version   | Notice                                                                                                                                                                                                              |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 3.0 <=    | Background process is shut down when tmux exits using a session-closed hook with an array suffix.                                                                                                                     |
-| 2.4 - 2.9 | Will shut down background process, but since hooks don't support arrays, binding to session-closed might interfere with other stuff using the same hook.                                                          |
+| Version   | Notice                                                                                                                                                                                                           |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3.0 <=    | Background process is shut down when tmux exits using a session-closed hook with an array suffix.                                                                                                                |
+| 2.4 - 2.9 | Will shut down background process, but since hooks don't support arrays, binding to session-closed might interfere with other stuff using the same hook.                                                         |
 | 1.9 - 2.3 | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux |
 
 ## Supported Format Strings
@@ -63,23 +63,24 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 
 ## Variables
 
-| Variable                  | Default       | Purpose                                                                                                                                                                                                     |
-| ------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| @packet-loss-ping_host    | 8.8.4.4       | What host to ping                                                                                                                                                                                           |
-| @packet-loss-ping_count   | 6             | This many pings per statistics update.                                                                                                                                                                      |
-|                           |               |
-| @packet-loss-history_size | 6             | How many results should be kept<br>when calculating average loss.<br>I would recommend keeping it low since it will<br>in most cases be more interesting to see <br>current status over the long-term average. |
-|                           |               |
-| @packet-loss_level_disp   | 0.1           | Display loss if this or higher level                                                                                                                                                                        |
-| @packet-loss_level_alert  | 2.0           | Color loss with color_alert                                                                                                                                                                                 |
-| @packet-loss_level_crit   | 8.0           | Color loss with color_crit                                                                                                                                                                                  |
-|                           |               |
-| @packet-loss_color_alert  | yellow        | Use this color if loss is at or above<br>@packet-loss_level_alert                                                                                                                                           |
-| @packet-loss_color_crit   | red           | Use this color if loss is at or above<br>@packet-loss_level_crit                                                                                                                                            |
-| @packet-loss_color_bg     | black         | bg color when alert/crit colors<br>are used in display                                                                                                                                                      |
-|                           |               |
-| @packet-loss_prefix       | " pkt loss: " | Prefix for status when displayed                                                                                                                                                                            |
-| @packet-loss_suffix       | " "           | Suffix for status when displayed                                                                                                                                                                            |
+| Variable                      | Default       | Purpose                                                                                                                                                                                                        |
+| ----------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| @packet-loss-ping_host        | 8.8.4.4       | What host to ping                                                                                                                                                                                              |
+| @packet-loss-ping_count       | 6             | This many pings per statistics update.                                                                                                                                                                         |
+|                               |               |
+| @packet-loss-history_size     | 6             | How many results should be kept<br>when calculating average loss.<br>I would recommend keeping it low since it will<br>in most cases be more interesting to see <br>current status over the long-term average. |
+|                               |               |
+| @packet-loss_weighted_average | 1             | 1 = Use weighted average<br>focusing on the latest data points<br> 0 = Average over all data points                                                                                                            |
+| @packet-loss_level_disp       | 0.1           | Display loss if this or higher level                                                                                                                                                                           |
+| @packet-loss_level_alert      | 2.0           | Color loss with color_alert                                                                                                                                                                                    |
+| @packet-loss_level_crit       | 8.0           | Color loss with color_crit                                                                                                                                                                                     |
+|                               |               |
+| @packet-loss_color_alert      | yellow        | Use this color if loss is at or above<br>@packet-loss_level_alert                                                                                                                                              |
+| @packet-loss_color_crit       | red           | Use this color if loss is at or above<br>@packet-loss_level_crit                                                                                                                                               |
+| @packet-loss_color_bg         | black         | bg color when alert/crit colors<br>are used in display                                                                                                                                                         |
+|                               |               |
+| @packet-loss_prefix           | " pkt loss: " | Prefix for status when displayed                                                                                                                                                                               |
+| @packet-loss_suffix           | " "           | Suffix for status when displayed                                                                                                                                                                               |
 
 ## My config and sample outputs
 
@@ -105,24 +106,27 @@ set -g @packet-loss_suffix "| "
 
 ## Sample settings
 
-### Quick turnaround
+### Current state
 
-History of 30 seconds. Focuses on the current state. Due to the weighting of results, a given loss report will quickly decrease as it gets further back in history. High alert & crit levels increase the likelihood the warning will shrink below the alert levels as it ages. Further focusing attention on the current situation.
+History of 30 seconds. Due to the weighting of results, reports for a given loss will quickly decrease as it gets further back in history. High alert & crit levels increase the likelihood the warning will shrink below the alert levels as it ages. Further focusing attention on the current situation.
 
 ```
 set -g @packet-loss-ping_count "6"
 set -g @packet-loss-history_size "6"
+set -g @packet-loss_weighted_average "1"
 set -g @packet-loss_level_alert "20"
 set -g @packet-loss_color_crit "45"
 ```
 
-### 5 minutes history gives a better understanding of average link quality
+### Five (or ten) minutes history gives a better understanding of average link quality
 
-History of 5 minutes, will give you a better understanding of packet loss over time, but since it can not indicate when the last loss happened, it does not give much information about the current state of affairs. The weighted results will still make the latest few checks stand out, but once it passes this decline, the loss will remain the same until it is eventually pushed off the list of stored results.
+History of 5 minutes, will give you a better understanding of packet loss over time, but since it can not indicate when the last loss happened, it does not give much information about the current state of affairs. If weighted_average is set to 1, the latest 7 samples will be given emphasis.
 
 ```
 set -g @packet-loss-ping_count "11"
 set -g @packet-loss-history_size "30"
+set -g @packet-loss_weighted_average "0"
+
 ```
 
 ## Balancing it

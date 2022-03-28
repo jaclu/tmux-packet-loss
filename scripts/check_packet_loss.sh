@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.2 2022-03-29
+#   Version: 0.2.0 2022-03-29
 #
 
 # shellcheck disable=SC1007
@@ -26,18 +26,18 @@ if [ ! -e "$db" ]; then
 fi
 
 
-#
-#  To give loss a declining history weighting, it is rounded to one decimal
-#  and displayed as the largest of:
-#    last value
-#    avg of last 2
-#    avg of last 3
-#    avg of last 4
-#    ...
-#    avg of all
-#
-current_loss="$(sqlite3 "$db" "select round( \
-  max( \
+if bool_param "$(get_tmux_option "@packet-loss_weighted_average" "$default_weighted_average")"; then
+    weighted_average=1
+    #
+    #  To give loss a declining history weighting, it is displayed as the largest of:
+    #    last value
+    #    avg of last 2
+    #    avg of last 3
+    #    avg of last 4
+    #    ...
+    #    avg of all
+    #
+    sql="max( \
       (select loss from packet_loss Order By Rowid desc limit 1), \
       (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 2)), \
       (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 3)), \
@@ -46,9 +46,15 @@ current_loss="$(sqlite3 "$db" "select round( \
       (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 6)), \
       (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 7)), \
       (select avg(loss) from packet_loss) \
-     ) \
-  ,1)")"
+     )"
+else
+    weighted_average=0
+    sql="(select avg(loss) from packet_loss)"
+fi
+# log_it "weighted_average [$weighted_average]"
 
+
+current_loss="$(sqlite3 "$db" "select round($sql,1)")"
 # log_it "raw loss [$current_loss]"
 
 

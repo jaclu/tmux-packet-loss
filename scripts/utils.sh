@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.0 2022-03-25
+#   Version: 0.2.0 2022-03-29
 #
 #  Common stuff
 #
@@ -25,7 +25,7 @@ plugin_name="tmux-packet-loss"
 #  no output will happen. This should be the case for normal operations.
 #  So unless you want logging, comment the next line out.
 #
-# log_file="/tmp/$plugin_name.log"
+log_file="/tmp/$plugin_name.log"
 
 
 db_version=2         # Sanity check that DB structure is current
@@ -33,15 +33,16 @@ hook_array_idx=1819  # random hopefully unique id to avoid colliding with other
                      # hook handling utilities
 
 
-default_host="8.8.4.4"   #  Default host to ping
-default_ping_count=6     #  how often to report packet loss statistics
-default_hist_size=6      # how many rounds of pings to keep in db for average calculations
-default_lvl_display=0.1  # float, display loss if this or higher
-default_lvl_alert=2.0    # float, this or higher triggers alert color
-default_lvl_crit=8.0     # float, this or higher triggers critical color
+default_host="8.8.4.4"     #  Default host to ping
+default_ping_count=6       #  how often to report packet loss statistics
+default_hist_size=6        #  how many rounds of pings to keep in db for average calculations
+default_weighted_average=1 #  Use weighted average over averaging all data points
+default_lvl_display=0.1    #  float, display loss if this or higher
+default_lvl_alert=2.0      #  float, this or higher triggers alert color
+default_lvl_crit=8.0       #  float, this or higher triggers critical color
 default_color_alert="yellow"
 default_color_crit="red"
-default_color_bg="black"  # only used for displaying alert/crit
+default_color_bg="black"   # only used when displaying alert/crit
 default_prefix=" pkt loss: "
 default_suffix=" "
 
@@ -87,4 +88,37 @@ get_tmux_option() {
     unset gtm_option
     unset gtm_default
     unset gtm_value
+}
+
+
+#
+#  Aargh in shell boolean true is 0, but to make the boolean parameters
+#  more relatable for users 1 is yes and 0 is no, so we need to switch
+#  them here in order for assignment to follow boolean logic in caller
+#
+bool_param() {
+    case "$1" in
+
+        "0") return 1 ;;
+
+        "1") return 0 ;;
+
+        "yes" | "Yes" | "YES" | "true" | "True" | "TRUE" )
+            #  Be a nice guy and accept some common positives
+            log_it "Converted incorrect positive [$1] to 1"
+            return 0
+            ;;
+
+        "no" | "No" | "NO" | "false" | "False" | "FALSE" )
+            #  Be a nice guy and accept some common negatives
+            log_it "Converted incorrect negative [$1] to 0"
+            return 1
+            ;;
+
+        *)
+            log_it "Invalid parameter bool_param($1)"
+            tmux display "ERROR: bool_param($1) - should be 0 or 1"
+
+    esac
+    return 1
 }

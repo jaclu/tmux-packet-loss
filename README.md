@@ -87,6 +87,7 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
 ```
 set -g @packet-loss-ping_count "6"
 set -g @packet-loss-history_size "10"
+set -g @packet-loss_weighted_average "1"
 set -g @packet-loss_level_alert "1.7"
 set -g @packet-loss_color_alert "colour181"
 set -g @packet-loss_prefix "|"

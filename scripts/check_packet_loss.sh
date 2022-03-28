@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.1 2022-03-28
+#   Version: 0.1.2 2022-03-29
 #
 
 # shellcheck disable=SC1007
@@ -28,24 +28,26 @@ fi
 
 #
 #  To give loss a declining history weighting, it is rounded to one decimal
-#  and calculated as the max of:
-#    1 last value
-#    2 avg of last 2
-#    3 avg of last 3
-#    4 avg of last 4
-#    5 avg of all
+#  and displayed as the largest of:
+#    last value
+#    avg of last 2
+#    avg of last 3
+#    avg of last 4
+#    ...
+#    avg of all
 #
-current_loss="$(sqlite3 "$db" "select \
-    round( \
-      max( \
-        (select loss from packet_loss Order By Rowid desc limit 1), \
-        (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 2)), \
-        (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 3)), \
-        (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 4)), \
-        (select avg(loss) from packet_loss) \
-      ), \
-      1 \
-    )")"
+current_loss="$(sqlite3 "$db" "select round( \
+  max( \
+      (select loss from packet_loss Order By Rowid desc limit 1), \
+      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 2)), \
+      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 3)), \
+      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 4)), \
+      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 5)), \
+      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 6)), \
+      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 7)), \
+      (select avg(loss) from packet_loss) \
+     ) \
+  ,1)")"
 
 # log_it "raw loss [$current_loss]"
 
@@ -73,11 +75,15 @@ if [ -n "$current_loss" ]; then
     #
     if awk -v val="$current_loss" -v trig_lvl="$lvl_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
         color_crit="$(get_tmux_option "@packet-loss_color_crit" "$default_color_crit")"
+        # log_it "color_crit [$color_crit]"
         color_bg="$(get_tmux_option "@packet-loss_color_bg" "$default_color_bg")"
+        # log_it "color_bg [$color_bg]"
         current_loss="#[fg=$color_crit,bg=$color_bg]$current_loss%#[default]"
     elif awk -v val="$current_loss" -v trig_lvl="$lvl_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
         color_alert="$(get_tmux_option "@packet-loss_color_alert" "$default_color_alert")"
+        # log_it "color_alert [$color_alert]"
         color_bg="$(get_tmux_option "@packet-loss_color_bg" "$default_color_bg")"
+        # log_it "color_bg [$color_bg]"
         current_loss="#[fg=$color_alert,bg=$color_bg]$current_loss%#[default]"
     else
         current_loss="$current_loss%"
@@ -88,6 +94,7 @@ if [ -n "$current_loss" ]; then
 
     loss_suffix="$(get_tmux_option "@packet-loss_suffix" "$default_suffix")"
     # log_it "loss_suffix [$loss_suffix]"
+
     current_loss="$loss_prefix$current_loss$loss_suffix"
 fi
 

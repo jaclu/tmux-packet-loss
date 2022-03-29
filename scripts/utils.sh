@@ -8,7 +8,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.2.0 2022-03-29
+#   Version: 0.2.1 2022-03-29
 #
 #  Common stuff
 #
@@ -26,7 +26,7 @@ plugin_name="tmux-packet-loss"
 #  no output will happen. This should be the case for normal operations.
 #  So unless you want logging, comment the next line out.
 #
-log_file="/tmp/$plugin_name.log"
+# log_file="/tmp/$plugin_name.log"
 
 
 db_version=2         # Sanity check that DB structure is current

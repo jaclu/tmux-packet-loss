@@ -1,4 +1,5 @@
 #!/bin/sh
+# Always sourced file - Fake bangpath to help editors
 # shellcheck disable=SC2034
 #  Directives for shellcheck directly after bang path are global
 #

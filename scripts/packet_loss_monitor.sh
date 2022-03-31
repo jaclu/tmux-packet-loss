@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.0 2022-03-25
+#   Version: 0.1.1 2022-03-31
 #
 
 
@@ -23,10 +23,7 @@ pidfile="$(dirname -- "$CURRENT_DIR")/data/$monitor_pidfile"
 #  Ensure only one instance is running.
 #
 if [ -e "$pidfile" ]; then
-    msg="ERROR: $monitor_process_scr seems to already be running, aborting!"
-    log_it "$msg"
-    tmux display "$plugin_name $msg"
-    exit 1
+    error_msg "$monitor_process_scr seems to already be running, aborting!" 1
 fi
 
 
@@ -88,7 +85,7 @@ while : ; do
         #
         percent_loss="$(echo "$output" | sed 's/packet loss/\|/' | cut -d\| -f 1 | awk 'NF>1{print $NF}' | sed s/%// )"
         if [ -z "$percent_loss" ]; then
-            log_it "ERROR: Failed to parse ping output!"
+            error_msg "Failed to parse ping output!"
             percent_loss="101"  #  indicate this error by giving high value
         fi
     else
@@ -103,6 +100,6 @@ while : ; do
         log_it "No ping output, will sleep $ping_count seconds"
         sleep "$ping_count"
     fi
-    sqlite3 "$db" "INSERT INTO packet_loss (loss) values ($percent_loss);"
+    sqlite3 "$db" "INSERT INTO packet_loss (loss) values ($percent_loss)"
     log_it "stored in DB [$percent_loss]"
 done

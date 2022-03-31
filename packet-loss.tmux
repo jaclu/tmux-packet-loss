@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.2 2022-03-29
+#   Version: 0.1.3 2022-03-31
 #
 #   This is the coordination script
 #    - ensures the database is present and up to date
@@ -44,10 +44,7 @@ rm -f "$SCRIPTS_DIR/$monitor_pidfile"
 #  Dependency check
 #
 if ! command -v sqlite3 > /dev/null 2>&1; then
-    msg="ERROR: missing dependency sqlite3"
-    log_it "$msg"
-    tmux display "$plugin_name $msg"
-    exit 1
+    error_msg "Missing dependency sqlite3" 1
 fi
 
 
@@ -157,9 +154,7 @@ hook_handler() {
             tmux set-hook -ug "$hook_name"
             log_it "releasing hook: $hook_name"
         else
-            msg="ERROR: hook_handler must be called with param set or clear!"
-            log_it "$msg"
-            tmux display "$plugin_name $msg"
+            error_msg "hook_handler must be called with param set or clear!" 1
         fi
     fi
 }
@@ -211,11 +206,7 @@ kill_running_monitor() {
             echo "$remaining_procs" | xargs kill 2&> /dev/null
         fi
     else
-        msg="ERROR: monitor_process_scr not defined, can NOT attempt to kill remaining background processes!"
-        log_it "$msg"
-        echo  "$msg"
-        tmux display "$plugin_name $msg"
-        exit 1
+        error_msg "monitor_process_scr not defined, can NOT attempt to kill remaining background processes!" 1
     fi
 }
 

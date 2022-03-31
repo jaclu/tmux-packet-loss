@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.2.0 2022-03-29
+#   Version: 0.2.1 2022-03-31
 #
 
 # shellcheck disable=SC1007
@@ -19,10 +19,7 @@ db="$(dirname -- "$CURRENT_DIR")/data/$sqlite_db"
 
 
 if [ ! -e "$db" ]; then
-    msg="ERROR: DB [$db] not found!"
-    log_it "$msg"
-    tmux display "$plugin_name $msg"
-    exit 1
+    error_msg "DB [$db] not found!" 1
 fi
 
 
@@ -48,6 +45,7 @@ if bool_param "$(get_tmux_option "@packet-loss_weighted_average" "$default_weigh
       (select avg(loss) from packet_loss) \
      )"
 else
+    # shellcheck disable=SC2034
     weighted_average=0
     sql="(select avg(loss) from packet_loss)"
 fi

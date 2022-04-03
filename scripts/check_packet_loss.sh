@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.2.1 2022-03-31
+#   Version: 0.2.2 2022-04-03
 #
 
 # shellcheck disable=SC1007
@@ -100,7 +100,7 @@ if [ -n "$current_loss" ]; then
     # log_it "loss_suffix [$loss_suffix]"
 
     current_loss="$loss_prefix$current_loss$loss_suffix"
+    log_it "reported loss [$current_loss]"
 fi
 
-log_it "reported loss [$current_loss]"
 echo "$current_loss"

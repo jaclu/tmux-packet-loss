@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.1 2022-03-31
+#   Version: 0.1.2 2022-04-03
 #
 
 
@@ -71,6 +71,7 @@ fi
 
 ping_cmd="$ping_cmd -c $ping_count $host"
 
+log_it "$monitor_process_scr will use ping cmd [$ping_cmd]"
 
 #
 #  Main

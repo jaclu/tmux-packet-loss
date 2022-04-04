@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.2 2022-04-03
+#   Version: 0.1.3 2022-04-04
 #
 
 
@@ -18,6 +18,23 @@ CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 db="$(dirname -- "$CURRENT_DIR")/data/$sqlite_db"
 pidfile="$(dirname -- "$CURRENT_DIR")/data/$monitor_pidfile"
+
+
+#
+#  Since loss is treated as a float, indicate errors with results over 100
+#  Not crucial to remember exactly what it means, enough to know is >100 means monitor error
+#
+
+#
+#  Failed to find %loss in ping output, most likely temporary, some pings just report:
+#    ping: sendto: Host is unreachable
+#  if network is unreachable
+#
+error_no_ping_output="101"
+
+# `ping_cmd | grep loss`  gave empty result, unlikely to self correct
+error_unable_to_detect_loss="201"
+
 
 #
 #  Ensure only one instance is running.
@@ -86,17 +103,18 @@ while : ; do
         #
         percent_loss="$(echo "$output" | sed 's/packet loss/\|/' | cut -d\| -f 1 | awk 'NF>1{print $NF}' | sed s/%// )"
         if [ -z "$percent_loss" ]; then
-            error_msg "Failed to parse ping output!"
-            percent_loss="101"  #  indicate this error by giving high value
+            error_msg "Failed to parse ping output, unlikely to self correct!"
+            percent_loss="$error_unable_to_detect_loss"
         fi
     else
         #
         #  No output, usually no connection to the host
         #
-        percent_loss="102"  #  indicate this error by giving high value
+        percent_loss="$error_no_ping_output"
         #
         #  Some pings instantly aborts on no connection, this will keep
-        #  the poll rate kind of normal and avoid rapidly filling the DB with bad data
+        #  the poll rate kind of normal and avoid rapidly filling the DB with bad data,
+        #  Worst case, this will delay monitoring a bit during an outage.
         #
         log_it "No ping output, will sleep $ping_count seconds"
         sleep "$ping_count"

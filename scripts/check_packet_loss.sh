@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.2.2 2022-04-03
+#   Version: 0.2.3 2022-04-12
 #
 
 # shellcheck disable=SC1007
@@ -24,7 +24,7 @@ fi
 
 
 if bool_param "$(get_tmux_option "@packet-loss_weighted_average" "$default_weighted_average")"; then
-    weighted_average=1
+    # weighted_average=1
     #
     #  To give loss a declining history weighting, it is displayed as the largest of:
     #    last value
@@ -46,10 +46,11 @@ if bool_param "$(get_tmux_option "@packet-loss_weighted_average" "$default_weigh
      )"
 else
     # shellcheck disable=SC2034
-    weighted_average=0
+    # weighted_average=0
     sql="(select avg(loss) from packet_loss)"
 fi
 # log_it "weighted_average [$weighted_average]"
+# unset weighted_average
 
 
 current_loss="$(sqlite3 "$db" "select round($sql,1)")"

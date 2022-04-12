@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.3 2022-03-31
+#   Version: 0.1.4 2022-04-12
 #
 #   This is the coordination script
 #    - ensures the database is present and up to date
@@ -130,8 +130,7 @@ hook_handler() {
     local action="$1"
     local tmux_vers
     local hook_name
-    local msg
-
+    
     tmux_vers="$(tmux -V | cut -d' ' -f2)"
     log_it "hook_handler($action) tmux vers: $tmux_vers"
 

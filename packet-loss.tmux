@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.4 2022-04-12
+#   Version: 0.1.5 2022-04-12
 #
 #   This is the coordination script
 #    - ensures the database is present and up to date
@@ -168,8 +168,7 @@ kill_running_monitor() {
     local pid
     local pid_param
     local remaining_procs
-    local msg
-
+    
     log_it "kill_running_monitor($pid_file)"
 
     if [ -e "$pid_file" ]; then

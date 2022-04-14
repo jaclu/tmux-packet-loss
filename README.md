@@ -50,19 +50,19 @@ Hit `prefix + I` to fetch the plugin and source it. That's it!
 
 Clone the repository:
 
-    $ git clone https://github.com/jaclu/tmux-packet-loss ~/clone/path
+    $ git clone https://github.com/jaclu/tmux-packet-loss.git ~/clone/path
 
 Add this line to the bottom of `.tmux.conf`:
 
     run-shell ~/clone/path/packet-loss.tmux
 
-Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
+Reload TMUX environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 
 ## Tmux Compatibility
 
 Version   | Notice
 -|-
-3.0 <=    | Background process is shut down when tmux exits using a session-closed hook with an array suffix.
+3.0 >=    | Background process is shut down when tmux exits using a session-closed hook with an array suffix.
 2.4 - 2.9 | Will shut down background process, but since hooks don't support arrays, binding to session-closed might interfere with other stuff using the same hook.
 1.9 - 2.3 | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux
 

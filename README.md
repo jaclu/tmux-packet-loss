@@ -20,7 +20,9 @@ Result | Explanation
 
 ## Dependencies
 
-`tmux 1.9`
+`tmux 2.0` and up works with tpm
+
+`tmux 1.9 & 1.9a` requires manual activation since tpm is not working before 2.0
 
 `sqlite3`
 

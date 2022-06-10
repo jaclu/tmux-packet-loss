@@ -47,7 +47,6 @@ if [ ! -e "$db" ]; then
     fi
 fi
 
-
 if [ -n "$(find "$db" -mmin +1)" ]; then
     log_it "DB is to old"
     #

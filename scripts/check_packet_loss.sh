@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.3.0 2022-06-10
+#   Version: 0.3.1 2022-06-10
 #
 
 # shellcheck disable=SC1007
@@ -22,6 +22,7 @@ log_file_db_missing="${log_file_base}-missing.log"
 log_file_db_old="${log_file_base}-old.log"
 
 restart_monitor() {
+    log_it "restarting monitor"
     parrent_dir="$(dirname "$CURRENT_DIR")"
     "$parrent_dir/packet-loss.tmux" stop
     "$parrent_dir/packet-loss.tmux"
@@ -33,6 +34,8 @@ restart_monitor() {
 #  Some sanity check, ensuring the monitor is running
 #
 if [ ! -e "$db" ]; then
+    log_it "DB missing"
+
     #
     #  If DB is missing, try to start the monitor
     #
@@ -46,6 +49,7 @@ fi
 
 
 if [ -n "$(find "$db" -mmin +1)" ]; then
+    log_it "DB is to old"
     #
     #  If DB is over a minute old,
     #  assume the monitor is not running, so start it

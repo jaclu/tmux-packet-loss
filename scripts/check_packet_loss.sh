@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.2.3 2022-04-12
+#   Version: 0.3.0 2022-06-10
 #
 
 # shellcheck disable=SC1007
@@ -17,10 +17,43 @@ CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 db="$(dirname -- "$CURRENT_DIR")/data/$sqlite_db"
 
+log_file_base="/tmp/packet-loss"
+log_file_db_missing="${log_file_base}-missing.log"
+log_file_db_old="${log_file_base}-old.log"
 
+restart_monitor() {
+    parrent_dir="$(dirname "$CURRENT_DIR")"
+    "$parrent_dir/packet-loss.tmux" stop
+    "$parrent_dir/packet-loss.tmux"
+    sleep 1  # give the first check time to complete
+}
+
+
+#
+#  Some sanity check, ensuring the monitor is running
+#
 if [ ! -e "$db" ]; then
-    error_msg "DB [$db] not found!" 1
+    #
+    #  If DB is missing, try to start the monitor
+    #
+    date >> "$log_file_db_missing" # for now log actions
+    restart_monitor
+    if [ ! -e "$db" ]; then
+        # still missing, something is failing
+        error_msg "DB [$db] not found!" 1
+    fi
 fi
+
+
+if [ -n "$(find "$db" -mmin +1)" ]; then
+    #
+    #  If DB is over a minute old,
+    #  assume the monitor is not running, so start it
+    #
+    date >> "$log_file_db_old" # for now log actions
+    restart_monitor
+fi
+
 
 
 if bool_param "$(get_tmux_option "@packet-loss_weighted_average" "$default_weighted_average")"; then

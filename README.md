@@ -2,6 +2,10 @@
 
 Displays % packet loss to the selected host
 
+### Recent changes
+
+- If monitor is not running, it is restarted by check_packet_loss.sh
+
 ## Operation
 
 Only appears if losses are at or above the threshold level. A convenient way to see if there are connectivity issues.

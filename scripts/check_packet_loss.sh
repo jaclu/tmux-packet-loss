@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.3.1 2022-06-10
+#   Version: 0.3.2 2022-06-10
 #
 
 # shellcheck disable=SC1007
@@ -42,6 +42,7 @@ if [ ! -e "$db" ]; then
     date >> "$log_file_db_missing" # for now log actions
     restart_monitor
     if [ ! -e "$db" ]; then
+        log_it "repeated fails DB missing"
         # still missing, something is failing
         error_msg "DB [$db] not found!" 1
     fi

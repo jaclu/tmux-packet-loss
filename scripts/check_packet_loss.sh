@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.3.2 2022-06-10
+#   Version: 0.3.3 2022-06-10
 #
 
 # shellcheck disable=SC1007
@@ -49,7 +49,7 @@ if [ ! -e "$db" ]; then
 fi
 
 if [ -n "$(find "$db" -mmin +1)" ]; then
-    log_it "DB is to old"
+    log_it "DB is one minute old"
     #
     #  If DB is over a minute old,
     #  assume the monitor is not running, so start it

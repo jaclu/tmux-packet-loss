@@ -101,16 +101,13 @@ Variable                      | Default       | Purpose
 ## My config and sample outputs
 
 ```
-set -g @packet-loss-ping_count "6"
-set -g @packet-loss-history_size "12"
-set -g @packet-loss_weighted_average "1"
-set -g @packet-loss_level_alert "1.7"
-set -g @packet-loss_color_alert "colour181"
+set -g @packet-loss_level_alert "10"
+set -g @packet-loss_level_crit "50"
 set -g @packet-loss_prefix "|"
 set -g @packet-loss_suffix "| "
 
 # Partial status bar config, this plugin takes no space when under @packet-loss_level_disp
-# @packet-loss-suffix ensures spacing to date when something is displayed
+# @packet-loss_suffix ensures spacing to date when something is displayed
 ...#{battery_smart} #{packet_loss}%a %h-%d %H:%M ...
 ```
 

@@ -1,6 +1,6 @@
 # tmux-packet-loss
 
-Displays % packet loss to the selected host
+Displays % packet loss to the selected host, default is to use weighted average, to give the last couple of checks greater emphasis.
 
 ### Recent changes
 

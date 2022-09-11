@@ -100,11 +100,12 @@ Variable                      | Default       | Purpose
 
 ## My config and sample outputs
 
+alert level is set so that a single packet lost does not trigger an alert, since I do 6 pings per run, one lost is 16.67%
 ```
-set -g @packet-loss_level_alert "10"
+set -g @packet-loss_level_alert "17"
 set -g @packet-loss_level_crit "50"
 set -g @packet-loss_prefix "|"
-set -g @packet-loss_suffix "| "
+set -g @packet-loss_suffix "|"
 
 # Partial status bar config, this plugin takes no space when under @packet-loss_level_disp
 # @packet-loss_suffix ensures spacing to date when something is displayed

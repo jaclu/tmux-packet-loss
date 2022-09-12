@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.5 2022-04-12
+#   Version: 0.2.0 2022-09-12
 #
 #   This is the coordination script
 #    - ensures the database is present and up to date
@@ -77,7 +77,7 @@ create_db() {
     sqlite3 "$db" " \
         CREATE TABLE packet_loss ( \
             datetime TIMESTAMP DEFAULT (datetime('now','localtime')) NOT NULL, \
-            loss float \
+            loss DECIMAL(5,1) \
         ); \
         CREATE TRIGGER delete_tail AFTER INSERT ON packet_loss \
         BEGIN \
@@ -130,7 +130,7 @@ hook_handler() {
     local action="$1"
     local tmux_vers
     local hook_name
-    
+
     tmux_vers="$(tmux -V | cut -d' ' -f2)"
     log_it "hook_handler($action) tmux vers: $tmux_vers"
 
@@ -168,7 +168,7 @@ kill_running_monitor() {
     local pid
     local pid_param
     local remaining_procs
-    
+
     log_it "kill_running_monitor($pid_file)"
 
     if [ -e "$pid_file" ]; then

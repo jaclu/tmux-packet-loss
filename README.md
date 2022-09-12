@@ -4,6 +4,14 @@ Displays % packet loss to the selected host, default is to use weighted average,
 
 ### Recent changes
 
+- loss FLOAT -> DECIMAL(5,1)
+    Now only storing one decimal for packet loss in DB.
+    More is not needed and makes for more consistent output when dumping the table with watch.
+    Ping on some operating systems displays packet loss with three(!) decimals...
+    Please note, when running on iSH (Alpine x86) no decimals are saved,
+    kind of odd but not really an issue, please report if you see any anomalies
+    due to this change, successfully stores one decimal on MacOS & Linux in my
+    tests.
 - If monitor is not running, it is restarted by check_packet_loss.sh
 
 ## Operation

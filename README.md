@@ -11,7 +11,12 @@ Displays % packet loss to the selected host, default is to use weighted average,
     Please note, when running on iSH (Alpine x86) no decimals are saved,
     kind of odd but not really an issue, please report if you see any anomalies
     due to this change, successfully stores one decimal on MacOS & Linux in my
-    tests.
+    tests. To trigger the new data schema, simplest is to do
+
+    ```bash
+    rm ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite
+    ~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux
+    ```
 - If monitor is not running, it is restarted by check_packet_loss.sh
 
 ## Operation

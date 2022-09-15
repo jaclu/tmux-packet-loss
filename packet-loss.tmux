@@ -7,7 +7,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.2.0 2022-09-12
+#   Version: 0.2.1 2022-09-15
 #
 #   This is the coordination script
 #    - ensures the database is present and up to date
@@ -131,7 +131,7 @@ hook_handler() {
     local tmux_vers
     local hook_name
 
-    tmux_vers="$(tmux -V | cut -d' ' -f2)"
+    tmux_vers="$($TMUX_BIN -V | cut -d' ' -f2)"
     log_it "hook_handler($action) tmux vers: $tmux_vers"
 
     # needed to be able to handle versions like 3.2a
@@ -147,10 +147,10 @@ hook_handler() {
     fi
     if [ -n "$hook_name" ]; then
         if [ "$action" = "set" ]; then
-            tmux set-hook -g "$hook_name" "run $no_sessions_shutdown_full_name"
+            $TMUX_BIN set-hook -g "$hook_name" "run $no_sessions_shutdown_full_name"
             log_it "binding packet-loss shutdown to: $hook_name"
         elif [ "$action" = "clear" ]; then
-            tmux set-hook -ug "$hook_name"
+            $TMUX_BIN set-hook -ug "$hook_name"
             log_it "releasing hook: $hook_name"
         else
             error_msg "hook_handler must be called with param set or clear!" 1
@@ -213,7 +213,7 @@ set_tmux_option() {
     local option="$1"
     local value="$2"
 
-    tmux set-option -gq "$option" "$value"
+    $TMUX_BIN set-option -gq "$option" "$value"
 }
 
 

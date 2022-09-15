@@ -5,7 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.0 2022-03-25
+#   Version: 0.1.1 2022-09-15
 #
 #  If no more sessions are running, terminate background packet loss processes
 #
@@ -17,7 +17,7 @@ PARRENT_DIR="$(dirname -- "$CURRENT_DIR")"
 . "$CURRENT_DIR/utils.sh"
 
 
-ses_count="$(tmux ls | wc -l)"
+ses_count="$($TMUX_BIN ls | wc -l)"
 
 # shellcheck disable=SC2154
 log_it "$no_sessions_shutdown_scr - session count [$ses_count]"

@@ -1,33 +1,42 @@
-# tmux-packet-loss
+# Tmux-Packet-Loss
 
-Displays % packet loss to the selected host, default is to use weighted average, to give the last couple of checks greater emphasis.
+Displays % packet loss to the selected host, default is to use weighted
+average, to give the last couple of checks greater emphasis.
 
 ### Recent changes
 
 - loss FLOAT -> DECIMAL(5,1)
-    Now only storing one decimal for packet loss in DB.
-    More is not needed and makes for more consistent output when dumping the table with watch.
-    Ping on some operating systems displays packet loss with three(!) decimals...
+    Now limiting to one decimal for packet loss in DB.
+    More isn't needed and makes for more consistent output when dumping
+    the table with watch.
+    Ping on some operating systems displays packet loss with three(!)
+    decimals
     Please note, when running on iSH (Alpine x86) no decimals are saved,
-    kind of odd but not really an issue, please report if you see any anomalies
-    due to this change, successfully stores one decimal on MacOS & Linux in my
-    tests. To trigger the new data schema, simplest is to do
+    kind of odd but not much of an issue,
+    please report if you see any anomalies due to this change.
+    To trigger the new data schema, simplest is to do
 
     ```bash
     rm ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite
     ~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux
     ```
-- If monitor is not running, it is restarted by check_packet_loss.sh
+- If monitor isn't running, it's restarted by check_packet_loss.sh
 
 ## Operation
 
-Only appears if losses are at or above the threshold level. A convenient way to see if there are connectivity issues.
+Appears if losses are at or above the threshold level.
+A convenient way to see if there are connectivity issues.
 
-This plugin runs a background process using repeated runs of ping to evaluate % package loss. Loss level is calculated as a weighted average of the stored data points, making the latest few checks stand out. Past the decline point, the average of all samples is used.
+This plugin runs a background process using repeated runs of ping to
+determine % package loss. Loss level is calculated as a weighted average
+of the stored data points, making the latest checks stand out.
+Past the decline point, the average of all samples is used.
 
-On modern tmux versions, this background process is terminated when tmux exits, see Tmux Compatibility for more details about versions and limitations when it comes to shutting down this background process.
+On modern tmux versions, this background process is terminated when tmux exits,
+see Tmux Compatibility for more details about versions and limitations
+when it comes to shutting down this background process.
 
-If the monitor experiences errors, packet loss of 101% or higher will be reported.
+If the monitor experiences errors, packet loss of 101% or higher are reported.
 
 Result | Explanation
 -|-
@@ -61,7 +70,9 @@ Tested to make sure ps and ping parameters and output are interpreted correctly.
 
 Add plugin to the list of TPM plugins in `.tmux.conf`:
 
-    set -g @plugin 'jaclu/tmux-packet-loss'
+```tmux
+set -g @plugin 'jaclu/tmux-packet-loss'
+```
 
 Hit `prefix + I` to fetch the plugin and source it. That's it!
 
@@ -69,11 +80,15 @@ Hit `prefix + I` to fetch the plugin and source it. That's it!
 
 Clone the repository:
 
-    $ git clone https://github.com/jaclu/tmux-packet-loss.git ~/clone/path
+```bash
+git clone https://github.com/jaclu/tmux-packet-loss.git ~/clone/path
+```
 
 Add this line to the bottom of `.tmux.conf`:
 
-    run-shell ~/clone/path/packet-loss.tmux
+```tmux
+run-shell ~/clone/path/packet-loss.tmux
+```
 
 Reload TMUX environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 
@@ -113,8 +128,10 @@ Variable                      | Default       | Purpose
 
 ## My config and sample outputs
 
-alert level is set so that a single packet lost does not trigger an alert, since I do 6 pings per run, one lost is 16.67%
-```
+alert level is set so that a single packet lost does not trigger an alert,
+since I do 6 pings per run, one lost is 16.67%
+
+```tnux
 set -g @packet-loss_level_alert "17"
 set -g @packet-loss_level_crit "50"
 set -g @packet-loss_prefix "|"
@@ -136,9 +153,13 @@ set -g @packet-loss_suffix "|"
 
 ### Current state
 
-History of 30 seconds. Due to the weighting of results, reports for a given loss will quickly decrease as it gets further back in history. High alert & crit levels increase the likelihood the warning will shrink below the alert levels as it ages. Further focusing attention on the current situation.
+History of 30 seconds. Due to the weighting of results, reports for a given
+loss will quickly decrease as it gets further back in history.
+High alert & crit levels increase the likelihood the warning will shrink
+below the alert levels as it ages. Further focusing attention on
+the current situation.
 
-```
+```tmux
 set -g @packet-loss-ping_count "6"
 set -g @packet-loss-history_size "6"
 set -g @packet-loss_weighted_average "1"
@@ -150,9 +171,12 @@ set -g status-interval 5
 
 ### Five (or ten) minutes of history gives a better understanding of average link quality
 
-This gives a better understanding of packet loss over time, but since it can not indicate when the last loss happened, it does not give much information about the current state of affairs. If weighted_average is set to 1, the latest 7 samples will be given emphasis.
+This gives a better understanding of packet loss over time, but since
+it can not indicate when the last loss happened, it does not give
+much information about the current state of affairs. If weighted_average
+is set to 1, the latest 7 samples will be given emphasis.
 
-```
+```tmux
 set -g @packet-loss-ping_count "11"
 set -g @packet-loss-history_size "30"
 set -g @packet-loss_weighted_average "0"
@@ -161,9 +185,21 @@ set -g @packet-loss_weighted_average "0"
 
 ## Balancing it
 
-There is no point in getting updates more often than you update your status bar. By using a higher ping count you also get a better statistical analysis of the situation. If you only check 2 packets per round, the only results would be 0%, 50% or 100% The higher the ping count, the more nuanced the result will be. But, over a certain limit, the time for each test will delay reporting until it is not representative of the current link status, assuming you are focusing on that.
+There is no point in getting updates more often than you update your
+status bar. By using a higher ping count you also get a better statistical
+analysis of the situation. If you only check 2 packets per round,
+the only results would be 0%, 50% or 100% The higher the ping count,
+the more nuanced the result will be. But, over a certain limit,
+the time for each test will delay reporting until it's not representative
+of the current link status, assuming you are focusing on that.
 
-Since ping is normally close to instantaneous, to match reporting with status bar updates, ping count is recommended to be set to one higher. If they are the same, reporting will quickly drift over time, and you will generate updates that you will never see in the first place. Not that big of a deal, but by setting ping count to one higher, they will more or less match in update frequency, and you will get one more data point per update!
+Since ping is close to instantaneous, to match reporting with
+status bar updates, ping count is recommended to be set to one higher.
+If they're the same, reporting drift over time,
+and you generate updates that you never see in the first place.
+Not that big of a deal, but by setting ping count to one higher,
+they more or less match in update frequency,
+and you get one more data point per update.
 
 | status-interval | @packet-loss-ping_count |
 | --------------- | ----------------------- |
@@ -172,16 +208,18 @@ Since ping is normally close to instantaneous, to match reporting with status ba
 | 15              | 16                      |
 | ...             | ...                     |
 
-You are recommended to also consider changing status-interval to keep the update rate for this plugin relevant to your reporting needs.
+You are recommended to also consider changing status-interval to keep
+the update rate for this plugin relevant to your reporting needs.
 
-```
+```tmux
 set -g status-interval 10
 ```
 
-## Nerdy Stuff
+## Nerdy stuff
 
 
-If @packet-loss_weighted_average is set to 1 (the default) losses are displayed as the largest of:
+If @packet-loss_weighted_average is set to 1 (the default) losses
+are displayed as the largest of:
 
 1. last value
 1. avg of last 2
@@ -192,15 +230,16 @@ If @packet-loss_weighted_average is set to 1 (the default) losses are displayed 
 1. avg of last 7
 1. avg of all
 
-You can check the DB to get all timestamps & losses by running:
+You can inspect the DB to get all timestamps & losses by running:
 
-```
+```bash
 sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'select * from packet_loss Order By Rowid asc'
 ```
 
-You can check the DB to get the timestamp for the oldest kept record by running:
+You can inspect the DB to get the timestamp for the oldest kept record
+by running:
 
-```
+```bash
 sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'select * from packet_loss limit 1'
 ```
 
@@ -208,7 +247,8 @@ sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'select * from 
 
 ## Contributing
 
-Contributions are welcome, and they are greatly appreciated! Every little bit helps, and a credit will always be given.
+Contributions are welcome, and they're appreciated.
+Every little bit helps, and a credit is always be given.
 
 The best way to send feedback is to file an issue at https://github.com/jaclu/tmux-packet-loss/issues
 

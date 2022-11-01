@@ -8,7 +8,7 @@ average, to give the last couple of checks greater emphasis.
 - loss FLOAT -> DECIMAL(5,1)
     Now limiting to one decimal for packet loss in DB.
     More isn't needed and makes for more consistent output when dumping
-    the table with watch.
+    the table for inspecting history.
     Ping on some operating systems displays packet loss with three(!)
     decimals
     Please note, when running on iSH (Alpine x86) no decimals are saved,
@@ -46,11 +46,15 @@ Result | Explanation
 
 ## Dependencies
 
-`tmux 2.0` and up works with tpm
-
-`tmux 1.9 & 1.9a` requires manual activation since tpm is not working before 2.0
-
 `sqlite3`
+
+## Tmux Compatibility
+
+Version    | Notice
+-|-
+3.0 >=     | Background process is shut down when tmux exits using a session-closed hook with an array suffix.
+2.4 - 2.9  | Will shut down background process, but since hooks doesn't support arrays, binding to session-closed might interfere with other stuff using the same hook.
+1.9 - 2.3  | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux. If you run tmux mot of the time, you can just leave the process running.
 
 ## Verified to work in the following environments
 
@@ -91,14 +95,6 @@ run-shell ~/clone/path/packet-loss.tmux
 ```
 
 Reload TMUX environment with `$ tmux source-file ~/.tmux.conf` - that's it!
-
-## Tmux Compatibility
-
-Version   | Notice
--|-
-3.0 >=    | Background process is shut down when tmux exits using a session-closed hook with an array suffix.
-2.4 - 2.9 | Will shut down background process, but since hooks don't support arrays, binding to session-closed might interfere with other stuff using the same hook.
-1.9 - 2.3 | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux
 
 ## Supported Format Strings
 

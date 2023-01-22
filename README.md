@@ -5,6 +5,7 @@ average, to give the last couple of checks greater emphasis.
 
 ### Recent changes
 
+- Updated Readme to match the current defaults
 - loss FLOAT -> DECIMAL(5,1)
     Now limiting to one decimal for packet loss in DB.
     More isn't needed and makes for more consistent output when dumping
@@ -32,16 +33,24 @@ determine % package loss. Loss level is calculated as a weighted average
 of the stored data points, making the latest checks stand out.
 Past the decline point, the average of all samples is used.
 
-On modern tmux versions, this background process is terminated when tmux exits,
-see Tmux Compatibility for more details about versions and limitations
-when it comes to shutting down this background process.
+On modern tmux versions, this background process is terminated when tmux
+exits, see Tmux Compatibility for more details about versions and
+limitations when it comes to shutting down this background process.
 
-If the monitor experiences errors, packet loss of 101% or higher are reported.
+As the plugin is initialized, it will terminate any already running
+background process, and start a new one.
+
+Each time check_packet_loss.sh is run, if the monitor background process
+is not running it is started, so should in all normal cases be self
+healing.
+
+If the monitor experiences errors, packet loss of 101% or higher are
+reported.
 
 Result | Explanation
 -|-
-101 | Failed to find % loss in ping output.  Temporary issue.<br />Some pings don't report loss % if there is no connection to host.<br>They just report `ping: sendto: Host is unreachable`
-201 | Could not parse output.  This condition is unlikely to self correct.<br />If you file the output of `ping -c 5 8.8.4.4` as an Issue and also mention what Operating System this is and any other factors you think are relevant, I will try to fix it by including parsing of that output format.
+101 | Failed to find % loss in ping output.  Temporary issue.<br /> Some pings don't report loss % if there is no connection to host.<br> They just report `ping: sendto: Host is unreachable`
+201 | Could not parse output.  This condition is unlikely to self correct.<br /> If you file the output of `ping -c 5 8.8.4.4` as an Issue and also mention what Operating System this is and any other factors you think are relevant, I will try to fix it by including parsing of that output format.
 
 
 ## Dependencies
@@ -54,7 +63,7 @@ Version    | Notice
 -|-
 3.0 >=     | Background process is shut down when tmux exits using a session-closed hook with an array suffix.
 2.4 - 2.9  | Will shut down background process, but since hooks doesn't support arrays, binding to session-closed might interfere with other stuff using the same hook.
-1.9 - 2.3  | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux. If you run tmux mot of the time, you can just leave the process running.
+1.9 - 2.3  | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux. If you run tmux most of the time, you can just leave the process running.
 
 ## Verified to work in the following environments
 
@@ -112,8 +121,8 @@ Variable                      | Default       | Purpose
 ||
 @packet-loss_weighted_average | 1             | 1 = Use weighted average<br>focusing on the latest data points<br> 0 = Average over all data points
 @packet-loss_level_disp       | 0.1           | Display loss if this or higher level
-@packet-loss_level_alert      | 2.0           | Color loss with color_alert
-@packet-loss_level_crit       | 8.0           | Color loss with color_crit
+@packet-loss_level_alert      | 17            | Color loss with color_alert
+@packet-loss_level_crit       | 40            | Color loss with color_crit
 ||
 @packet-loss_color_alert      | yellow        | Use this color if loss is at or above<br>@packet-loss_level_alert
 @packet-loss_color_crit       | red           | Use this color if loss is at or above<br>@packet-loss_level_crit
@@ -124,26 +133,29 @@ Variable                      | Default       | Purpose
 
 ## My config and sample outputs
 
-alert level is set so that a single packet lost does not trigger an alert,
-since I do 6 pings per run, one lost is 16.67%
+Alert level is set so that a single packet lost is not displayed as an
+alert, since I do 6 pings per run, one lost is 16.67%
+I use more compact prefix & suffix settings.
 
-```tnux
-set -g @packet-loss_level_alert "17"
-set -g @packet-loss_level_crit "50"
+```tmux
+set -g @packet-loss_level_alert 17
 set -g @packet-loss_prefix "|"
 set -g @packet-loss_suffix "|"
 
-# Partial status bar config, this plugin takes no space when under @packet-loss_level_disp
-# @packet-loss_suffix ensures spacing to date when something is displayed
-...#{battery_smart} #{packet_loss}%a %h-%d %H:%M ...
+## Screenshots
+
+Partial status bar config, this plugins output takes no space when under
+@packet-loss_level_disp
+
+... #{battery_smart}#{packet_loss}%a %h-%d %H:%M ...
 ```
 
 | Display                                                                                                            | Status                |
 | ------------------------------------------------------------------------------------------------------------------ | --------------------- |
-| ![no_loss](https://user-images.githubusercontent.com/5046648/159600959-23efe878-e28c-4988-86df-b43875701f6a.png)   | under threshold       |
-| ![lvl_low](https://user-images.githubusercontent.com/5046648/159604267-3345f827-3541-49f7-aec7-6f0091e59a5f.png)   | low level losses      |
-| ![lvl_alert](https://user-images.githubusercontent.com/5046648/159602048-90346c8c-396a-4f0b-be26-152ef13c806f.png) | alert level losses    |
-| ![lvl_crit](https://user-images.githubusercontent.com/5046648/159601876-9f097499-3fb9-4c53-8490-759665ff555f.png)  | critical level losses |
+| ![no_loss](https://user-images.githubusercontent.com/5046648/213914274-2d184090-f61b-4865-a5a6-cae1da517741.png)   | under threshold       |
+| ![lvl_low](https://user-images.githubusercontent.com/5046648/213914117-a16f5702-8bd0-44e9-bde3-6fcf6de99b80.png)   | low level losses      |
+| ![lvl_alert](https://user-images.githubusercontent.com/5046648/213914179-067ad136-8792-4f60-b845-4ae8528c62ef.png) | alert level losses    |
+| ![lvl_crit](https://user-images.githubusercontent.com/5046648/213914333-4e485848-d3f2-49fe-8cc0-3bd9c5a3585d.png)  | critical level losses |
 
 ## Sample settings
 
@@ -159,7 +171,7 @@ the current situation.
 set -g @packet-loss-ping_count "6"
 set -g @packet-loss-history_size "6"
 set -g @packet-loss_weighted_average "1"
-set -g @packet-loss_level_alert "20"
+set -g @packet-loss_level_alert "17"
 set -g @packet-loss_color_crit "45"
 
 set -g status-interval 5
@@ -167,14 +179,15 @@ set -g status-interval 5
 
 ### Five (or ten) minutes of history gives a better understanding of average link quality
 
-This gives a better understanding of packet loss over time, but since
+This gives a better understanding of packet loss over time, and also
+more nuance since each ping round has more samples. Since
 it can not indicate when the last loss happened, it does not give
 much information about the current state of affairs. If weighted_average
 is set to 1, the latest 7 samples will be given emphasis.
 
 ```tmux
 set -g @packet-loss-ping_count "11"
-set -g @packet-loss-history_size "30"
+set -g @packet-loss-history_size "30" # 60 for ten minutes
 set -g @packet-loss_weighted_average "0"
 
 ```

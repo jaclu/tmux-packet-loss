@@ -138,7 +138,8 @@ alert, since I do 6 pings per run, one lost is 16.67%
 I use more compact prefix & suffix settings.
 
 ```tmux
-set -g @packet-loss_level_alert 17
+set -g @packet-loss_level_disp "3.4"
+set -g @packet-loss_level_alert "17"
 set -g @packet-loss_prefix "|"
 set -g @packet-loss_suffix "|"
 

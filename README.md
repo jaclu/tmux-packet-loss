@@ -134,7 +134,7 @@ Variable                      | Default       | Purpose
 ## My config and sample outputs
 
 Alert level is set so that a single packet lost is not displayed as an
-alert, since I do 6 pings per run, one lost is 16.67%
+alert, and I filter our low loss levels entirely. Since I do 6 pings per run, one lost is 16.67%.
 I use more compact prefix & suffix settings.
 
 ```tmux

@@ -150,11 +150,11 @@ hook_handler() {
     else
         log_it "WARNING: previous to tmux 2.4 session-closed hook is not available, so can not shut down monitor process when tmux exits!"
     fi
-    if [ -n "$hook_name" ]; then
-        if [ "$action" = "set" ]; then
+    if [[ -n "$hook_name" ]]; then
+        if [[ "$action" = "set" ]]; then
             $TMUX_BIN set-hook -g "$hook_name" "run $no_sessions_shutdown_full_name"
             log_it "binding packet-loss shutdown to: $hook_name"
-        elif [ "$action" = "clear" ]; then
+        elif [[ "$action" = "clear" ]]; then
             $TMUX_BIN set-hook -ug "$hook_name"
             log_it "releasing hook: $hook_name"
         else
@@ -176,7 +176,7 @@ kill_running_monitor() {
 
     log_it "kill_running_monitor($pid_file)"
 
-    if [ -e "$pid_file" ]; then
+    if [[ -e "$pid_file" ]]; then
         pid="$(cat "$pid_file")"
         log_it "Killing $monitor_process_scr: [$pid]"
         kill "$pid" 2&> /dev/null
@@ -189,7 +189,7 @@ kill_running_monitor() {
     #  Kill that one and sometimes left overs if packet_loss.tmux
     #  was run repeatedly in quick succession
     #
-    if [ -n "$monitor_process_scr" ]; then
+    if [[ -n "$monitor_process_scr" ]]; then
         #
         #  Figure our what ps is available, in order to determine
         #  which param is the pid
@@ -204,7 +204,7 @@ kill_running_monitor() {
 
         # shellcheck disable=SC2009
         remaining_procs="$(ps axu | grep "$monitor_process_scr" | grep -v grep | awk -v p=$pid_param '{ print $p }' )"
-        if [ -n "$remaining_procs" ]; then
+        if [[ -n "$remaining_procs" ]]; then
             # log_it "### About to kill: [$remaining_procs]"
             echo "$remaining_procs" | xargs kill 2&> /dev/null
         fi
@@ -260,7 +260,7 @@ main() {
     #
     #  Check if shutdown is requested.
     #
-    if [ "$1" = "stop" ]; then
+    if [[ "$1" = "stop" ]]; then
         echo "Requested to shut-down"
         hook_handler clear
         exit 1
@@ -270,7 +270,7 @@ main() {
     #
     #  Create fresh database if it is missing or obsolete
     #
-    [ "$(sqlite3 "$db" "PRAGMA user_version")" != "$db_version" ] && create_db
+    [[ "$(sqlite3 "$db" "PRAGMA user_version")" != "$db_version" ]] && create_db
 
 
     # Should be done every time, since settings might have changed

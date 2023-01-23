@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2154
 #
 #   Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -16,10 +17,8 @@ PARRENT_DIR="$(dirname -- "$CURRENT_DIR")"
 # shellcheck disable=SC1091
 . "$CURRENT_DIR/utils.sh"
 
-
 ses_count="$($TMUX_BIN ls | wc -l)"
 
-# shellcheck disable=SC2154
 log_it "$no_sessions_shutdown_scr - session count [$ses_count]"
 
 if [ "$ses_count" -eq 0 ]; then

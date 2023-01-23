@@ -107,13 +107,14 @@ plugin_name="tmux-packet-loss"
 #
 # log_file="/tmp/$plugin_name.log"
 
-db_version=2 # Sanity check that DB structure is current
-# hook handling utilities
+#
+#  Sanity check that DB structure is current,if not it will be replaced
+#
+db_version=3
 
-default_host="8.8.4.4" #  Default host to ping
-default_ping_count=6   #  how often to report packet loss statistics
-default_hist_size=6    #  how many rounds of pings to keep in db for
-#  average calculations
+default_host="8.8.4.4"     #  Default host to ping
+default_ping_count=6       #  how often to report packet loss statistics
+default_hist_size=6        #  how many rounds of pings to keep in db
 default_weighted_average=1 #  Use weighted average over averaging all data points
 default_lvl_display=0.1    #  float, display loss if this or higher
 default_lvl_alert=17       #  float, this or higher triggers alert color
@@ -123,7 +124,7 @@ default_color_crit="red"
 default_color_bg="black" # only used when displaying alert/crit
 default_prefix=" pkt loss: "
 default_suffix=" "
-default_session_closed_hook=41
+default_session_closed_hook=41 # array idx for session-closed hook
 
 #
 #  These files are assumed to be in the directory scripts, so depending

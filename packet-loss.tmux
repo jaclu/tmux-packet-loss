@@ -73,18 +73,47 @@ create_db() {
     #
     #  packet_loss is limited to $hist_size rows, in order to make statistics consistent
     #
-    # datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, \
-    sqlite3 "$db" " \
-        CREATE TABLE packet_loss ( \
-            datetime TIMESTAMP DEFAULT (datetime('now','localtime')) NOT NULL, \
-            loss DECIMAL(5,1) \
-        ); \
-        CREATE TRIGGER delete_tail AFTER INSERT ON packet_loss \
-        BEGIN \
-            DELETE FROM packet_loss where rowid < NEW.rowid-(SELECT hist_size from params)+1; \
-        END; \
-        CREATE TABLE params (host text, ping_count int, hist_size int); \
-        PRAGMA user_version=$db_version;"
+    sql=$(cat <<EOF
+
+CREATE TABLE params (
+    host text,
+    ping_count int,
+    hist_size int,
+    stat_size int
+);
+
+CREATE TABLE packet_loss (
+    datetime TIMESTAMP DEFAULT (
+        datetime('now','localtime')
+        ) NOT NULL,
+    loss DECIMAL(5,1)
+);
+
+CREATE TRIGGER delete_tail AFTER INSERT ON packet_loss
+BEGIN
+    DELETE FROM packet_loss
+    WHERE rowid <
+          NEW.rowid-(SELECT hist_size from params)+1;
+END;
+
+CREATE TABLE statistics (
+    datetime TIMESTAMP DEFAULT (datetime('now','localtime')) NOT NULL,
+    loss DECIMAL(5,1)
+);
+
+CREATE TRIGGER trim_stats AFTER INSERT ON statistics
+BEGIN
+    DELETE FROM statistics
+    WHERE rowid <
+          NEW.rowid-(SELECT stat_size from params)+1;
+END;
+
+PRAGMA user_version=$db_version;
+
+EOF
+    )
+
+    sqlite3 "$db" "${sql[@]}"
     log_it "Created db"
 }
 
@@ -112,8 +141,8 @@ set_db_params() {
     # First clear table to assure only one row is present
     sqlite3 "$db" "DELETE FROM params"
 
-    sql="INSERT INTO params (host, ping_count, hist_size) values ("
-    sql="$sql"'"'"$ping_host"'"'", $ping_count, $hist_size);"
+    sql="INSERT INTO params (host, ping_count, hist_size, stat_size) values ("
+    sql="$sql"'"'"$ping_host"'"'", $ping_count, $hist_size, 120);"
     sqlite3 "$db" "$sql"
     log_it "db params set"
 

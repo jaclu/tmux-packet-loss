@@ -5,6 +5,8 @@ average, to give the last couple of checks greater emphasis.
 
 ### Recent changes
 
+- Added @packet-loss_hook_idx in order to easily change it in case
+    of collisions
 - Updated Readme to match the current defaults
 - loss FLOAT -> DECIMAL(5,1)
     Now limiting to one decimal for packet loss in DB.
@@ -130,6 +132,7 @@ Variable                      | Default       | Purpose
 ||
 @packet-loss_prefix           | " pkt loss: " | Prefix for status when displayed
 @packet-loss_suffix           | " "           | Suffix for status when displayed
+@packet-loss_hook_idx         | 41            | Index for session-closed hook, only needs changing if it collides with other usages of session-closed using this index
 
 ## My config and sample outputs
 
@@ -227,7 +230,6 @@ set -g status-interval 10
 
 ## Nerdy stuff
 
-
 If @packet-loss_weighted_average is set to 1 (the default) losses
 are displayed as the largest of:
 
@@ -252,8 +254,6 @@ by running:
 ```bash
 sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'select * from packet_loss limit 1'
 ```
-
-
 
 ## Contributing
 

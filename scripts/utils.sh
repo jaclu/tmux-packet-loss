@@ -14,63 +14,6 @@
 #
 
 #
-#  Shorthand, to avoid manually typing package name on multiple
-#  locations, easily getting out of sync.
-#
-plugin_name="tmux-packet-loss"
-
-#
-#  I use an env var TMUX_BIN to point at the current tmux, defined in my
-#  tmux.conf, in order to pick the version matching the server running.
-#  This is needed when checking backwards compatability with various versions.
-#  If not found, it is set to whatever is in path, so should have no negative
-#  impact. In all calls to tmux I use $TMUX_BIN instead in the rest of this
-#  plugin.
-#
-[ -z "$TMUX_BIN" ] && TMUX_BIN="tmux"
-
-#
-#  log_it is used to display status to $log_file if it is defined.
-#  Good for testing and monitoring actions. If $log_file is unset
-#  no output will happen. This should be the case for normal operations.
-#  So unless you want logging, comment the next line out.
-#
-# log_file="/tmp/$plugin_name.log"
-
-db_version=2        # Sanity check that DB structure is current
-hook_array_idx=1819 # random hopefully unique id to avoid colliding with other
-# hook handling utilities
-
-default_host="8.8.4.4"     #  Default host to ping
-default_ping_count=6       #  how often to report packet loss statistics
-default_hist_size=6        #  how many rounds of pings to keep in db for average calculations
-default_weighted_average=1 #  Use weighted average over averaging all data points
-default_lvl_display=0.1    #  float, display loss if this or higher
-default_lvl_alert=17       #  float, this or higher triggers alert color
-default_lvl_crit=40        #  float, this or higher triggers critical color
-default_color_alert="yellow"
-default_color_crit="red"
-default_color_bg="black" # only used when displaying alert/crit
-default_prefix=" pkt loss: "
-default_suffix=" "
-
-#
-#  These files are assumed to be in the directory scripts, so depending
-#  on location for the script using this, use the correct location prefix!
-#  Since this is sourced, the prefix can not be determined here.
-#
-monitor_process_scr="packet_loss_monitor.sh"
-no_sessions_shutdown_scr="shutdown_if_no_sessions.sh"
-
-#
-#  These files are assumed to be in the directory data, so depending
-#  on location for the script using this, use the correct location prefix!
-#  Since this is sourced, the prefix can not be determined here.
-#
-sqlite_db="packet_loss.sqlite"
-monitor_pidfile="monitor.pid"
-
-#
 #  If $log_file is empty or undefined, no logging will occur.
 #
 log_it() {
@@ -139,3 +82,61 @@ bool_param() {
     esac
     return 1
 }
+
+#
+#  Shorthand, to avoid manually typing package name on multiple
+#  locations, easily getting out of sync.
+#
+plugin_name="tmux-packet-loss"
+
+#
+#  I use an env var TMUX_BIN to point at the current tmux, defined in my
+#  tmux.conf, in order to pick the version matching the server running.
+#  This is needed when checking backwards compatability with various versions.
+#  If not found, it is set to whatever is in path, so should have no negative
+#  impact. In all calls to tmux I use $TMUX_BIN instead in the rest of this
+#  plugin.
+#
+[ -z "$TMUX_BIN" ] && TMUX_BIN="tmux"
+
+#
+#  log_it is used to display status to $log_file if it is defined.
+#  Good for testing and monitoring actions. If $log_file is unset
+#  no output will happen. This should be the case for normal operations.
+#  So unless you want logging, comment the next line out.
+#
+# log_file="/tmp/$plugin_name.log"
+
+db_version=2 # Sanity check that DB structure is current
+# hook handling utilities
+
+default_host="8.8.4.4" #  Default host to ping
+default_ping_count=6   #  how often to report packet loss statistics
+default_hist_size=6    #  how many rounds of pings to keep in db for
+#  average calculations
+default_weighted_average=1 #  Use weighted average over averaging all data points
+default_lvl_display=0.1    #  float, display loss if this or higher
+default_lvl_alert=17       #  float, this or higher triggers alert color
+default_lvl_crit=40        #  float, this or higher triggers critical color
+default_color_alert="yellow"
+default_color_crit="red"
+default_color_bg="black" # only used when displaying alert/crit
+default_prefix=" pkt loss: "
+default_suffix=" "
+default_session_closed_hook=41
+
+#
+#  These files are assumed to be in the directory scripts, so depending
+#  on location for the script using this, use the correct location prefix!
+#  Since this is sourced, the prefix can not be determined here.
+#
+monitor_process_scr="packet_loss_monitor.sh"
+no_sessions_shutdown_scr="shutdown_if_no_sessions.sh"
+
+#
+#  These files are assumed to be in the directory data, so depending
+#  on location for the script using this, use the correct location prefix!
+#  Since this is sourced, the prefix can not be determined here.
+#
+sqlite_db="packet_loss.sqlite"
+monitor_pidfile="monitor.pid"

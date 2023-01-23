@@ -96,6 +96,7 @@ create_db() {
 set_db_params() {
     local ping_host
     local ping_count
+    # Dont make hist_size local, it is used elsewhere
     local sql
 
     ping_host=$(get_tmux_option "@packet-loss-ping_host" "$default_host")
@@ -128,8 +129,12 @@ set_db_params() {
 #
 hook_handler() {
     local action="$1"
+    local hook_idx
     local tmux_vers
     local hook_name
+
+    hook_idx=$(get_tmux_option "@packet-loss_hook_idx" "$default_session_closed_hook")
+
 
     tmux_vers="$($TMUX_BIN -V | cut -d' ' -f2)"
     log_it "hook_handler($action) tmux vers: $tmux_vers"
@@ -139,7 +144,7 @@ hook_handler() {
     . "$SCRIPTS_DIR/adv_vers_compare.sh"
 
     if adv_vers_compare "$tmux_vers" ">=" "3.0"; then
-        hook_name="session-closed[$hook_array_idx]"
+        hook_name="session-closed[$hook_idx]"
     elif adv_vers_compare "$tmux_vers" ">=" "2.4"; then
         hook_name="session-closed"
     else

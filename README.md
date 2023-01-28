@@ -11,6 +11,20 @@ average, to give the last couple of checks greater emphasis.
 - Updated Readme to match the current defaults
 - If monitor isn't running, it's restarted by check_packet_loss.sh
 
+## Screenshots
+
+Partial status bar config, this plugins output takes no space when under
+@packet-loss_level_disp
+
+... #{battery_smart}#{packet_loss}%a %h-%d %H:%M ...
+
+| Display | With hist avg | Status
+| - | - | - |
+| ![no_loss](https://user-images.githubusercontent.com/5046648/215275085-e7e00307-92e3-40bc-9a03-def54c0c1806.png) | ![no_loss_avg](https://user-images.githubusercontent.com/5046648/215275085-e7e00307-92e3-40bc-9a03-def54c0c1806.png)   | under threshold       |
+| ![lvl_low](https://user-images.githubusercontent.com/5046648/215277835-25b40e6e-899a-4746-abbd-4744b3904521.png) | ![lvl_low](https://user-images.githubusercontent.com/5046648/215275350-5b87ca63-780e-4928-9023-22ae3623819a.png)   | low level losses      |
+| ![lvl_alert](https://user-images.githubusercontent.com/5046648/215277916-38871eeb-e23e-425e-9b97-c587694f1cf8.png) | ![lvl_alert](https://user-images.githubusercontent.com/5046648/215275959-e11f14f4-548d-40a1-b0ab-6fa0a427d562.png) | alert level losses    |
+| ![lvl_crit](https://user-images.githubusercontent.com/5046648/215277985-6c80ec2e-847f-42e9-9abb-90f617a35293.png) | ![lvl_crit](https://user-images.githubusercontent.com/5046648/215276018-880d80aa-c3fa-41e5-9fb2-8f1a182d2588.png)  | critical level losses |
+
 ## Operation
 
 Appears if losses are at or above the threshold level.
@@ -68,7 +82,7 @@ Tested to make sure ps and ping parameters and output are interpreted correctly.
 
 `Windows Subsystem for Linux (WSL)`
 
-## Install
+## Installation
 
 ### Installation with [Tmux Plugin Manager](https://github.com/tmux-plugins/tpm) (recommended)
 
@@ -126,20 +140,6 @@ Variable                      | Default       | Purpose
 @packet-loss_suffix           | " "           | Suffix for status when displayed
 ||
 @packet-loss_hook_idx         | 41            | Index for session-closed hook, only needs changing if it collides with other usages of session-closed using this index
-
-## Screenshots
-
-Partial status bar config, this plugins output takes no space when under
-@packet-loss_level_disp
-
-... #{battery_smart}#{packet_loss}%a %h-%d %H:%M ...
-
-| Display | With hist avg | Status
-| - | - | - |
-| ![no_loss](https://user-images.githubusercontent.com/5046648/215275085-e7e00307-92e3-40bc-9a03-def54c0c1806.png) | ![no_loss_avg](https://user-images.githubusercontent.com/5046648/215275085-e7e00307-92e3-40bc-9a03-def54c0c1806.png)   | under threshold       |
-| ![lvl_low](https://user-images.githubusercontent.com/5046648/215277835-25b40e6e-899a-4746-abbd-4744b3904521.png) | ![lvl_low](https://user-images.githubusercontent.com/5046648/215275350-5b87ca63-780e-4928-9023-22ae3623819a.png)   | low level losses      |
-| ![lvl_alert](https://user-images.githubusercontent.com/5046648/215277916-38871eeb-e23e-425e-9b97-c587694f1cf8.png) | ![lvl_alert](https://user-images.githubusercontent.com/5046648/215275959-e11f14f4-548d-40a1-b0ab-6fa0a427d562.png) | alert level losses    |
-| ![lvl_crit](https://user-images.githubusercontent.com/5046648/215277985-6c80ec2e-847f-42e9-9abb-90f617a35293.png) | ![lvl_crit](https://user-images.githubusercontent.com/5046648/215276018-880d80aa-c3fa-41e5-9fb2-8f1a182d2588.png)  | critical level losses |
 
 ## My config
 

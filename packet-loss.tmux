@@ -73,20 +73,77 @@ create_db() {
     #
     #  packet_loss is limited to $hist_size rows, in order to make statistics consistent
     #
-    # datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, \
-    sqlite3 "$db" " \
-        CREATE TABLE packet_loss ( \
-            datetime TIMESTAMP DEFAULT (datetime('now','localtime')) NOT NULL, \
-            loss DECIMAL(5,1) \
-        ); \
-        CREATE TRIGGER delete_tail AFTER INSERT ON packet_loss \
-        BEGIN \
-            DELETE FROM packet_loss where rowid < NEW.rowid-(SELECT hist_size from params)+1; \
-        END; \
-        CREATE TABLE params (host text, ping_count int, hist_size int); \
-        PRAGMA user_version=$db_version;"
+    sql=$(cat <<EOF
+
+    CREATE TABLE params (
+        host text,
+        ping_count int,
+        hist_size int,
+        stat_size int
+    );
+
+    CREATE TABLE packet_loss (
+        t_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
+        loss DECIMAL(5,1)
+    );
+
+    -- Ensures items are kept long enough to get 1 min averages
+    CREATE TABLE log_1_min (
+        t_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
+        loss DECIMAL(5,1)
+    );
+
+    -- logs one min avgs for up to stat_size minutes
+    CREATE TABLE statistics (
+        t_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
+        loss DECIMAL(5,1)
+    );
+
+    PRAGMA user_version=$db_version;
+
+EOF
+    )
+
+    sqlite3 "$db" "${sql[@]}"
     log_it "Created db"
 }
+
+update_triggers() {
+    local triggers
+
+    #
+    #  Always first drop the triggers if present, since they use
+    #  a user defined setting, that might have changed since the DB
+    #  was created
+    #
+    triggers="$(sqlite3 "$db" "select * from sqlite_master where type = 'trigger'")"
+
+    if [[ -n "$triggers" ]]; then
+        sqlite3 "$db" "DROP TRIGGER new_data"
+    fi
+
+    sql=$(cat <<EOF
+
+    CREATE TRIGGER new_data AFTER INSERT ON packet_loss
+    BEGIN
+        INSERT INTO log_1_min (loss) values (NEW.loss);
+
+        DELETE FROM packet_loss
+        WHERE rowid <
+            NEW.rowid-(SELECT hist_size from params)+1;
+
+        DELETE FROM log_1_min WHERE t_stamp <= datetime('now','-1 minutes');
+
+        DELETE FROM statistics WHERE t_stamp <= datetime('now','-$hist_stat_mins minutes');
+
+    END;
+
+EOF
+    )
+    sqlite3 "$db" "${sql[@]}"
+    log_it "Created db"
+}
+
 
 
 #
@@ -94,26 +151,14 @@ create_db() {
 #  populated from current settings.
 #
 set_db_params() {
-    local ping_host
-    local ping_count
     # Dont make hist_size local, it is used elsewhere
     local sql
-
-    ping_host=$(get_tmux_option "@packet-loss-ping_host" "$default_host")
-    log_it "ping_host=[$ping_host]"
-
-    ping_count=$(get_tmux_option "@packet-loss-ping_count" "$default_ping_count")
-    log_it "ping_count=[$ping_count]"
-
-    hist_size=$(get_tmux_option "@packet-loss-history_size" "$default_hist_size")
-    log_it "hist_size=[$hist_size]"
-
 
     # First clear table to assure only one row is present
     sqlite3 "$db" "DELETE FROM params"
 
-    sql="INSERT INTO params (host, ping_count, hist_size) values ("
-    sql="$sql"'"'"$ping_host"'"'", $ping_count, $hist_size);"
+    sql="INSERT INTO params (host, ping_count, hist_size, stat_size) values ("
+    sql="$sql"'"'"$ping_host"'"'", $ping_count, $hist_size, $hist_stat_mins);"
     sqlite3 "$db" "$sql"
     log_it "db params set"
 
@@ -129,11 +174,8 @@ set_db_params() {
 #
 hook_handler() {
     local action="$1"
-    local hook_idx
     local tmux_vers
     local hook_name
-
-    hook_idx=$(get_tmux_option "@packet-loss_hook_idx" "$default_session_closed_hook")
 
 
     tmux_vers="$($TMUX_BIN -V | cut -d' ' -f2)"
@@ -150,6 +192,7 @@ hook_handler() {
     else
         log_it "WARNING: previous to tmux 2.4 session-closed hook is not available, so can not shut down monitor process when tmux exits!"
     fi
+
     if [[ -n "$hook_name" ]]; then
         if [[ "$action" = "set" ]]; then
             $TMUX_BIN set-hook -g "$hook_name" "run $no_sessions_shutdown_full_name"
@@ -266,16 +309,19 @@ main() {
         exit 1
     fi
 
-
     #
     #  Create fresh database if it is missing or obsolete
     #
     [[ "$(sqlite3 "$db" "PRAGMA user_version")" != "$db_version" ]] && create_db
 
+    #
+    #  Depends on user settings, so should be updated each time this
+    #  starts
+    #
+    update_triggers
 
     # Should be done every time, since settings might have changed
     set_db_params
-
 
     #
     #  Starting a fresh monitor, will use current db_params to define operation
@@ -298,5 +344,6 @@ main() {
     update_tmux_option "status-right"
 }
 
-
+get_settings
+show_settings
 main "$*"

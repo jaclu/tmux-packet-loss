@@ -83,6 +83,61 @@ bool_param() {
     return 1
 }
 
+show_settings() {
+    log_it "ping_host=[$ping_host]"
+    log_it "ping_count=[$ping_count]"
+    log_it "hist_size=[$hist_size]"
+
+    if bool_param "$is_weighted_avg"; then
+        log_it "is_weighted_avg=true"
+    else
+        log_it "is_weighted_avg=false"
+    fi
+    log_it "lvl_disp [$lvl_disp]"
+    log_it "lvl_alert [$lvl_alert]"
+    log_it "lvl_crit [$lvl_crit]"
+
+    if bool_param "$hist_avg_display"; then
+        log_it "hist_avg_display=true"
+    else
+        log_it "hist_avg_display=false"
+    fi
+    log_it "hist_stat_mins=[$hist_stat_mins]"
+
+    log_it "color_alert [$color_alert]"
+    log_it "color_crit [$color_crit]"
+    log_it "color_bg [$color_bg]"
+
+    log_it "loss_prefix [$loss_prefix]"
+    log_it "loss_suffix [$loss_suffix]"
+
+    log_it "hook_idx [$hook_idx]"
+}
+
+get_settings() {
+
+    ping_host=$(get_tmux_option "@packet-loss-ping_host" "$default_host")
+    ping_count=$(get_tmux_option "@packet-loss-ping_count" "$default_ping_count")
+    hist_size=$(get_tmux_option "@packet-loss-history_size" "$default_hist_size")
+
+    is_weighted_avg="$(get_tmux_option "@packet-loss_weighted_average" "$default_weighted_average")"
+    lvl_disp="$(get_tmux_option "@packet-loss_level_disp" "$default_lvl_display")"
+    lvl_alert="$(get_tmux_option "@packet-loss_level_alert" "$default_lvl_alert")"
+    lvl_crit="$(get_tmux_option "@packet-loss_level_crit" "$default_lvl_crit")"
+
+    hist_avg_display="$(get_tmux_option "@packet-loss_hist_avg_display" "$default_hist_avg_display")"
+    hist_stat_mins=$(get_tmux_option "@packet-loss_hist_avg_minutes" "$default_hist_avg_minutes")
+
+    color_alert="$(get_tmux_option "@packet-loss_color_alert" "$default_color_alert")"
+    color_crit="$(get_tmux_option "@packet-loss_color_crit" "$default_color_crit")"
+    color_bg="$(get_tmux_option "@packet-loss_color_bg" "$default_color_bg")"
+
+    loss_prefix="$(get_tmux_option "@packet-loss_prefix" "$default_prefix")"
+    loss_suffix="$(get_tmux_option "@packet-loss_suffix" "$default_suffix")"
+
+    hook_idx=$(get_tmux_option "@packet-loss_hook_idx" "$default_session_closed_hook")
+}
+
 #
 #  Shorthand, to avoid manually typing package name on multiple
 #  locations, easily getting out of sync.
@@ -107,23 +162,30 @@ plugin_name="tmux-packet-loss"
 #
 # log_file="/tmp/$plugin_name.log"
 
-db_version=2 # Sanity check that DB structure is current
-# hook handling utilities
+#
+#  Sanity check that DB structure is current,if not it will be replaced
+#
+db_version=4
 
 default_host="8.8.4.4" #  Default host to ping
 default_ping_count=6   #  how often to report packet loss statistics
-default_hist_size=6    #  how many rounds of pings to keep in db for
-#  average calculations
+default_hist_size=6    #  how many rounds of pings to keep in db
+
 default_weighted_average=1 #  Use weighted average over averaging all data points
 default_lvl_display=0.1    #  float, display loss if this or higher
 default_lvl_alert=17       #  float, this or higher triggers alert color
 default_lvl_crit=40        #  float, this or higher triggers critical color
+
+default_hist_avg_display=0  #  Display long term average
+default_hist_avg_minutes=30 #  Minutes to calculatee long term avg over
+
 default_color_alert="yellow"
 default_color_crit="red"
-default_color_bg="black" # only used when displaying alert/crit
+default_color_bg="black" #  only used when displaying alert/crit
 default_prefix=" pkt loss: "
 default_suffix=" "
-default_session_closed_hook=41
+
+default_session_closed_hook=41 #  array idx for session-closed hook
 
 #
 #  These files are assumed to be in the directory scripts, so depending

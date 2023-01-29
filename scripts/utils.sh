@@ -165,16 +165,16 @@ plugin_name="tmux-packet-loss"
 #
 #  Sanity check that DB structure is current,if not it will be replaced
 #
-db_version=4
+db_version=5
 
 default_host="8.8.4.4" #  Default host to ping
 default_ping_count=6   #  how often to report packet loss statistics
 default_hist_size=6    #  how many rounds of pings to keep in db
 
 default_weighted_average=1 #  Use weighted average over averaging all data points
-default_lvl_display=0.1    #  float, display loss if this or higher
-default_lvl_alert=17       #  float, this or higher triggers alert color
-default_lvl_crit=40        #  float, this or higher triggers critical color
+default_lvl_display=1      #  display loss if this or higher
+default_lvl_alert=17       #  this or higher triggers alert color
+default_lvl_crit=40        #  this or higher triggers critical color
 
 default_hist_avg_display=0  #  Display long term average
 default_hist_avg_minutes=30 #  Minutes to calculatee long term avg over

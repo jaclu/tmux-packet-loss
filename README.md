@@ -5,6 +5,7 @@ average, to give the last couple of checks greater emphasis.
 
 ## Recent changes
 
+- results are rounded to ints
 - Added historical average
 - Added @packet-loss_hook_idx in order to easily change it in case
     of collisions
@@ -125,8 +126,8 @@ Variable                      | Default       | Purpose
 @packet-loss-history_size     | 6             | How many results should be kept when calculating average loss.<br>I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For historical data it is probably better to use @packet-loss_hist_avg_display
 ||
 @packet-loss_weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-@packet-loss_level_disp       | "0.1"         | Display loss if this or higher level
-@packet-loss_level_alert      | 17            | Color loss with color_alert
+@packet-loss_level_disp       | 1             | Display loss if this or higher level
+@packet-loss_level_alert      | 18            | Color loss with color_alert
 @packet-loss_level_crit       | 40            | Color loss with color_crit
 ||
 @packet-loss_hist_avg_display | 0             | 1 = Also show historical average when current losses are displayed
@@ -152,8 +153,8 @@ I use more compact prefix & suffix settings.
 
 ```tmux
 set -g @packet-loss-history_size 7
-set -g @packet-loss_level_alert 17
-set -g @packet-loss_level_disp "3.4"
+set -g @packet-loss_level_alert 18
+set -g @packet-loss_level_disp 4
 set -g @packet-loss_hist_avg_display 1
 #  I prefer a more compact prefix/suffix
 set -g @packet-loss_prefix "|"
@@ -194,6 +195,10 @@ set -g status-interval 10
 ```
 
 ## Nerdy stuff
+
+All timestamps use generic time ie in most cases UTC, since DB times are
+not displayed, and this saves tons of typing, not having to cast
+everything to localtime eveywhere.
 
 If @packet-loss_weighted_average is set to 1 (the default) losses
 are displayed as the largest of:

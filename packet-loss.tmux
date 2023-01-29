@@ -75,13 +75,6 @@ create_db() {
     #
     sql=$(cat <<EOF
 
-    CREATE TABLE params (
-        host text,
-        ping_count int,
-        hist_size int,
-        stat_size int
-    );
-
     CREATE TABLE packet_loss (
         t_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
@@ -130,7 +123,7 @@ update_triggers() {
 
         DELETE FROM packet_loss
         WHERE rowid <
-            NEW.rowid-(SELECT hist_size from params)+1;
+            NEW.rowid-$hist_size+1;
 
         DELETE FROM log_1_min WHERE t_stamp <= datetime('now','-1 minutes');
 
@@ -144,28 +137,6 @@ EOF
     log_it "Created db"
 }
 
-
-
-#
-#  Each time the monitor process will be started the params table is
-#  populated from current settings.
-#
-set_db_params() {
-    # Dont make hist_size local, it is used elsewhere
-    local sql
-
-    # First clear table to assure only one row is present
-    sqlite3 "$db" "DELETE FROM params"
-
-    sql="INSERT INTO params (host, ping_count, hist_size, stat_size) values ("
-    sql="$sql"'"'"$ping_host"'"'", $ping_count, $hist_size, $hist_stat_mins);"
-    sqlite3 "$db" "$sql"
-    log_it "db params set"
-
-    # Routine maintenance, should be done every now and then
-    # This is run each time tmux is started or sourced, so seems like a good place for it!
-    sqlite3 "$db" "PRAGMA optimize; VACUUM"
-}
 
 
 #
@@ -320,11 +291,8 @@ main() {
     #
     update_triggers
 
-    # Should be done every time, since settings might have changed
-    set_db_params
-
     #
-    #  Starting a fresh monitor, will use current db_params to define operation
+    #  Starting a fresh monitor
     #
     nohup "$monitor_proc_full_name" > /dev/null 2>&1 &
     log_it "Started background process: $monitor_process_scr"

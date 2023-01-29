@@ -169,7 +169,7 @@ db_version=5
 
 default_host="8.8.4.4" #  Default host to ping
 default_ping_count=6   #  how often to report packet loss statistics
-default_hist_size=6    #  how many rounds of pings to keep in db
+default_hist_size=6    #  how many ping results to keep in the primary table
 
 default_weighted_average=1 #  Use weighted average over averaging all data points
 default_lvl_display=1      #  display loss if this or higher

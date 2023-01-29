@@ -87,7 +87,6 @@ else
     sql1="(select avg(loss) from packet_loss)"
 fi
 
-# sql="SELECT round(avg(loss),1) FROM packet_loss"
 sql="SELECT CAST(($sql1) + .499 AS INTEGER)"
 current_loss="$(sqlite3 "$db" "$sql")"
 # log_it "raw loss [$current_loss]"
@@ -111,7 +110,6 @@ if [ -n "$current_loss" ]; then
     fi
 
     if bool_param "$hist_avg_display"; then
-        # sql="SELECT round(avg(loss),1) FROM statistics"
         sql="SELECT CAST((SELECT AVG(loss) FROM statistics) + .499 AS INTEGER);"
         avg_loss="$(sqlite3 "$db" "$sql")"
         if [ ! "$avg_loss" = "0" ]; then

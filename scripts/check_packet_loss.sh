@@ -70,7 +70,7 @@ if bool_param "$is_weighted_avg"; then
     #    ...
     #    avg of all
     #
-    sql="max( \
+    sql1="max( \
       (select loss from packet_loss Order By Rowid desc limit 1), \
       (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 2)), \
       (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 3)), \
@@ -81,12 +81,14 @@ if bool_param "$is_weighted_avg"; then
       (select avg(loss) from packet_loss) \
      )"
 else
-    # shellcheck disable=SC2034
     # weighted_average=0
-    sql="(select avg(loss) from packet_loss)"
+
+    # shellcheck disable=SC2034
+    sql1="(select avg(loss) from packet_loss)"
 fi
 
-current_loss="$(sqlite3 "$db" "select round($sql,1)")"
+sql="SELECT CAST(($sql1) + .499 AS INTEGER)"
+current_loss="$(sqlite3 "$db" "$sql")"
 # log_it "raw loss [$current_loss]"
 
 if [ "$(echo "$current_loss < $lvl_disp" | bc)" -eq 1 ]; then
@@ -108,7 +110,8 @@ if [ -n "$current_loss" ]; then
     fi
 
     if bool_param "$hist_avg_display"; then
-        avg_loss="$(sqlite3 "$db" "select round(avg(loss),1) from statistics")"
+        sql="SELECT CAST((SELECT AVG(loss) FROM statistics) + .499 AS INTEGER);"
+        avg_loss="$(sqlite3 "$db" "$sql")"
         if [ ! "$avg_loss" = "0" ]; then
             current_loss="$current_loss~$avg_loss"
         fi

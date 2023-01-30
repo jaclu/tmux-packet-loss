@@ -49,12 +49,6 @@ log_it "Saving new pid [$$] into pidfile"
 echo "$$" >"$pidfile"
 
 #
-#  Getting parameters from DB
-#
-ping_count="$(sqlite3 "$db" "SELECT ping_count FROM params")"
-host="$(sqlite3 "$db" "SELECT host FROM params")"
-
-#
 #  Figuring out the nature of the available ping cmd
 #
 
@@ -82,7 +76,7 @@ else
     ping_cmd="ping"
 fi
 
-ping_cmd="$ping_cmd -c $ping_count $host"
+ping_cmd="$ping_cmd -c $ping_count $ping_host"
 
 log_it "$monitor_process_scr will use ping cmd [$ping_cmd]"
 
@@ -126,7 +120,7 @@ while :; do
     sql="SELECT COUNT(*) FROM statistics WHERE t_stamp >= datetime(strftime('%Y-%m-%d %H:%M'))"
     items_this_minute="$(sqlite3 "$db" "$sql")"
     if [ "$items_this_minute" -eq 0 ]; then
-        sqlite3 "$db" 'INSERT INTO statistics (loss) SELECT round(avg(loss),1) FROM log_1_min'
+        sqlite3 "$db" 'INSERT INTO statistics (loss) SELECT avg(loss) FROM log_1_min'
     fi
 
     log_it "stored in DB: $percent_loss"

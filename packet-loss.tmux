@@ -26,26 +26,36 @@ DATA_DIR="$CURRENT_DIR/data"
 . "$SCRIPTS_DIR/utils.sh"
 
 
-monitor_proc_full_name="$SCRIPTS_DIR/$monitor_process_scr"
-no_sessions_shutdown_full_name="$SCRIPTS_DIR/$no_sessions_shutdown_scr"
+show_settings() {
+    log_it "ping_host=[$ping_host]"
+    log_it "ping_count=[$ping_count]"
+    log_it "hist_size=[$hist_size]"
 
-db="$DATA_DIR/$sqlite_db"
-pid_file="$DATA_DIR/$monitor_pidfile"
+    if bool_param "$is_weighted_avg"; then
+        log_it "is_weighted_avg=true"
+    else
+        log_it "is_weighted_avg=false"
+    fi
+    log_it "lvl_disp [$lvl_disp]"
+    log_it "lvl_alert [$lvl_alert]"
+    log_it "lvl_crit [$lvl_crit]"
 
+    if bool_param "$hist_avg_display"; then
+        log_it "hist_avg_display=true"
+    else
+        log_it "hist_avg_display=false"
+    fi
+    log_it "hist_stat_mins=[$hist_stat_mins]"
 
-#
-#  Removal of obsolete files, will be removed eventually.
-#
-rm -f "$SCRIPTS_DIR/$sqlite_db"
-rm -f "$SCRIPTS_DIR/$monitor_pidfile"
+    log_it "color_alert [$color_alert]"
+    log_it "color_crit [$color_crit]"
+    log_it "color_bg [$color_bg]"
 
+    log_it "loss_prefix [$loss_prefix]"
+    log_it "loss_suffix [$loss_suffix]"
 
-#
-#  Dependency check
-#
-if ! command -v sqlite3 > /dev/null 2>&1; then
-    error_msg "Missing dependency sqlite3" 1
-fi
+    log_it "hook_idx [$hook_idx]"
+}
 
 
 #
@@ -256,62 +266,81 @@ update_tmux_option() {
 }
 
 
-main() {
-    #
-    #  By printing some empty lines its easier to keep separate runs apart
-    #
-    log_it ""
-    log_it ""
+monitor_proc_full_name="$SCRIPTS_DIR/$monitor_process_scr"
+no_sessions_shutdown_full_name="$SCRIPTS_DIR/$no_sessions_shutdown_scr"
+
+db="$DATA_DIR/$sqlite_db"
+pid_file="$DATA_DIR/$monitor_pidfile"
 
 
-    #
-    #  Always get rid of potentially running background process, since it might
-    #  not use current parameters for host and ping_count
-    #
-    kill_running_monitor
+#
+#  Removal of obsolete files, will be removed eventually.
+#
+rm -f "$SCRIPTS_DIR/$sqlite_db"
+rm -f "$SCRIPTS_DIR/$monitor_pidfile"
 
 
-    #
-    #  Check if shutdown is requested.
-    #
-    if [[ "$1" = "stop" ]]; then
-        echo "Requested to shut-down"
-        hook_handler clear
-        exit 1
-    fi
-
-    #
-    #  Create fresh database if it is missing or obsolete
-    #
-    [[ "$(sqlite3 "$db" "PRAGMA user_version")" != "$db_version" ]] && create_db
-
-    #
-    #  Depends on user settings, so should be updated each time this
-    #  starts
-    #
-    update_triggers
-
-    #
-    #  Starting a fresh monitor
-    #
-    nohup "$monitor_proc_full_name" > /dev/null 2>&1 &
-    log_it "Started background process: $monitor_process_scr"
-
-
-    #
-    #  When last session terminates, shut down monitor process in order
-    #  not to leave any trailing processes once tmux is shut down.
-    #
-    hook_handler set
-
-
-    #
-    #  Activate #{packet_loss} tag if used
-    #
-    update_tmux_option "status-left"
-    update_tmux_option "status-right"
-}
+#
+#  Dependency check
+#
+if ! command -v sqlite3 > /dev/null 2>&1; then
+    error_msg "Missing dependency sqlite3" 1
+fi
 
 get_settings
+
+#
+#  By printing some empty lines its easier to keep separate runs apart
+#
+log_it ""
+log_it ""
+
 show_settings
-main "$*"
+
+
+#
+#  Always get rid of potentially running background process, since it might
+#  not use current parameters for host and ping_count
+#
+kill_running_monitor
+
+
+#
+#  Check if shutdown is requested.
+#
+if [[ "$1" = "stop" ]]; then
+    echo "Requested to shut-down"
+    hook_handler clear
+    exit 1
+fi
+
+#
+#  Create fresh database if it is missing or obsolete
+#
+[[ "$(sqlite3 "$db" "PRAGMA user_version")" != "$db_version" ]] && create_db
+
+#
+#  Depends on user settings, so should be updated each time this
+#  starts
+#
+update_triggers
+
+#
+#  Starting a fresh monitor
+#
+nohup "$monitor_proc_full_name" > /dev/null 2>&1 &
+log_it "Started background process: $monitor_process_scr"
+
+
+#
+#  When last session terminates, shut down monitor process in order
+#  not to leave any trailing processes once tmux is shut down.
+#
+hook_handler set
+
+
+#
+#  Activate #{packet_loss} tag if used
+#
+update_tmux_option "status-left"
+update_tmux_option "status-right"

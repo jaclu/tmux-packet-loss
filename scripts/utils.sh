@@ -83,37 +83,6 @@ bool_param() {
     return 1
 }
 
-show_settings() {
-    log_it "ping_host=[$ping_host]"
-    log_it "ping_count=[$ping_count]"
-    log_it "hist_size=[$hist_size]"
-
-    if bool_param "$is_weighted_avg"; then
-        log_it "is_weighted_avg=true"
-    else
-        log_it "is_weighted_avg=false"
-    fi
-    log_it "lvl_disp [$lvl_disp]"
-    log_it "lvl_alert [$lvl_alert]"
-    log_it "lvl_crit [$lvl_crit]"
-
-    if bool_param "$hist_avg_display"; then
-        log_it "hist_avg_display=true"
-    else
-        log_it "hist_avg_display=false"
-    fi
-    log_it "hist_stat_mins=[$hist_stat_mins]"
-
-    log_it "color_alert [$color_alert]"
-    log_it "color_crit [$color_crit]"
-    log_it "color_bg [$color_bg]"
-
-    log_it "loss_prefix [$loss_prefix]"
-    log_it "loss_suffix [$loss_suffix]"
-
-    log_it "hook_idx [$hook_idx]"
-}
-
 get_settings() {
 
     ping_host=$(get_tmux_option "@packet-loss-ping_host" "$default_host")

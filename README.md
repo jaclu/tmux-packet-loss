@@ -156,7 +156,6 @@ set -g @packet-loss-history_size 7
 set -g @packet-loss_level_alert 18
 set -g @packet-loss_level_disp 4
 set -g @packet-loss_hist_avg_display 1
-#  I prefer a more compact prefix/suffix
 set -g @packet-loss_prefix "|"
 set -g @packet-loss_suffix "|"
 

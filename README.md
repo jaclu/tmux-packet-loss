@@ -123,7 +123,7 @@ Variable                      | Default       | Purpose
 -|-|-
 @packet-loss-ping_host        | 8.8.4.4       | What host to ping
 @packet-loss-ping_count       | 6             | This many pings per statistics update.
-@packet-loss-history_size     | 6             | How many results should be kept when calculating average loss.<br>I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For historical data it is probably better to use @packet-loss_hist_avg_display
+@packet-loss-history_size     | 6             | How many results should be kept when calculating average loss.<br>I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For long-term historical data it is probably better to use @packet-loss_hist_avg_display. 6 pings per check takes 5 secs so 6 here means 5 * 6 thus 30 seconds of ping history
 ||
 @packet-loss_weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
 @packet-loss_level_disp       | 1             | Display loss if this or higher level
@@ -148,7 +148,7 @@ I keep a slightly larger history.
 Since I do 6 pings per run, one lost is 16.67%.
 Alert level is set so that a single packet lost is not displayed as an
 alert, and I filter our low loss levels entirely.
-I use the historical average.
+I display the historical average.
 I use more compact prefix & suffix settings.
 
 ```tmux

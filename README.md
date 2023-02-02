@@ -61,7 +61,7 @@ Result | Explanation
 
 ## Dependencies
 
-`sqlite3`
+`tmux 1.9` `sqlite3`
 
 ## Tmux Compatibility
 

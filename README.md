@@ -18,7 +18,7 @@ average, to give the last couple of checks greater emphasis.
 Partial status bar config, this plugins output takes no space when under
 @packet-loss_level_disp
 
-Be aware this uses my compact prefix & sufix!
+Be aware this uses my compact prefix & sufix settings!
 
 ... #{battery_smart}#{packet_loss}%a %h-%d %H:%M ...
 

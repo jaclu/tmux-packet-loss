@@ -113,7 +113,7 @@ if [ -n "$current_loss" ]; then
         sql="SELECT CAST((SELECT AVG(loss) FROM statistics) + .499 AS INTEGER);"
         avg_loss="$(sqlite3 "$db" "$sql")"
         if [ ! "$avg_loss" = "0" ]; then
-            current_loss="$current_loss~$avg_loss"
+            current_loss="${current_loss}${hist_separator}${avg_loss}"
         fi
     fi
 

@@ -5,6 +5,7 @@ average, to give the last couple of checks greater emphasis.
 
 ## Recent changes
 
+- Added @packet-loss_hist_separator to select separator
 - results are rounded to ints
 - Added historical average
 - Added @packet-loss_hook_idx in order to easily change it in case
@@ -132,6 +133,7 @@ Variable                      | Default       | Purpose
 ||
 @packet-loss_hist_avg_display | 0             | 1 = Also show historical average when current losses are displayed
 @packet-loss_hist_avg_minutes | 30            | Minutes to keep historical average
+@packet-loss_hist_separator   | ~             | Separator current/historical losses. Be aware that if you set it to a special char, you need to prefix it with backslash!
 ||
 @packet-loss_color_alert      | yellow        | Use this color if loss is at or above @packet-loss_level_alert
 @packet-loss_color_crit       | red           | Use this color if loss is at or above @packet-loss_level_crit
@@ -156,8 +158,8 @@ set -g @packet-loss-history_size 7
 set -g @packet-loss_level_alert 18
 set -g @packet-loss_level_disp 4
 set -g @packet-loss_hist_avg_display 1
-set -g @packet-loss_prefix "|"
-set -g @packet-loss_suffix "|"
+set -g @packet-loss_prefix |
+set -g @packet-loss_suffix |
 
 ```
 

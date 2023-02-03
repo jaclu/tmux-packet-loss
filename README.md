@@ -1,12 +1,12 @@
 # Tmux-Packet-Loss
 
 Displays % packet loss to the selected host, default is to use weighted
-average, to give the last couple of checks greater emphasis.
+average, giving more current checks greater emphasis.
 
 ## Recent changes
 
 - Added @packet-loss_hist_separator to SELECT separator, and alert/crit colors to hist average if it is high
-- results are rounded to ints
+- Results are rounded to ints
 - Added historical average
 - Added @packet-loss_hook_idx in order to easily change it in case
     of collisions
@@ -125,7 +125,7 @@ Variable                      | Default       | Purpose
 -|-|-
 @packet-loss-ping_host        | 8.8.4.4       | What host to ping
 @packet-loss-ping_count       | 6             | This many pings per statistics update.
-@packet-loss-history_size     | 6             | How many results should be kept when calculating average loss.<br>I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For long-term historical data it is probably better to use @packet-loss_hist_avg_display. 6 pings per check takes 5 secs so 6 here means 5 * 6 thus 30 seconds of ping history
+@packet-loss-history_size     | 6             | How many results should be kept when calculating average loss.<br>I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For a longer-term historical overview it is probably better to use @packet-loss_hist_avg_display. 6 pings per check takes 5 secs so 6 here means 5 * 6 thus 30 seconds of loss history
 ||
 @packet-loss_weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
 @packet-loss_level_disp       | 1             | Display loss if this or higher level
@@ -151,8 +151,8 @@ Variable                      | Default       | Purpose
 set -g @packet-loss-history_size 7      #  slightly larger history
 set -g @packet-loss_level_disp 3        #  ignore low loss levels
 set -g @packet-loss_hist_avg_display 1  #  display historical average
-set -g @packet-loss_prefix |            #  compact prefix
-set -g @packet-loss_suffix |            #  compact suffix
+set -g @packet-loss_prefix \|           #  compact prefix
+set -g @packet-loss_suffix \|           #  compact suffix
 ```
 
 ## Balancing it
@@ -200,8 +200,8 @@ There are three tables in the DB
 table | Description
 -|-
 packet_loss | Contains the current loss statuses
-log_1_min | Keeps all samples from the last minute, in order to feed one minute averages to the statistics table
-statistics | This keeps one minute averages for the last @packet-loss_hist_avg_minutes minutes
+log_1_min   | Keeps all samples from the last minute, in order to feed one minute averages to the statistics table
+statistics  | Keeps one minute averages for the last @packet-loss_hist_avg_minutes minutes
 
 You can inspect the DB to get current losses by running:
 

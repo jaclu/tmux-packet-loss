@@ -113,6 +113,11 @@ if [ -n "$current_loss" ]; then
         sql="SELECT CAST((SELECT AVG(loss) FROM statistics) + .499 AS INTEGER);"
         avg_loss="$(sqlite3 "$db" "$sql")"
         if [ ! "$avg_loss" = "0" ]; then
+        if awk -v val="$avg_loss" -v trig_lvl="$lvl_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
+            avg_loss="#[fg=$color_crit,bg=$color_bg]$avg_loss#[default]"
+        elif awk -v val="$avg_loss" -v trig_lvl="$lvl_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
+            avg_loss="#[fg=$color_alert,bg=$color_bg]$avg_loss#[default]"
+        fi
             current_loss="${current_loss}${hist_separator}${avg_loss}"
         fi
     fi

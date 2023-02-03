@@ -5,7 +5,7 @@ average, to give the last couple of checks greater emphasis.
 
 ## Recent changes
 
-- Added @packet-loss_hist_separator to select separator
+- Added @packet-loss_hist_separator to select separator, and alert/crit colors to hist average if it is high
 - results are rounded to ints
 - Added historical average
 - Added @packet-loss_hook_idx in order to easily change it in case
@@ -17,6 +17,8 @@ average, to give the last couple of checks greater emphasis.
 
 Partial status bar config, this plugins output takes no space when under
 @packet-loss_level_disp
+
+Be aware this uses my compact prefix & sufix!
 
 ... #{battery_smart}#{packet_loss}%a %h-%d %H:%M ...
 

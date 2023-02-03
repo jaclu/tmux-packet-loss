@@ -119,7 +119,7 @@ update_triggers() {
     #  a user defined setting, that might have changed since the DB
     #  was created
     #
-    triggers="$(sqlite3 "$db" "select * from sqlite_master where type = 'trigger'")"
+    triggers="$(sqlite3 "$db" "SELECT * FROM sqlite_master where type = 'trigger'")"
 
     if [[ -n "$triggers" ]]; then
         sqlite3 "$db" "DROP TRIGGER new_data"
@@ -129,11 +129,11 @@ update_triggers() {
 
     CREATE TRIGGER new_data AFTER INSERT ON packet_loss
     BEGIN
-        INSERT INTO log_1_min (loss) values (NEW.loss);
+        INSERT INTO log_1_min (loss) VALUES (NEW.loss);
 
         DELETE FROM packet_loss
-        WHERE rowid <
-            NEW.rowid-$hist_size+1;
+        WHERE ROWID <
+            NEW.ROWID-$hist_size+1;
 
         DELETE FROM log_1_min WHERE t_stamp <= datetime('now','-1 minutes');
 

@@ -71,20 +71,20 @@ if bool_param "$is_weighted_avg"; then
     #    avg of all
     #
     sql1="max( \
-      (select loss from packet_loss Order By Rowid desc limit 1), \
-      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 2)), \
-      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 3)), \
-      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 4)), \
-      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 5)), \
-      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 6)), \
-      (select avg(loss) from(select loss from packet_loss Order By Rowid desc limit 7)), \
-      (select avg(loss) from packet_loss) \
+      (SELECT loss FROM packet_loss ORDER BY ROWID DESC limit 1), \
+      (SELECT avg(loss) FROM(SELECT loss FROM packet_loss ORDER BY ROWID DESC limit 2)), \
+      (SELECT avg(loss) FROM(SELECT loss FROM packet_loss ORDER BY ROWID DESC limit 3)), \
+      (SELECT avg(loss) FROM(SELECT loss FROM packet_loss ORDER BY ROWID DESC limit 4)), \
+      (SELECT avg(loss) FROM(SELECT loss FROM packet_loss ORDER BY ROWID DESC limit 5)), \
+      (SELECT avg(loss) FROM(SELECT loss FROM packet_loss ORDER BY ROWID DESC limit 6)), \
+      (SELECT avg(loss) FROM(SELECT loss FROM packet_loss ORDER BY ROWID DESC limit 7)), \
+      (SELECT avg(loss) FROM packet_loss) \
      )"
 else
     # weighted_average=0
 
     # shellcheck disable=SC2034
-    sql1="(select avg(loss) from packet_loss)"
+    sql1="(SELECT avg(loss) FROM packet_loss)"
 fi
 
 sql="SELECT CAST(($sql1) + .499 AS INTEGER)"
@@ -113,11 +113,11 @@ if [ -n "$current_loss" ]; then
         sql="SELECT CAST((SELECT AVG(loss) FROM statistics) + .499 AS INTEGER);"
         avg_loss="$(sqlite3 "$db" "$sql")"
         if [ ! "$avg_loss" = "0" ]; then
-        if awk -v val="$avg_loss" -v trig_lvl="$lvl_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
-            avg_loss="#[fg=$color_crit,bg=$color_bg]$avg_loss#[default]"
-        elif awk -v val="$avg_loss" -v trig_lvl="$lvl_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
-            avg_loss="#[fg=$color_alert,bg=$color_bg]$avg_loss#[default]"
-        fi
+            if awk -v val="$avg_loss" -v trig_lvl="$lvl_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
+                avg_loss="#[fg=$color_crit,bg=$color_bg]$avg_loss#[default]"
+            elif awk -v val="$avg_loss" -v trig_lvl="$lvl_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
+                avg_loss="#[fg=$color_alert,bg=$color_bg]$avg_loss#[default]"
+            fi
             current_loss="${current_loss}${hist_separator}${avg_loss}"
         fi
     fi

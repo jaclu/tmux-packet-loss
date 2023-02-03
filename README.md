@@ -5,7 +5,7 @@ average, to give the last couple of checks greater emphasis.
 
 ## Recent changes
 
-- Added @packet-loss_hist_separator to select separator, and alert/crit colors to hist average if it is high
+- Added @packet-loss_hist_separator to SELECT separator, and alert/crit colors to hist average if it is high
 - results are rounded to ints
 - Added historical average
 - Added @packet-loss_hook_idx in order to easily change it in case
@@ -15,10 +15,10 @@ average, to give the last couple of checks greater emphasis.
 
 ## Screenshots
 
+Be aware this uses my compact prefix & sufix settings!
+
 Partial status bar config, this plugins output takes no space when under
 @packet-loss_level_disp
-
-Be aware this uses my compact prefix & sufix settings!
 
 ... #{battery_smart}#{packet_loss}%a %h-%d %H:%M ...
 
@@ -36,7 +36,6 @@ A convenient way to see if there are connectivity issues.
 
 If @packet-loss_hist_avg_display is 1, then when losses are displayed,
 the historical average losses are also displayed.
-How far back the historical average goes is set with @packet-loss_hist_avg_minutes
 
 This plugin runs a background process using repeated runs of ping to
 determine % package loss. Loss level is calculated as a weighted average
@@ -130,12 +129,12 @@ Variable                      | Default       | Purpose
 ||
 @packet-loss_weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
 @packet-loss_level_disp       | 1             | Display loss if this or higher level
-@packet-loss_level_alert      | 18            | Color loss with color_alert
-@packet-loss_level_crit       | 40            | Color loss with color_crit
+@packet-loss_level_alert      | 18            | Color loss with color_alert if at or above this level
+@packet-loss_level_crit       | 40            | Color loss with color_crit if at or above this level
 ||
 @packet-loss_hist_avg_display | 0             | 1 = Also show historical average when current losses are displayed
 @packet-loss_hist_avg_minutes | 30            | Minutes to keep historical average
-@packet-loss_hist_separator   | ~             | Separator current/historical losses. Be aware that if you set it to a special char, you need to prefix it with backslash!
+@packet-loss_hist_separator   | \\~             | Separator current/historical losses. Be aware that if you set it to a special char, you need to prefix it with backslash!
 ||
 @packet-loss_color_alert      | yellow        | Use this color if loss is at or above @packet-loss_level_alert
 @packet-loss_color_crit       | red           | Use this color if loss is at or above @packet-loss_level_crit
@@ -148,85 +147,70 @@ Variable                      | Default       | Purpose
 
 ## My config
 
-I keep a slightly larger history.
-Since I do 6 pings per run, one lost is 16.67%.
-Alert level is set so that a single packet lost is not displayed as an
-alert, and I filter our low loss levels entirely.
-I display the historical average.
-I use more compact prefix & suffix settings.
-
 ```tmux
-set -g @packet-loss-history_size 7
-set -g @packet-loss_level_alert 18
-set -g @packet-loss_level_disp 4
-set -g @packet-loss_hist_avg_display 1
-set -g @packet-loss_prefix |
-set -g @packet-loss_suffix |
-
+set -g @packet-loss-history_size 7      #  slightly larger history
+set -g @packet-loss_level_disp 3        #  ignore low loss levels
+set -g @packet-loss_hist_avg_display 1  #  display historical average
+set -g @packet-loss_prefix |            #  compact prefix
+set -g @packet-loss_suffix |            #  compact suffix
 ```
 
 ## Balancing it
 
-There is no point in getting updates more often than you update your
-status bar. By using a higher ping count you also get a better statistical
-analysis of the situation. If you only check 2 packets per round,
-the only results would be 0%, 50% or 100% The higher the ping count,
-the more nuanced the result will be. But, over a certain limit,
-the time for each test will delay reporting until it's not representative
-of the current link status, assuming you are focusing on that.
-
-Since ping is close to instantaneous, to match reporting with
-status bar updates, ping count is recommended to be set to one higher.
-If they're the same, reporting drift over time,
-and you generate updates that you never see in the first place.
-Not that big of a deal, but by setting ping count to one higher,
-they more or less match in update frequency,
-and you get one more data point per update.
-
-| status-interval | @packet-loss-ping_count |
-| --------------- | ----------------------- |
-| 5               | 6                       |
-| 10              | 11                      |
-| 15              | 16                      |
-| ...             | ...                     |
+By using a higher ping count you get a clearer picture of the situation.
+If you only check 2 packets per round, the only results would be 0%, 50%
+or 100%. The higher the ping count, the more nuanced the result will be.
+But over a certain limit, the time for each test will delay reporting
+until it's not representative of the current link status, assuming you
+are focusing on that.
 
 You are recommended to also consider changing status-interval to keep
 the update rate for this plugin relevant to your reporting needs.
+If you do 6 samples, the recomended intervall would be 5
+
+Since ping is basically instantaneous it can be set to one higher than
+status-intervall. Then sampling and reporting would be more or less in
+sync.
 
 ```tmux
-set -g status-interval 10
+set -g status-interval 5
 ```
 
-## Nerdy stuff
+## Nerdy stuf
 
-All timestamps use generic time ie in most cases UTC, since DB times are
-not displayed, and this saves tons of typing, not having to cast
-everything to localtime eveywhere.
+All timestamps in the DB use generic time ie in most cases UTC.
+Not having to bother with timezones simplifies the code, since DB times
+are not displayed.
 
 If @packet-loss_weighted_average is set to 1 (the default) losses
 are displayed as the largest of:
 
-1. last value
-1. avg of last 2
-1. avg of last 3
-1. avg of last 4
-1. avg of last 5
-1. avg of last 6
-1. avg of last 7
-1. avg of all
+- last value
+- avg of last 2
+- avg of last 3
+- avg of last 4
+- avg of last 5
+- avg of last 6
+- avg of last 7
+- avg of all
 
-You can inspect the DB to get all timestamps & losses by running:
+If set to 0, average of all samples is allways displayed.
+
+There are three tables in the DB
+table | Description
+-|-
+packet_loss | Contains the current loss statuses
+log_1_min | Keeps all samples from the last minute, in order to feed one minute averages to the statistics table
+statistics | This keeps one minute averages for the last @packet-loss_hist_avg_minutes minutes
+
+You can inspect the DB to get current losses by running:
 
 ```bash
-sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'select * from packet_loss Order By Rowid asc'
+sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'SELECT * FROM packet_loss'
 ```
 
-You can inspect the DB to get the timestamp for the oldest kept record
-by running:
-
-```bash
-sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'select * from packet_loss limit 1'
-```
+And as stated above, dont care too much about the exact timestamps, they will
+likely not match your local time!
 
 ## Contributing
 

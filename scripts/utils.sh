@@ -98,7 +98,6 @@ get_settings() {
     hist_stat_mins=$(get_tmux_option "@packet-loss_hist_avg_minutes" "$default_hist_avg_minutes")
     hist_separator=$(get_tmux_option "@packet-loss_hist_separator" "$default_hist_avg_separator")
 
-
     color_alert="$(get_tmux_option "@packet-loss_color_alert" "$default_color_alert")"
     color_crit="$(get_tmux_option "@packet-loss_color_crit" "$default_color_crit")"
     color_bg="$(get_tmux_option "@packet-loss_color_bg" "$default_color_bg")"
@@ -134,9 +133,9 @@ plugin_name="tmux-packet-loss"
 # log_file="/tmp/$plugin_name.log"
 
 #
-#  Sanity check that DB structure is current,if not it will be replaced
+#  Sanity check that DB structure is current, if not it will be replaced
 #
-db_version=5
+db_version=6
 
 default_host="8.8.4.4" #  Default host to ping
 default_ping_count=6   #  how often to report packet loss statistics
@@ -147,9 +146,9 @@ default_lvl_display=1      #  display loss if this or higher
 default_lvl_alert=17       #  this or higher triggers alert color
 default_lvl_crit=40        #  this or higher triggers critical color
 
-default_hist_avg_display=0     #  Display long term average
-default_hist_avg_minutes=30    #  Minutes to keep historical average
-default_hist_avg_separator="~" #  Separaor between current and hist data
+default_hist_avg_display=0    #  Display long term average
+default_hist_avg_minutes=30   #  Minutes to keep historical average
+default_hist_avg_separator=\~ #  Separaor between current and hist data
 
 default_color_alert="yellow"
 default_color_crit="red"

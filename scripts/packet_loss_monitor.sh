@@ -43,7 +43,7 @@ if [ -e "$pidfile" ]; then
 fi
 
 #
-#  Save pid for easier kill from packet-loss.tmux
+#  Save pid for easier kill FROM packet-loss.tmux
 #
 log_it "Saving new pid [$$] into pidfile"
 echo "$$" >"$pidfile"
@@ -114,7 +114,7 @@ while :; do
         log_it "No ping output, will sleep $ping_count seconds"
         sleep "$ping_count"
     fi
-    sqlite3 "$db" "INSERT INTO packet_loss (loss) values ($percent_loss)"
+    sqlite3 "$db" "INSERT INTO packet_loss (loss) VALUES ($percent_loss)"
 
     #  Add one line in statistics each minute
     sql="SELECT COUNT(*) FROM statistics WHERE t_stamp >= datetime(strftime('%Y-%m-%d %H:%M'))"

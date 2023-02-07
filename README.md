@@ -5,7 +5,7 @@ average, giving more current checks greater emphasis.
 
 ## Recent changes
 
-- Added @packet-loss_hist_separator to SELECT separator, and alert/crit colors to hist average if it is high
+- Added @packet-loss_hist_separator to select separator, and alert/crit colors to hist average if it is high
 - Results are rounded to ints
 - Added historical average
 - Added @packet-loss_hook_idx in order to easily change it in case

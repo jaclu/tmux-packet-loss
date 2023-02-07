@@ -217,7 +217,7 @@ likely not match your local time!
 Contributions are welcome, and they're appreciated.
 Every little bit helps, and a credit is always be given.
 
-The best way to send feedback is to file an issue at https://github.com/jaclu/tmux-packet-loss/issues
+The best way to send feedback is to file an issue at [tmux-packet-loss/issues](https://github.com/jaclu/tmux-packet-loss/issues)
 
 ### License
 

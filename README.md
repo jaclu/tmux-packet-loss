@@ -129,7 +129,7 @@ Variable                      | Default       | Purpose
 ||
 @packet-loss_weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
 @packet-loss_level_disp       | 1             | Display loss if this or higher level
-@packet-loss_level_alert      | 18            | Color loss with color_alert if at or above this level
+@packet-loss_level_alert      | 18            | Color loss with color_alert if at or above this level. Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers alert, even initially
 @packet-loss_level_crit       | 40            | Color loss with color_crit if at or above this level
 ||
 @packet-loss_hist_avg_display | 0             | 1 = Also show historical average when current losses are displayed

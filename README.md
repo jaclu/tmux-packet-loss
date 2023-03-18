@@ -21,12 +21,24 @@ Partial status bar config, this plugins output takes no space when under
 
 ... #{battery_smart}#{packet_loss}%a %h-%d %H:%M ...
 
+### Loss levels
+
 | Display | With hist avg | Status
 | - | - | - |
 | ![no_loss  ](https://user-images.githubusercontent.com/5046648/215356290-3155afac-c14f-4f92-9a9a-13752e396410.png) | ![no_loss_h](https://user-images.githubusercontent.com/5046648/215356290-3155afac-c14f-4f92-9a9a-13752e396410.png)   | under threshold       |
 | ![lvl_low  ](https://user-images.githubusercontent.com/5046648/215364078-e139daf0-d224-4275-afe2-6f3894420630.png) | ![lvl_low_h](https://user-images.githubusercontent.com/5046648/215363685-eaf8bc66-44f6-461b-83f1-0b3c16e76869.png)   | low level losses      |
 | ![lvl_alert](https://user-images.githubusercontent.com/5046648/215363408-4b043df3-fcd3-46d7-a3fa-6c3698806955.png) | ![lvl_alert_h](https://user-images.githubusercontent.com/5046648/215363791-c1ca0731-57d5-4f34-a580-896b22fbf76b.png) | alert level losses    |
 | ![lvl_crit ](https://user-images.githubusercontent.com/5046648/215363311-0c925d11-c015-45df-8143-460d2f9d9ec8.png) | ![lvl_crit_h](https://user-images.githubusercontent.com/5046648/215363877-01509d06-f58e-442a-9ebf-06b80688dd7c.png)  | critical level losses |
+
+### Trends
+
+If @packet-loss_display_trend is 1, change since previous check is indicated with a prefix character
+
+| Display | Status
+| - | - |
+|![incr](https://user-images.githubusercontent.com/5046648/226140494-1715b5fa-61fe-4583-a9d4-d0c94c5ff63d.png) | Increasing |
+|![stable](https://user-images.githubusercontent.com/5046648/226140512-fdd824bc-fcd0-4d5e-b960-eb5ec043e190.png) | Stable |
+|![decr](https://user-images.githubusercontent.com/5046648/226140473-94032422-c028-4ffd-96ef-da8aade23460.png) | Decreasing |
 
 ## Operation
 
@@ -127,7 +139,7 @@ Variable                      | Default       | Purpose
 @packet-loss-history_size     | 6             | How many results should be kept when calculating average loss.<br>I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For a longer-term historical overview it is probably better to use @packet-loss_hist_avg_display. 6 pings per check takes 5 secs so 6 here means 5 * 6 thus 30 seconds of loss history
 ||
 @packet-loss_weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-@packet-loss_display_trend    | 0             | 1 = Display trend with ^ prefix if level is higher than last displayed and v prefix if lower<br>0 = Do not display trend
+ @packet-loss_display_trend    | 0             | 1 = Display trend with ^ prefix if level is higher than last displayed and v prefix if lower<br>0 = Do not display trend
 @packet-loss_level_disp       | 1             | Display loss if this or higher level
 @packet-loss_level_alert      | 18            | Color loss with color_alert if at or above this level. Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers alert, even initially
 @packet-loss_level_crit       | 40            | Color loss with color_crit if at or above this level

@@ -5,6 +5,7 @@ average, giving more current checks greater emphasis.
 
 ## Recent changes
 
+- New frature @packet-loss_display_trend
 - Added @packet-loss_hist_separator to select separator, and alert/crit colors to hist average if it is high
 - Results are rounded to ints
 - Added historical average
@@ -128,6 +129,7 @@ Variable                      | Default       | Purpose
 @packet-loss-history_size     | 6             | How many results should be kept when calculating average loss.<br>I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For a longer-term historical overview it is probably better to use @packet-loss_hist_avg_display. 6 pings per check takes 5 secs so 6 here means 5 * 6 thus 30 seconds of loss history
 ||
 @packet-loss_weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
+@packet-loss_display_trend    | 0             | 1 = Display trend with ^ prefix if level is higher than last displayed and v prefix if lower<br>0 = Do not display trend
 @packet-loss_level_disp       | 1             | Display loss if this or higher level
 @packet-loss_level_alert      | 18            | Color loss with color_alert if at or above this level. Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers alert, even initially
 @packet-loss_level_crit       | 40            | Color loss with color_crit if at or above this level
@@ -148,8 +150,9 @@ Variable                      | Default       | Purpose
 ## My config
 
 ```tmux
-set -g @packet-loss-history_size 7      #  slightly larger history
+set -g @packet-loss-history_size 6      #  slightly larger history
 set -g @packet-loss_level_disp 3        #  ignore low loss levels
+set -g @packet-loss_display_trend 1     #  display trend prefix
 set -g @packet-loss_hist_avg_display 1  #  display historical average
 set -g @packet-loss_prefix \|           #  compact prefix
 set -g @packet-loss_suffix \|           #  compact suffix

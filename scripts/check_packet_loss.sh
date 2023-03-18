@@ -97,18 +97,40 @@ if [ "$(echo "$current_loss < $lvl_disp" | bc)" -eq 1 ]; then
 fi
 
 #
-#  To minimize CPU hogging, only fetch options when needed
+#  Calculate trend, ie change since last update
 #
+if bool_param "$display_trend"; then
+    prev_loss="$(get_tmux_option "@packet-loss_last_value" 0)"
+    if [ "$prev_loss" -ne "$current_loss" ]; then
+        set_tmux_option @packet-loss_last_value "$current_loss"
+    fi
+
+    if [ "$current_loss" -gt "$prev_loss" ]; then
+        loss_trend="^"
+    elif [ "$current_loss" -lt "$prev_loss" ]; then
+        loss_trend="v"
+    else
+        loss_trend=""
+    fi
+else
+    loss_trend=""
+fi
+
 if [ -n "$current_loss" ]; then
     #
     #  If loss over trigger levels, display in appropriate color
     #
     if awk -v val="$current_loss" -v trig_lvl="$lvl_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
-        current_loss="#[fg=$color_crit,bg=$color_bg]$current_loss#[default]"
+        current_loss="#[fg=$color_crit,bg=$color_bg]$loss_trend$current_loss#[default]"
     elif awk -v val="$current_loss" -v trig_lvl="$lvl_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
-        current_loss="#[fg=$color_alert,bg=$color_bg]$current_loss#[default]"
+        current_loss="#[fg=$color_alert,bg=$color_bg]$loss_trend$current_loss#[default]"
+    else
+        current_loss="$loss_trend$current_loss"
     fi
 
+    #
+    #  If history is requested, include it in display
+    #
     if bool_param "$hist_avg_display"; then
         sql="SELECT CAST((SELECT AVG(loss) FROM statistics) + .499 AS INTEGER);"
         avg_loss="$(sqlite3 "$db" "$sql")"
@@ -126,5 +148,4 @@ if [ -n "$current_loss" ]; then
     log_it "reported loss [$current_loss]"
 
 fi
-
 echo "$current_loss"

@@ -23,18 +23,28 @@ log_it() {
     printf "[%s] %s\n" "$(date '+%H:%M:%S')" "$@" >>"$log_file"
 }
 
+set_tmux_option() {
+    sto_option="$1"
+    sto_value="$2"
+    [ -z "$sto_option" ] && error_msg "set_tmux_option() param 1 empty!"
+    $TMUX_BIN set -g "$sto_option" "$sto_value"
+    unset sto_option
+    unset sto_value
+}
+
 get_tmux_option() {
-    gtm_option=$1
-    gtm_default=$2
-    gtm_value="$($TMUX_BIN show-option -gqv "$gtm_option")"
-    if [ -z "$gtm_value" ]; then
-        echo "$gtm_default"
+    gto_option=$1
+    gto_default=$2
+    [ -z "$gto_option" ] && error_msg "get_tmux_option() param 1 empty!"
+    gto_value="$($TMUX_BIN show-option -gqv "$gto_option")"
+    if [ -z "$gto_value" ]; then
+        echo "$gto_default"
     else
-        echo "$gtm_value"
+        echo "$gto_value"
     fi
-    unset gtm_option
-    unset gtm_default
-    unset gtm_value
+    unset gto_option
+    unset gto_default
+    unset gto_value
 }
 
 #
@@ -84,12 +94,13 @@ bool_param() {
 }
 
 get_settings() {
-
     ping_host=$(get_tmux_option "@packet-loss-ping_host" "$default_host")
     ping_count=$(get_tmux_option "@packet-loss-ping_count" "$default_ping_count")
     hist_size=$(get_tmux_option "@packet-loss-history_size" "$default_hist_size")
 
     is_weighted_avg="$(get_tmux_option "@packet-loss_weighted_average" "$default_weighted_average")"
+    display_trend="$(get_tmux_option "@packet-loss_display_trend" "$default_display_trend")"
+
     lvl_disp="$(get_tmux_option "@packet-loss_level_disp" "$default_lvl_display")"
     lvl_alert="$(get_tmux_option "@packet-loss_level_alert" "$default_lvl_alert")"
     lvl_crit="$(get_tmux_option "@packet-loss_level_crit" "$default_lvl_crit")"
@@ -142,6 +153,7 @@ default_ping_count=6   #  how often to report packet loss statistics
 default_hist_size=6    #  how many ping results to keep in the primary table
 
 default_weighted_average=1 #  Use weighted average over averaging all data points
+default_display_trend=1    #  display ^/v prefix if value is increasing/decreasing
 default_lvl_display=1      #  display loss if this or higher
 default_lvl_alert=17       #  this or higher triggers alert color
 default_lvl_crit=40        #  this or higher triggers critical color

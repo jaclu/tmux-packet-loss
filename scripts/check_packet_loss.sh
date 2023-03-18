@@ -10,11 +10,6 @@
 #   Version: 0.3.3 2022-06-10
 #
 
-# shellcheck disable=SC1007
-CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-# shellcheck disable=SC1091
-. "$CURRENT_DIR/utils.sh"
-
 restart_monitor() {
     log_it "restarting monitor"
     parrent_dir="$(dirname "$CURRENT_DIR")"
@@ -23,7 +18,35 @@ restart_monitor() {
     sleep 1 # give the first check time to complete
 }
 
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+# shellcheck disable=SC1007
+CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck disable=SC1091
+. "$CURRENT_DIR/utils.sh"
+
 get_settings
+
+#
+#  This is called once per session, only update it once per
+#  @packet-loss-ping_count intervall, otherwise
+#
+# t_start="$(date +%s)"
+
+prev_check_time="$(get_tmux_option "@packet-loss_tmp_last_check" 0)"
+script_start_time="$(date +%s)"
+seconds_since_last_check="$((script_start_time - prev_check_time))"
+interval="$(tmux display -p "#{status-interval}")"
+if [ "$seconds_since_last_check" -lt "$interval" ]; then
+    # log_it "to soon, aborting"
+    get_tmux_option "@packet-loss_tmp_last_result" ""
+    exit 0
+fi
+set_tmux_option "@packet-loss_tmp_last_check" "$script_start_time"
 
 db="$(dirname -- "$CURRENT_DIR")/data/$sqlite_db"
 
@@ -40,12 +63,11 @@ if [ ! -e "$db" ]; then
     #
     #  If DB is missing, try to start the monitor
     #
-    date >>"$log_file_db_missing" # for now log actions
     restart_monitor
     if [ ! -e "$db" ]; then
         log_it "repeated fails DB missing"
         # still missing, something is failing
-        error_msg "DB [$db] not found!" 1
+        error_msg "DB [$db] not found, and monitor failed to restart!" 1
     fi
 fi
 
@@ -89,10 +111,8 @@ fi
 
 sql="SELECT CAST(($sql1) + .499 AS INTEGER)"
 current_loss="$(sqlite3 "$db" "$sql")"
-# log_it "raw loss [$current_loss]"
 
 if [ "$(echo "$current_loss < $lvl_disp" | bc)" -eq 1 ]; then
-    # log_it "$current_loss is below threshold $lvl_disp"
     current_loss="" # no output if bellow threshold
 fi
 
@@ -100,9 +120,9 @@ fi
 #  Calculate trend, ie change since last update
 #
 if bool_param "$display_trend"; then
-    prev_loss="$(get_tmux_option "@packet-loss_last_value" 0)"
+    prev_loss="$(get_tmux_option "@packet-loss_tmp_last_value" 0)"
     if [ "$prev_loss" -ne "$current_loss" ]; then
-        set_tmux_option @packet-loss_last_value "$current_loss"
+        set_tmux_option @packet-loss_tmp_last_value "$current_loss"
     fi
 
     if [ "$current_loss" -gt "$prev_loss" ]; then
@@ -148,4 +168,6 @@ if [ -n "$current_loss" ]; then
     log_it "reported loss [$current_loss]"
 
 fi
+
+set_tmux_option "@packet-loss_tmp_last_result" "$current_loss"
 echo "$current_loss"

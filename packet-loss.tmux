@@ -16,15 +16,10 @@
 #    - binds  #{packet_loss} to check_packet_loss.sh
 #
 
-
-
-# shellcheck disable=SC1007
-CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-SCRIPTS_DIR="$CURRENT_DIR/scripts"
-DATA_DIR="$CURRENT_DIR/data"
-# shellcheck disable=SC1091
-. "$SCRIPTS_DIR/utils.sh"
-
+#
+#  Functions only used here are kept here, in order to minimize overhead
+#  for sourcing utils.sh in the other scripts.
+#
 
 show_settings() {
     log_it "ping_host=[$ping_host]"
@@ -56,26 +51,6 @@ show_settings() {
 
     log_it "hook_idx [$hook_idx]"
 }
-
-
-#
-#  Match tag with polling script
-#
-pkt_loss_interpolation=(
-    "\#{packet_loss}"
-)
-
-pkt_loss_commands=(
-    "#($SCRIPTS_DIR/check_packet_loss.sh)"
-)
-
-
-#
-#  Functions only used here are kept here, in order to minimize overhead
-#  for sourcing utils.sh in the other scripts.
-#
-
-
 
 create_db() {
     rm -f "$db"
@@ -144,10 +119,8 @@ update_triggers() {
 EOF
     )
     sqlite3 "$db" "${sql[@]}"
-    log_it "Created db"
+    log_it "Created db-triggers"
 }
-
-
 
 #
 #  When last session terminates, shut down monitor process in order
@@ -187,7 +160,6 @@ hook_handler() {
     fi
 }
 
-
 #
 #  Removing any current monitor process.
 #  monitor will always be restarted with current settings due to the fact that
@@ -206,7 +178,6 @@ kill_running_monitor() {
         kill "$pid" 2&> /dev/null
         rm -f "$pid_file"
     fi
-
 
     #
     #  Each time ping is run, a process with $monitor_process_scr name is spawned.
@@ -237,23 +208,12 @@ kill_running_monitor() {
     fi
 }
 
-
-set_tmux_option() {
-    local option="$1"
-    local value="$2"
-
-    $TMUX_BIN set-option -gq "$option" "$value"
-}
-
-
 do_interpolation() {
     local all_interpolated="$1"
-    for ((i=0; i<${#pkt_loss_commands[@]}; i++)); do
-        all_interpolated=${all_interpolated//${pkt_loss_interpolation[$i]}/${pkt_loss_commands[$i]}}
-    done
+
+    all_interpolated=${all_interpolated//$pkt_loss_interpolation/$pkt_loss_command}
     echo "$all_interpolated"
 }
-
 
 update_tmux_option() {
     local option="$1"
@@ -265,6 +225,26 @@ update_tmux_option() {
     set_tmux_option "$option" "$new_option_value"
 }
 
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+# shellcheck disable=SC1007
+CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+SCRIPTS_DIR="$CURRENT_DIR/scripts"
+DATA_DIR="$CURRENT_DIR/data"
+# shellcheck disable=SC1091
+. "$SCRIPTS_DIR/utils.sh"
+
+
+#
+#  Match tag with polling script
+#
+pkt_loss_interpolation="\#{packet_loss}"
+pkt_loss_command="#($SCRIPTS_DIR/check_packet_loss.sh)"
 
 monitor_proc_full_name="$SCRIPTS_DIR/$monitor_process_scr"
 no_sessions_shutdown_full_name="$SCRIPTS_DIR/$no_sessions_shutdown_scr"

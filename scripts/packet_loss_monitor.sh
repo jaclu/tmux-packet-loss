@@ -81,7 +81,7 @@ ping_cmd="$ping_cmd -c $ping_count $ping_host"
 log_it "$monitor_process_scr will use ping cmd [$ping_cmd]"
 
 #
-#  Main
+#  Main loop
 #
 while :; do
     output="$($ping_cmd | grep loss)"

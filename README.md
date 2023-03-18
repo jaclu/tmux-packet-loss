@@ -150,7 +150,6 @@ Variable                      | Default       | Purpose
 ## My config
 
 ```tmux
-set -g @packet-loss-history_size 6      #  slightly larger history
 set -g @packet-loss_level_disp 3        #  ignore low loss levels
 set -g @packet-loss_display_trend 1     #  display trend prefix
 set -g @packet-loss_hist_avg_display 1  #  display historical average

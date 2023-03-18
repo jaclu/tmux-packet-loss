@@ -5,15 +5,12 @@ average, giving more current checks greater emphasis.
 
 ## Recent changes
 
+- Since each session triggers a separate run of "check_packet_loss.sh", a timeout is checked, and if script is run within status-interval, the last reported value is used. This both to reduce processing by not polling the DB to often, and also if trends are used not to insantly change it from changing to stable.
 - Using more intense colors for alert and critical levels
 - New feature @packet-loss_display_trend
 - Added @packet-loss_hist_separator to select separator, and alert/crit colors to hist average if it is high
 - Results are rounded to ints
 - Added historical average
-- Added @packet-loss_hook_idx in order to easily change it in case
-    of collisions
-- Updated Readme to match the current defaults
-- If monitor isn't running, it's restarted by check_packet_loss.sh
 
 ## Screenshots
 

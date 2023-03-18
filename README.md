@@ -5,7 +5,7 @@ average, giving more current checks greater emphasis.
 
 ## Recent changes
 
-- New frature @packet-loss_display_trend
+- New feature @packet-loss_display_trend
 - Added @packet-loss_hist_separator to select separator, and alert/crit colors to hist average if it is high
 - Results are rounded to ints
 - Added historical average

@@ -5,6 +5,7 @@ average, giving more current checks greater emphasis.
 
 ## Recent changes
 
+- Using more intense colors for alert and critical levels
 - New feature @packet-loss_display_trend
 - Added @packet-loss_hist_separator to select separator, and alert/crit colors to hist average if it is high
 - Results are rounded to ints
@@ -136,10 +137,10 @@ Variable                      | Default       | Purpose
 ||
 @packet-loss_hist_avg_display | 0             | 1 = Also show historical average when current losses are displayed
 @packet-loss_hist_avg_minutes | 30            | Minutes to keep historical average
-@packet-loss_hist_separator   | \\~             | Separator current/historical losses. Be aware that if you set it to a special char, you need to prefix it with backslash!
+@packet-loss_hist_separator   | \\~           | Separator current/historical losses. Be aware that if you set it to a special char, you need to prefix it with backslash!
 ||
-@packet-loss_color_alert      | yellow        | Use this color if loss is at or above @packet-loss_level_alert
-@packet-loss_color_crit       | red           | Use this color if loss is at or above @packet-loss_level_crit
+@packet-loss_color_alert      | colour226     | (bright yellow) Use this color if loss is at or above @packet-loss_level_alert
+@packet-loss_color_crit       | colour196     | (bright red) Use this color if loss is at or above @packet-loss_level_crit
 @packet-loss_color_bg         | black         | bg color when alert/crit colors are used in display
 ||
 @packet-loss_prefix           | " pkt loss: " | Prefix for status when displayed

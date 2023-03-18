@@ -162,9 +162,9 @@ default_hist_avg_display=0    #  Display long term average
 default_hist_avg_minutes=30   #  Minutes to keep historical average
 default_hist_avg_separator=\~ #  Separaor between current and hist data
 
-default_color_alert="yellow"
-default_color_crit="red"
-default_color_bg="black" #  only used when displaying alert/crit
+default_color_alert="colour226" # bright yellow
+default_color_crit="colour196"  # bright red
+default_color_bg="black"        #  only used when displaying alert/crit
 default_prefix=" pkt loss: "
 default_suffix=" "
 

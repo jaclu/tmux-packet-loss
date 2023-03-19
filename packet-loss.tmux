@@ -86,7 +86,6 @@ create_db() {
     );
 
     PRAGMA user_version = $db_version;  -- replace DB if out of date
-    PRAGMA journal_mode = WAL;          -- performance tweaking
     "
     sqlite3 "$db" "${sql[@]}"
     log_it "Created db"

@@ -50,10 +50,6 @@ set_tmux_option "@packet-loss_tmp_last_check" "$script_start_time"
 
 db="$(dirname -- "$CURRENT_DIR")/data/$sqlite_db"
 
-log_file_base="/tmp/packet-loss"
-log_file_db_missing="${log_file_base}-missing.log"
-log_file_db_old="${log_file_base}-old.log"
-
 #
 #  Some sanity check, ensuring the monitor is running
 #
@@ -125,7 +121,7 @@ if [ -n "$current_loss" ]; then
         if [ "$prev_loss" -ne "$current_loss" ]; then
             set_tmux_option @packet-loss_tmp_last_value "$current_loss"
         fi
-        
+
         if [ "$current_loss" -gt "$prev_loss" ]; then
             loss_trend="^"
         elif [ "$current_loss" -lt "$prev_loss" ]; then
@@ -166,7 +162,8 @@ if [ -n "$current_loss" ]; then
 
     current_loss="$loss_prefix$current_loss$loss_suffix"
     log_it "reported loss [$current_loss]"
-
+else
+    log_it "No packet loss"
 fi
 
 set_tmux_option "@packet-loss_tmp_last_result" "$current_loss"

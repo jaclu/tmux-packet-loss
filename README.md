@@ -5,11 +5,12 @@ average, giving more current checks greater emphasis.
 
 ## Recent changes
 
+- Realized that I have used inconcistent config variable names and corrected it. The old names will be supported until end of April 2023, to allow for smoth transition
 - Shortened table names
-- Since each session triggers a separate run of "check_packet_loss.sh", a timeout is checked, and if script is run within status-interval, the last reported value is used. This both to reduce processing by not polling the DB to often, and also if trends are used not to insantly change it from changing to stable.
+- Since each session triggers a separate run of "check_packet_loss.sh", a timeout is checked, and if script is run within status-interval, the last reported value is used. This both to reduce processing by not polling the DB to often, and also if trends are used not to instantly change it from changing to stable.
 - Using more intense colors for alert and critical levels
-- New feature @packet-loss_display_trend
-- Added @packet-loss_hist_separator to select separator, and alert/crit colors to hist average if it is high
+- New feature @packet-loss-display_trend
+- Added @packet-loss-hist_separator to select separator, and alert/crit colors to hist average if it is high
 - Results are rounded to ints
 - Added historical average
 
@@ -18,7 +19,7 @@ average, giving more current checks greater emphasis.
 Be aware this uses my compact prefix & sufix settings!
 
 Partial status bar config, this plugins output takes no space when under
-@packet-loss_level_disp
+@packet-loss-level_disp
 
 ... #{battery_smart}#{packet_loss}%a %h-%d %H:%M ...
 
@@ -33,7 +34,7 @@ Partial status bar config, this plugins output takes no space when under
 
 ### Trends
 
-If @packet-loss_display_trend is 1, change since previous check is indicated with a prefix character
+If @packet-loss-display_trend is 1, change since previous check is indicated with a prefix character
 
 | Display | Status
 | - | - |
@@ -46,7 +47,7 @@ If @packet-loss_display_trend is 1, change since previous check is indicated wit
 Appears if losses are at or above the threshold level.
 A convenient way to see if there are connectivity issues.
 
-If @packet-loss_hist_avg_display is 1, then when losses are displayed,
+If @packet-loss-hist_avg_display is 1, then when losses are displayed,
 the historical average losses are also displayed.
 
 This plugin runs a background process using repeated runs of ping to
@@ -89,9 +90,9 @@ Version    | Notice
 
 Tested to make sure ps and ping parameters and output are interpreted correctly.
 
-`MacOS`
-
 `Linux`
+
+`MacOS`
 
 `iSH`
 
@@ -129,7 +130,7 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 
 Code           | Action
 -|-
-`#{packet_loss}` | Displays average packet loss % if at or above @packet-loss_level_disp
+`#{packet_loss}` | Displays average packet loss % if at or above @packet-loss-level_disp
 
 ## Variables
 
@@ -137,35 +138,35 @@ Variable                      | Default       | Purpose
 -|-|-
 @packet-loss-ping_host        | 8.8.4.4       | What host to ping
 @packet-loss-ping_count       | 6             | This many pings per statistics update.
-@packet-loss-history_size     | 6             | How many results should be kept when calculating average loss.<br>I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For a longer-term historical overview it is probably better to use @packet-loss_hist_avg_display. 6 pings per check takes 5 secs so 6 here means 5 * 6 thus 30 seconds of loss history
+@packet-loss-history_size     | 6             | How many results should be kept when calculating average loss.<br>I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For a longer-term historical overview it is probably better to use @packet-loss-hist_avg_display. 6 pings per check takes 5 secs so 6 here means 5 * 6 thus 30 seconds of loss history
 ||
-@packet-loss_weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
- @packet-loss_display_trend    | 0             | 1 = Display trend with ^ prefix if level is higher than last displayed and v prefix if lower<br>0 = Do not display trend
-@packet-loss_level_disp       | 1             | Display loss if this or higher level
-@packet-loss_level_alert      | 18            | Color loss with color_alert if at or above this level. Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers alert, even initially
-@packet-loss_level_crit       | 40            | Color loss with color_crit if at or above this level
+@packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
+ @packet-loss-display_trend    | 0             | 1 = Display trend with ^ prefix if level is higher than last displayed and v prefix if lower<br>0 = Do not display trend
+@packet-loss-level_disp       | 1             | Display loss if this or higher level
+@packet-loss-level_alert      | 18            | Color loss with color_alert if at or above this level. Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers alert, even initially
+@packet-loss-level_crit       | 40            | Color loss with color_crit if at or above this level
 ||
-@packet-loss_hist_avg_display | 0             | 1 = Also show historical average when current losses are displayed
-@packet-loss_hist_avg_minutes | 30            | Minutes to keep historical average
-@packet-loss_hist_separator   | \\~           | Separator current/historical losses. Be aware that if you set it to a special char, you need to prefix it with backslash!
+@packet-loss-hist_avg_display | 0             | 1 = Also show historical average when current losses are displayed
+@packet-loss-hist_avg_minutes | 30            | Minutes to keep historical average
+@packet-loss-hist_separator   | \\~           | Separator current/historical losses. Be aware that if you set it to a special char, you need to prefix it with backslash!
 ||
-@packet-loss_color_alert      | colour226     | (bright yellow) Use this color if loss is at or above @packet-loss_level_alert
-@packet-loss_color_crit       | colour196     | (bright red) Use this color if loss is at or above @packet-loss_level_crit
-@packet-loss_color_bg         | black         | bg color when alert/crit colors are used in display
+@packet-loss-color_alert      | colour226     | (bright yellow) Use this color if loss is at or above @packet-loss-level_alert
+@packet-loss-color_crit       | colour196     | (bright red) Use this color if loss is at or above @packet-loss-level_crit
+@packet-loss-color_bg         | black         | bg color when alert/crit colors are used in display
 ||
-@packet-loss_prefix           | " pkt loss: " | Prefix for status when displayed
-@packet-loss_suffix           | " "           | Suffix for status when displayed
+@packet-loss-prefix           | " pkt loss: " | Prefix for status when displayed
+@packet-loss-suffix           | " "           | Suffix for status when displayed
 ||
-@packet-loss_hook_idx         | 41            | Index for session-closed hook, only needs changing if it collides with other usages of session-closed using this index
+@packet-loss-hook_idx         | 41            | Index for session-closed hook, only needs changing if it collides with other usages of session-closed using this index
 
 ## My config
 
 ```tmux
-set -g @packet-loss_level_disp 3        #  ignore low loss levels
-set -g @packet-loss_display_trend 1     #  display trend prefix
-set -g @packet-loss_hist_avg_display 1  #  display historical average
-set -g @packet-loss_prefix \|           #  compact prefix
-set -g @packet-loss_suffix \|           #  compact suffix
+set -g @packet-loss-level_disp 3        #  ignore low loss levels
+set -g @packet-loss-display_trend 1     #  display trend prefix
+set -g @packet-loss-hist_avg_display 1  #  display historical average
+set -g @packet-loss-prefix \|           #  compact prefix
+set -g @packet-loss-suffix \|           #  compact suffix
 ```
 
 ## Balancing it
@@ -173,7 +174,7 @@ set -g @packet-loss_suffix \|           #  compact suffix
 By using a higher ping count you get a clearer picture of the situation.
 If you only check 2 packets per round, the only results would be 0%, 50%
 or 100%. The higher the ping count, the more nuanced the result will be.
-But over a certain limit, the time for each test will delay reporting
+But over a certain limit, the time taken for each test will delay reporting
 until it's not representative of the current link status, assuming you
 are focusing on that.
 
@@ -195,7 +196,7 @@ All timestamps in the DB use generic time ie in most cases UTC.
 Not having to bother with timezones simplifies the code, since DB times
 are not displayed.
 
-If @packet-loss_weighted_average is set to 1 (the default) losses
+If @packet-loss-weighted_average is set to 1 (the default) losses
 are displayed as the largest of:
 
 - last value
@@ -213,8 +214,8 @@ There are three tables in the DB
 table | Description
 -|-
 t_loss | Contains the current loss statuses
-t_1_min   | Keeps all samples from the last minute, in order to feed one minute averages to the statistics table
-statistics  | Keeps one minute averages for the last @packet-loss_hist_avg_minutes minutes
+t_1_min   | Keeps all samples from the last minute, in order to feed one minute averages to the t_stats table
+t_stats  | Keeps one minute averages for the last @packet-loss-hist_avg_minutes minutes
 
 You can inspect the DB to get current losses by running:
 

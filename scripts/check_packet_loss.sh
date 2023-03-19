@@ -116,27 +116,27 @@ if [ "$(echo "$current_loss < $lvl_disp" | bc)" -eq 1 ]; then
     current_loss="" # no output if bellow threshold
 fi
 
-#
-#  Calculate trend, ie change since last update
-#
-if bool_param "$display_trend"; then
-    prev_loss="$(get_tmux_option "@packet-loss_tmp_last_value" 0)"
-    if [ "$prev_loss" -ne "$current_loss" ]; then
-        set_tmux_option @packet-loss_tmp_last_value "$current_loss"
-    fi
-
-    if [ "$current_loss" -gt "$prev_loss" ]; then
-        loss_trend="^"
-    elif [ "$current_loss" -lt "$prev_loss" ]; then
-        loss_trend="v"
+if [ -n "$current_loss" ]; then
+    if bool_param "$display_trend"; then
+        #
+        #  Calculate trend, ie change since last update
+        #
+        prev_loss="$(get_tmux_option "@packet-loss_tmp_last_value" 0)"
+        if [ "$prev_loss" -ne "$current_loss" ]; then
+            set_tmux_option @packet-loss_tmp_last_value "$current_loss"
+        fi
+        
+        if [ "$current_loss" -gt "$prev_loss" ]; then
+            loss_trend="^"
+        elif [ "$current_loss" -lt "$prev_loss" ]; then
+            loss_trend="v"
+        else
+            loss_trend=""
+        fi
     else
         loss_trend=""
     fi
-else
-    loss_trend=""
-fi
 
-if [ -n "$current_loss" ]; then
     #
     #  If loss over trigger levels, display in appropriate color
     #

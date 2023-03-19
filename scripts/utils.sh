@@ -166,12 +166,12 @@ plugin_name="tmux-packet-loss"
 #  no output will happen. This should be the case for normal operations.
 #  So unless you want logging, comment the next line out.
 #
-# log_file="/tmp/$plugin_name.log"
+log_file="/tmp/$plugin_name.log"
 
 #
 #  Sanity check that DB structure is current, if not it will be replaced
 #
-db_version=8
+db_version=10
 
 default_host="8.8.4.4" #  Default host to ping
 default_ping_count=6   #  how often to report packet loss statistics

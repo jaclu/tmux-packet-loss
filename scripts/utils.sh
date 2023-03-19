@@ -151,6 +151,14 @@ get_settings() {
 plugin_name="tmux-packet-loss"
 
 #
+#  log_it is used to display status to $log_file if it is defined.
+#  Good for testing and monitoring actions. If $log_file is unset
+#  no output will happen. This should be the case for normal operations.
+#  So unless you want logging, comment the next line out.
+#
+# log_file="/tmp/$plugin_name.log"
+
+#
 #  I use an env var TMUX_BIN to point at the current tmux, defined in my
 #  tmux.conf, in order to pick the version matching the server running.
 #  This is needed when checking backwards compatability with various versions.
@@ -159,14 +167,6 @@ plugin_name="tmux-packet-loss"
 #  plugin.
 #
 [ -z "$TMUX_BIN" ] && TMUX_BIN="tmux"
-
-#
-#  log_it is used to display status to $log_file if it is defined.
-#  Good for testing and monitoring actions. If $log_file is unset
-#  no output will happen. This should be the case for normal operations.
-#  So unless you want logging, comment the next line out.
-#
-# log_file="/tmp/$plugin_name.log"
 
 #
 #  Sanity check that DB structure is current, if not it will be replaced

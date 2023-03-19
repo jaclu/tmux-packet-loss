@@ -121,7 +121,7 @@ get_settings() {
     #
     ping_host=$(get_tmux_option "@packet-loss-ping_host" "$default_host")
     ping_count=$(get_tmux_option "@packet-loss-ping_count" "$default_ping_count")
-    hist_size=$(get_tmux_option "@packet-loss-history_size" "$default_hist_size")
+    history_size=$(get_tmux_option "@packet-loss-history_size" "$default_history_size")
 
     is_weighted_avg="$(get_tmux_option "@packet-loss-weighted_average" "$is_weighted_avg")" # new config
     display_trend="$(get_tmux_option "@packet-loss-display_trend" "$display_trend")"        # new config
@@ -175,7 +175,7 @@ db_version=8
 
 default_host="8.8.4.4" #  Default host to ping
 default_ping_count=6   #  how often to report packet loss statistics
-default_hist_size=6    #  how many ping results to keep in the primary table
+default_history_size=6 #  how many ping results to keep in the primary table
 
 default_weighted_average=1 #  Use weighted average over averaging all data points
 default_display_trend=1    #  display ^/v prefix if value is increasing/decreasing

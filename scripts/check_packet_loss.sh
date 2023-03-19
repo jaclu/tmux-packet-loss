@@ -44,8 +44,9 @@ script_start_time="$(date +%s)"
 seconds_since_last_check="$((script_start_time - prev_check_time))"
 interval="$(tmux display -p "#{status-interval}")"
 if [ "$seconds_since_last_check" -lt "$interval" ]; then
-    # log_it "to soon, aborting"
+    # This will echo last retrieved value
     get_tmux_option "@packet-loss_tmp_last_result" ""
+    # log_it "to soon, reporting cached value"
     exit 0
 fi
 set_tmux_option "@packet-loss_tmp_last_check" "$script_start_time"

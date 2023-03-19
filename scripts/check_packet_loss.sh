@@ -31,12 +31,14 @@ CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 get_settings
 
-#
-#  This is called once per session, only update it once per
-#  @packet-loss-ping_count intervall, otherwise
-#
-# t_start="$(date +%s)"
+db="$(dirname -- "$CURRENT_DIR")/data/$sqlite_db"
 
+#
+#  This is called once per active tmux session, so if multiple sessions
+#  are used, this will be called multiple times in a row. Only check DB
+#  once per tmux status bar update, in order to reduce expensive
+#  DB calls.
+#
 prev_check_time="$(get_tmux_option "@packet-loss_tmp_last_check" 0)"
 script_start_time="$(date +%s)"
 seconds_since_last_check="$((script_start_time - prev_check_time))"
@@ -47,8 +49,6 @@ if [ "$seconds_since_last_check" -lt "$interval" ]; then
     exit 0
 fi
 set_tmux_option "@packet-loss_tmp_last_check" "$script_start_time"
-
-db="$(dirname -- "$CURRENT_DIR")/data/$sqlite_db"
 
 #
 #  Some sanity check, ensuring the monitor is running

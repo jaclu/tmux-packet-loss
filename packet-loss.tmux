@@ -22,11 +22,11 @@
 #
 
 show_settings() {
-    [ -z "$log_file" ] && return # if no logging, return
+    [[ -z "$log_file" ]] && return # if no logging, no need to continue
 
     log_it "ping_host=[$ping_host]"
     log_it "ping_count=[$ping_count]"
-    log_it "hist_size=[$hist_size]"
+    log_it "history_size=[$history_size]"
 
     if bool_param "$is_weighted_avg"; then
         log_it "is_weighted_avg=true"
@@ -65,7 +65,7 @@ create_db() {
     rm -f "$db"
     log_it "old_db removed"
     #
-    #  t_loss is limited to $hist_size rows, in order to make statistics consistent
+    #  t_loss is limited to $history_size rows, in order to make statistics consistent
     #
     sql=$(cat <<EOF
 
@@ -74,13 +74,13 @@ create_db() {
         loss DECIMAL(5,1)
     );
 
-    -- Ensures items are kept long enough to get 1 min averages
+    -- Ensures items in t_loss are kept long enough to get 1 min averages
     CREATE TABLE t_1_min (
         time_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
     );
 
-    -- logs one min avgs for up to stat_size minutes
+    -- logs one min avgs for up to @packet-loss-hist_avg_minutes minutes
     CREATE TABLE t_stats (
         time_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
@@ -109,24 +109,20 @@ update_triggers() {
         sqlite3 "$db" "DROP TRIGGER new_data"
     fi
 
-    sql=$(cat <<EOF
-
+    sql="
     CREATE TRIGGER new_data AFTER INSERT ON t_loss
     BEGIN
         INSERT INTO t_1_min (loss) VALUES (NEW.loss);
 
         DELETE FROM t_loss
         WHERE ROWID <
-            NEW.ROWID-$hist_size+1;
+            NEW.ROWID - $history_size + 1;
 
-        DELETE FROM t_1_min WHERE time_stamp <= datetime('now','-1 minutes');
+        DELETE FROM t_1_min WHERE time_stamp <= datetime('now', '-1 minutes');
 
-        DELETE FROM t_stats WHERE time_stamp <= datetime('now','-$hist_stat_mins minutes');
-
+        DELETE FROM t_stats WHERE time_stamp <= datetime('now', '-$hist_stat_mins minutes');
     END;
-
-EOF
-    )
+    "
     sqlite3 "$db" "${sql[@]}"
     log_it "Created db-triggers"
 }

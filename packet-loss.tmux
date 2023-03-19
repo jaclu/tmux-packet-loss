@@ -22,6 +22,8 @@
 #
 
 show_settings() {
+    [ -z "$log_file" ] && return # if no logging, return
+
     log_it "ping_host=[$ping_host]"
     log_it "ping_count=[$ping_count]"
     log_it "hist_size=[$hist_size]"
@@ -31,6 +33,12 @@ show_settings() {
     else
         log_it "is_weighted_avg=false"
     fi
+    if bool_param "$display_trend"; then
+        log_it "display_trend=true"
+    else
+        log_it "display_trend=false"
+    fi
+
     log_it "lvl_disp [$lvl_disp]"
     log_it "lvl_alert [$lvl_alert]"
     log_it "lvl_crit [$lvl_crit]"
@@ -41,6 +49,7 @@ show_settings() {
         log_it "hist_avg_display=false"
     fi
     log_it "hist_stat_mins=[$hist_stat_mins]"
+    log_it "hist_separator [$hist_separator]"
 
     log_it "color_alert [$color_alert]"
     log_it "color_crit [$color_crit]"
@@ -61,19 +70,19 @@ create_db() {
     sql=$(cat <<EOF
 
     CREATE TABLE t_loss (
-        stamp_t TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
+        time_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
     );
 
     -- Ensures items are kept long enough to get 1 min averages
     CREATE TABLE t_1_min (
-        stamp_t TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
+        time_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
     );
 
     -- logs one min avgs for up to stat_size minutes
     CREATE TABLE t_stats (
-        stamp_t TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
+        time_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
     );
 
@@ -110,9 +119,9 @@ update_triggers() {
         WHERE ROWID <
             NEW.ROWID-$hist_size+1;
 
-        DELETE FROM t_1_min WHERE stamp_t <= datetime('now','-1 minutes');
+        DELETE FROM t_1_min WHERE time_stamp <= datetime('now','-1 minutes');
 
-        DELETE FROM t_stats WHERE stamp_t <= datetime('now','-$hist_stat_mins minutes');
+        DELETE FROM t_stats WHERE time_stamp <= datetime('now','-$hist_stat_mins minutes');
 
     END;
 

@@ -95,29 +95,53 @@ bool_param() {
 }
 
 get_settings() {
+    #
+    #  First read the obsolete variables, they will be overridden by
+    #  the new varuable names if found
+    #  This change happened 2023-03-19, by 2023-05-01 the old variables
+    #  will no longer be supported
+    #
+    is_weighted_avg="$(get_tmux_option "@packet-loss_weighted_average" "$default_weighted_average")"
+    display_trend="$(get_tmux_option "@packet-loss_display_trend" "$default_display_trend")"
+    lvl_disp="$(get_tmux_option "@packet-loss_level_disp" "$default_lvl_display")"
+    lvl_alert="$(get_tmux_option "@packet-loss_level_alert" "$default_lvl_alert")"
+    lvl_crit="$(get_tmux_option "@packet-loss_level_crit" "$default_lvl_crit")"
+    hist_avg_display="$(get_tmux_option "@packet-loss_hist_avg_display" "$default_hist_avg_display")"
+    hist_stat_mins=$(get_tmux_option "@packet-loss_hist_avg_minutes" "$default_hist_avg_minutes")
+    hist_separator=$(get_tmux_option "@packet-loss_hist_separator" "$default_hist_avg_separator")
+    color_alert="$(get_tmux_option "@packet-loss_color_alert" "$default_color_alert")"
+    color_crit="$(get_tmux_option "@packet-loss_color_crit" "$default_color_crit")"
+    color_bg="$(get_tmux_option "@packet-loss_color_bg" "$default_color_bg")"
+    loss_prefix="$(get_tmux_option "@packet-loss_prefix" "$default_prefix")"
+    loss_suffix="$(get_tmux_option "@packet-loss_suffix" "$default_suffix")"
+    hook_idx=$(get_tmux_option "@packet-loss_hook_idx" "$default_session_closed_hook")
+
+    #
+    #  New variable names
+    #
     ping_host=$(get_tmux_option "@packet-loss-ping_host" "$default_host")
     ping_count=$(get_tmux_option "@packet-loss-ping_count" "$default_ping_count")
     hist_size=$(get_tmux_option "@packet-loss-history_size" "$default_hist_size")
 
-    is_weighted_avg="$(get_tmux_option "@packet-loss_weighted_average" "$default_weighted_average")"
-    display_trend="$(get_tmux_option "@packet-loss_display_trend" "$default_display_trend")"
+    is_weighted_avg="$(get_tmux_option "@packet-loss-weighted_average" "$is_weighted_avg")" # new config
+    display_trend="$(get_tmux_option "@packet-loss-display_trend" "$display_trend")"        # new config
 
-    lvl_disp="$(get_tmux_option "@packet-loss_level_disp" "$default_lvl_display")"
-    lvl_alert="$(get_tmux_option "@packet-loss_level_alert" "$default_lvl_alert")"
-    lvl_crit="$(get_tmux_option "@packet-loss_level_crit" "$default_lvl_crit")"
+    lvl_disp="$(get_tmux_option "@packet-loss-level_disp" "$lvl_disp")"    # new config
+    lvl_alert="$(get_tmux_option "@packet-loss-level_alert" "$lvl_alert")" # new config
+    lvl_crit="$(get_tmux_option "@packet-loss-level_crit" "$lvl_crit")"    # new config
 
-    hist_avg_display="$(get_tmux_option "@packet-loss_hist_avg_display" "$default_hist_avg_display")"
-    hist_stat_mins=$(get_tmux_option "@packet-loss_hist_avg_minutes" "$default_hist_avg_minutes")
-    hist_separator=$(get_tmux_option "@packet-loss_hist_separator" "$default_hist_avg_separator")
+    hist_avg_display="$(get_tmux_option "@packet-loss-hist_avg_display" "$hist_avg_display")" # new config
+    hist_stat_mins=$(get_tmux_option "@packet-loss-hist_avg_minutes" "$hist_stat_mins")       # new config
+    hist_separator=$(get_tmux_option "@packet-loss-hist_separator" "$hist_separator")         # new config
 
-    color_alert="$(get_tmux_option "@packet-loss_color_alert" "$default_color_alert")"
-    color_crit="$(get_tmux_option "@packet-loss_color_crit" "$default_color_crit")"
-    color_bg="$(get_tmux_option "@packet-loss_color_bg" "$default_color_bg")"
+    color_alert="$(get_tmux_option "@packet-loss-color_alert" "$color_alert")" # new config
+    color_crit="$(get_tmux_option "@packet-loss-color_crit" "$color_crit")"    # new config
+    color_bg="$(get_tmux_option "@packet-loss-color_bg" "$color_bg")"          # new config
 
-    loss_prefix="$(get_tmux_option "@packet-loss_prefix" "$default_prefix")"
-    loss_suffix="$(get_tmux_option "@packet-loss_suffix" "$default_suffix")"
+    loss_prefix="$(get_tmux_option "@packet-loss-prefix" "$loss_prefix")" # new config
+    loss_suffix="$(get_tmux_option "@packet-loss-suffix" "$loss_suffix")" # new config
 
-    hook_idx=$(get_tmux_option "@packet-loss_hook_idx" "$default_session_closed_hook")
+    hook_idx=$(get_tmux_option "@packet-loss-hook_idx" "$hook_idx") # new config
 }
 
 #
@@ -142,12 +166,12 @@ plugin_name="tmux-packet-loss"
 #  no output will happen. This should be the case for normal operations.
 #  So unless you want logging, comment the next line out.
 #
-# log_file="/tmp/$plugin_name.log"
+log_file="/tmp/$plugin_name.log"
 
 #
 #  Sanity check that DB structure is current, if not it will be replaced
 #
-db_version=6
+db_version=8
 
 default_host="8.8.4.4" #  Default host to ping
 default_ping_count=6   #  how often to report packet loss statistics

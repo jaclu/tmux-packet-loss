@@ -114,13 +114,13 @@ while :; do
         log_it "No ping output, will sleep $ping_count seconds"
         sleep "$ping_count"
     fi
-    sqlite3 "$db" "INSERT INTO packet_loss (loss) VALUES ($percent_loss)"
+    sqlite3 "$db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
 
     #  Add one line in statistics each minute
-    sql="SELECT COUNT(*) FROM statistics WHERE t_stamp >= datetime(strftime('%Y-%m-%d %H:%M'))"
+    sql="SELECT COUNT(*) FROM t_stats WHERE stamp_t >= datetime(strftime('%Y-%m-%d %H:%M'))"
     items_this_minute="$(sqlite3 "$db" "$sql")"
     if [ "$items_this_minute" -eq 0 ]; then
-        sqlite3 "$db" 'INSERT INTO statistics (loss) SELECT avg(loss) FROM log_1_min'
+        sqlite3 "$db" 'INSERT INTO t_stats (loss) SELECT avg(loss) FROM t_1_min'
     fi
 
     log_it "stored in DB: $percent_loss"

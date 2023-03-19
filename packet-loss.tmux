@@ -56,24 +56,24 @@ create_db() {
     rm -f "$db"
     log_it "old_db removed"
     #
-    #  packet_loss is limited to $hist_size rows, in order to make statistics consistent
+    #  t_loss is limited to $hist_size rows, in order to make statistics consistent
     #
     sql=$(cat <<EOF
 
-    CREATE TABLE packet_loss (
-        t_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
+    CREATE TABLE t_loss (
+        stamp_t TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
     );
 
     -- Ensures items are kept long enough to get 1 min averages
-    CREATE TABLE log_1_min (
-        t_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
+    CREATE TABLE t_1_min (
+        stamp_t TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
     );
 
     -- logs one min avgs for up to stat_size minutes
-    CREATE TABLE statistics (
-        t_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
+    CREATE TABLE t_stats (
+        stamp_t TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
     );
 
@@ -102,17 +102,17 @@ update_triggers() {
 
     sql=$(cat <<EOF
 
-    CREATE TRIGGER new_data AFTER INSERT ON packet_loss
+    CREATE TRIGGER new_data AFTER INSERT ON t_loss
     BEGIN
-        INSERT INTO log_1_min (loss) VALUES (NEW.loss);
+        INSERT INTO t_1_min (loss) VALUES (NEW.loss);
 
-        DELETE FROM packet_loss
+        DELETE FROM t_loss
         WHERE ROWID <
             NEW.ROWID-$hist_size+1;
 
-        DELETE FROM log_1_min WHERE t_stamp <= datetime('now','-1 minutes');
+        DELETE FROM t_1_min WHERE stamp_t <= datetime('now','-1 minutes');
 
-        DELETE FROM statistics WHERE t_stamp <= datetime('now','-$hist_stat_mins minutes');
+        DELETE FROM t_stats WHERE stamp_t <= datetime('now','-$hist_stat_mins minutes');
 
     END;
 

@@ -211,14 +211,14 @@ If set to 0, average of all samples is allways displayed.
 There are three tables in the DB
 table | Description
 -|-
-packet_loss | Contains the current loss statuses
-log_1_min   | Keeps all samples from the last minute, in order to feed one minute averages to the statistics table
+t_loss | Contains the current loss statuses
+t_1_min   | Keeps all samples from the last minute, in order to feed one minute averages to the statistics table
 statistics  | Keeps one minute averages for the last @packet-loss_hist_avg_minutes minutes
 
 You can inspect the DB to get current losses by running:
 
 ```bash
-sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'SELECT * FROM packet_loss'
+sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'SELECT * FROM t_loss'
 ```
 
 And as stated above, dont care too much about the exact timestamps, they will

@@ -67,8 +67,7 @@ create_db() {
     #
     #  t_loss is limited to $history_size rows, in order to make statistics consistent
     #
-    sql=$(cat <<EOF
-
+    sql="
     CREATE TABLE t_loss (
         time_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
@@ -86,11 +85,9 @@ create_db() {
         loss DECIMAL(5,1)
     );
 
-    PRAGMA user_version=$db_version;
-
-EOF
-    )
-
+    PRAGMA user_version = $db_version;  -- replace DB if out of date
+    PRAGMA journal_mode = WAL;          -- performance tweaking
+    "
     sqlite3 "$db" "${sql[@]}"
     log_it "Created db"
 }
@@ -114,12 +111,15 @@ update_triggers() {
     BEGIN
         INSERT INTO t_1_min (loss) VALUES (NEW.loss);
 
+        -- keep loss table within max length
         DELETE FROM t_loss
         WHERE ROWID <
             NEW.ROWID - $history_size + 1;
 
+        -- only keep one min of loss checks
         DELETE FROM t_1_min WHERE time_stamp <= datetime('now', '-1 minutes');
 
+        -- keep statistics table within specified size
         DELETE FROM t_stats WHERE time_stamp <= datetime('now', '-$hist_stat_mins minutes');
     END;
     "

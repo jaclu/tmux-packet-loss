@@ -124,9 +124,9 @@ if [ -n "$current_loss" ]; then
         fi
 
         if [ "$current_loss" -gt "$prev_loss" ]; then
-            loss_trend="^"
+            loss_trend="+"
         elif [ "$current_loss" -lt "$prev_loss" ]; then
-            loss_trend="v"
+            loss_trend="-"
         else
             loss_trend=""
         fi

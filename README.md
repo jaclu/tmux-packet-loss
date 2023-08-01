@@ -5,7 +5,7 @@ average, giving more current checks greater emphasis.
 
 ## Recent changes
 
-- Realized that I have used inconcistent config variable names and corrected it. The old names will be supported until end of April 2023, to allow for smoth transition
+- Removed support for onsolete config variables
 - Shortened table names
 - Since each session triggers a separate run of "check_packet_loss.sh", a timeout is checked, and if script is run within status-interval, the last reported value is used. This both to reduce processing by not polling the DB to often, and also if trends are used not to instantly change it from changing to stable.
 - Using more intense colors for alert and critical levels

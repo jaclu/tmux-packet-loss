@@ -89,7 +89,7 @@ if bool_param "$is_weighted_avg"; then
     #    ...
     #    avg of all
     #
-    sql1="max( \
+    sql_avg="max( \
       (SELECT loss FROM t_loss ORDER BY ROWID DESC limit 1), \
       (SELECT avg(loss) FROM(SELECT loss FROM t_loss ORDER BY ROWID DESC limit 2)), \
       (SELECT avg(loss) FROM(SELECT loss FROM t_loss ORDER BY ROWID DESC limit 3)), \
@@ -100,13 +100,11 @@ if bool_param "$is_weighted_avg"; then
       (SELECT avg(loss) FROM t_loss) \
      )"
 else
-    # weighted_average=0
-
     # shellcheck disable=SC2034
-    sql1="(SELECT avg(loss) FROM t_loss)"
+    sql_avg="SELECT avg(loss) FROM t_loss"
 fi
 
-sql="SELECT CAST(($sql1) + .499 AS INTEGER)"
+sql="SELECT CAST(( $sql_avg ) + .499 AS INTEGER)"
 current_loss="$(sqlite3 "$db" "$sql")"
 
 if [ "$(echo "$current_loss < $lvl_disp" | bc)" -eq 1 ]; then

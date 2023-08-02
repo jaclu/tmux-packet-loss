@@ -8,8 +8,6 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.2.3 2022-09-15
-#
 #  Common stuff
 #
 
@@ -39,10 +37,13 @@ get_tmux_option() {
     [ -z "$gto_option" ] && error_msg "get_tmux_option() param 1 empty!"
     gto_value="$($TMUX_BIN show-option -gqv "$gto_option")"
     if [ -z "$gto_value" ]; then
+        # log_it "get opt def : $gto_option = $gto_default"
         echo "$gto_default"
     else
+        # log_it "get opt     : $gto_option = $gto_value"
         echo "$gto_value"
     fi
+
     unset gto_option
     unset gto_default
     unset gto_value
@@ -95,29 +96,29 @@ bool_param() {
 }
 
 get_settings() {
-    ping_host=$(get_tmux_option "@packet-loss-ping_host" "$default_host")
-    ping_count=$(get_tmux_option "@packet-loss-ping_count" "$default_ping_count")
-    history_size=$(get_tmux_option "@packet-loss-history_size" "$default_history_size")
+    ping_host="$(get_tmux_option "@packet-loss-ping_host" "$default_host")"
+    ping_count="$(get_tmux_option "@packet-loss-ping_count" "$default_ping_count")"
+    history_size="$(get_tmux_option "@packet-loss-history_size" "$default_history_size")"
 
-    is_weighted_avg="$(get_tmux_option "@packet-loss-weighted_average" "$is_weighted_avg")" # new config
-    display_trend="$(get_tmux_option "@packet-loss-display_trend" "$display_trend")"        # new config
+    is_weighted_avg="$(get_tmux_option "@packet-loss-weighted_average" "$default_weighted_average")"
+    display_trend="$(get_tmux_option "@packet-loss-display_trend" "$default_display_trend")"
 
-    lvl_disp="$(get_tmux_option "@packet-loss-level_disp" "$lvl_disp")"    # new config
-    lvl_alert="$(get_tmux_option "@packet-loss-level_alert" "$lvl_alert")" # new config
-    lvl_crit="$(get_tmux_option "@packet-loss-level_crit" "$lvl_crit")"    # new config
+    lvl_disp="$(get_tmux_option "@packet-loss-level_disp" "$default_lvl_display")"
+    lvl_alert="$(get_tmux_option "@packet-loss-level_alert" "$default_lvl_alert")"
+    lvl_crit="$(get_tmux_option "@packet-loss-level_crit" "$default_lvl_crit")"
 
-    hist_avg_display="$(get_tmux_option "@packet-loss-hist_avg_display" "$hist_avg_display")" # new config
-    hist_stat_mins=$(get_tmux_option "@packet-loss-hist_avg_minutes" "$hist_stat_mins")       # new config
-    hist_separator=$(get_tmux_option "@packet-loss-hist_separator" "$hist_separator")         # new config
+    hist_avg_display="$(get_tmux_option "@packet-loss-hist_avg_display" "$default_hist_avg_display")"
+    hist_stat_mins="$(get_tmux_option "@packet-loss-hist_avg_minutes" "$default_hist_avg_minutes")"
+    hist_separator="$(get_tmux_option "@packet-loss-hist_separator" "$default_hist_avg_separator")"
 
-    color_alert="$(get_tmux_option "@packet-loss-color_alert" "$color_alert")" # new config
-    color_crit="$(get_tmux_option "@packet-loss-color_crit" "$color_crit")"    # new config
-    color_bg="$(get_tmux_option "@packet-loss-color_bg" "$color_bg")"          # new config
+    color_alert="$(get_tmux_option "@packet-loss-color_alert" "$default_color_alert")"
+    color_crit="$(get_tmux_option "@packet-loss-color_crit" "$default_color_crit")"
+    color_bg="$(get_tmux_option "@packet-loss-color_bg" "$default_color_bg")"
 
-    loss_prefix="$(get_tmux_option "@packet-loss-prefix" "$loss_prefix")" # new config
-    loss_suffix="$(get_tmux_option "@packet-loss-suffix" "$loss_suffix")" # new config
+    loss_prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
+    loss_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
 
-    hook_idx=$(get_tmux_option "@packet-loss-hook_idx" "$hook_idx") # new config
+    hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_session_closed_hook")"
 }
 
 #

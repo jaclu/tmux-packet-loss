@@ -1,2 +1,3 @@
 data/packet_loss.sqlite
 data/monitor.pid
+.shellchecker.cache

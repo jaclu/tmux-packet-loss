@@ -71,8 +71,8 @@ reported.
 
 Result | Explanation
 -|-
-101 | Failed to find % loss in ping output.  Temporary issue.<br /> Some pings don't report loss % if there is no connection to host.<br> They just report `ping: sendto: Host is unreachable`
-201 | Could not parse output.  This condition is unlikely to self correct.<br /> If you file the output of `ping -c 5 8.8.4.4` as an Issue and also mention what Operating System this is and any other factors you think are relevant, I will try to fix it by including parsing of that output format.
+101 | Failed to find % loss in ping output. Temporary issue.<br /> Some pings don't report loss % if there is no connection to host.<br> They just report `ping: sendto: Host is unreachable`
+201 | Could not parse output. This condition is unlikely to self correct.<br /> If you file the output of `ping -c 5 8.8.4.4` as an Issue and also mention what Operating System this is and any other factors you think are relevant, I will try to fix it by including parsing of that output format.
 
 ## Dependencies
 
@@ -192,7 +192,7 @@ set -g status-interval 5
 
 ## Nerdy stuf
 
-All timestamps in the DB use generic time ie in most cases UTC.
+All timestamps in the DB use generic time i.e. in most cases UTC.
 Not having to bother with timezones simplifies the code, since DB times
 are not displayed.
 

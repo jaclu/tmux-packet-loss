@@ -1,3 +1,5 @@
 data/packet_loss.sqlite
 data/monitor.pid
-.shellchecker.cache
+
+# olint cache
+.cache.olint

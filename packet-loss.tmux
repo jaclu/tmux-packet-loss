@@ -202,7 +202,7 @@ kill_running_monitor() {
         fi
 
         # shellcheck disable=SC2009
-        remaining_procs="$(ps axu | grep "$monitor_process_scr" | grep -v grep | awk -v p=$pid_param '{ print $p }' )"
+        remaining_procs="$(ps axu | grep "$monitor_process_scr" | grep -v grep | awk -v p="$pid_param" '{ print $p }' )"
         if [[ -n "$remaining_procs" ]]; then
             # log_it "### About to kill: [$remaining_procs]"
             echo "$remaining_procs" | xargs kill 2&> /dev/null

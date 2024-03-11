@@ -1,5 +1,8 @@
 data/packet_loss.sqlite
 data/monitor.pid
 
-# olint cache
+*~
+
+# olint meta linter
 .cache.olint
+.olint.conf

@@ -47,12 +47,6 @@ prev_check_time="$(get_tmux_option "@packet-loss_tmp_last_check" 0)"
 script_start_time="$(date +%s)"
 seconds_since_last_check="$((script_start_time - prev_check_time))"
 interval="$(tmux display -p "#{status-interval}")"
-if [ "$seconds_since_last_check" -lt "$interval" ]; then
-    # This will echo last retrieved value
-    get_tmux_option "@packet-loss_tmp_last_result" ""
-    # log_it "to soon, reporting cached value"
-    exit 0
-fi
 set_tmux_option "@packet-loss_tmp_last_check" "$script_start_time"
 
 #
@@ -106,13 +100,18 @@ else
 fi
 
 sql="SELECT CAST(( $sql_avg ) + .499 AS INTEGER)"
-current_loss="$(sqlite3 "$sqlite_db" "$sql")"
 
-if [ "$(echo "$current_loss <$lvl_disp" | bc)" = "1" ]; then
-    exit 0 # no output if bellow threshold
+if [ "$seconds_since_last_check" -lt "$interval" ]; then
+    # This will echo last retrieved value
+    log_it "to soon, reporting cached value"
+    current_loss="$(get_tmux_option "@packet-loss_tmp_last_result" "0")"
+else
+    current_loss="$(sqlite3 "$sqlite_db" "$sql")"
 fi
 
-if [ -n "$current_loss" ]; then
+[ "$current_loss" -lt "$lvl_disp" ] && current_loss=0
+
+if [ "$current_loss" -gt 0 ]; then
     if bool_param "$display_trend"; then
         #
         #  Calculate trend, ie change since last update
@@ -137,11 +136,11 @@ if [ -n "$current_loss" ]; then
     #  If loss over trigger levels, display in appropriate color
     #
     if awk -v val="$current_loss" -v trig_lvl="$lvl_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
-        current_loss="#[fg=$color_crit,bg=$color_bg]$loss_trend$current_loss#[default]"
+        result="#[fg=$color_crit,bg=$color_bg]$loss_trend$current_loss#[default]"
     elif awk -v val="$current_loss" -v trig_lvl="$lvl_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
-        current_loss="#[fg=$color_alert,bg=$color_bg]$loss_trend$current_loss#[default]"
+        result="#[fg=$color_alert,bg=$color_bg]$loss_trend$current_loss#[default]"
     else
-        current_loss="$loss_trend$current_loss"
+        result="$loss_trend$current_loss"
     fi
 
     #
@@ -156,15 +155,17 @@ if [ -n "$current_loss" ]; then
             elif awk -v val="$avg_loss" -v trig_lvl="$lvl_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
                 avg_loss="#[fg=$color_alert,bg=$color_bg]$avg_loss#[default]"
             fi
-            current_loss="${current_loss}${hist_separator}${avg_loss}"
+            result="${result}${hist_separator}${avg_loss}"
         fi
     fi
 
-    current_loss="$loss_prefix$current_loss$loss_suffix"
-#     log_it "checker found loss [$current_loss]"
-# else
-#     log_it "checker found no packet loss"
+    result="${loss_prefix}${result}${loss_suffix}"
+
+    # typically comment out the next 3 lines unless you are debugging stuff
+#    log_it "checker found loss [$current_loss]"
+#else
+#    log_it "checker found no packet loss"
 fi
 
 set_tmux_option "@packet-loss_tmp_last_result" "$current_loss"
-echo "$current_loss"
+echo "$result"

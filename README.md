@@ -5,14 +5,11 @@ average, giving more current checks greater emphasis.
 
 ## Recent changes
 
-- Removed support for onsolete config variables
-- Shortened table names
-- Since each session triggers a separate run of "check_packet_loss.sh", a timeout is checked, and if script is run within status-interval, the last reported value is used. This both to reduce processing by not polling the DB to often, and also if trends are used not to instantly change it from changing to stable.
-- Using more intense colors for alert and critical levels
-- New feature @packet-loss-display_trend
-- Added @packet-loss-hist_separator to select separator, and alert/crit colors to hist average if it is high
-- Results are rounded to ints
-- Added historical average
+- Updated section My config
+- Esure folder data exist before inspecting it
+- General cleanup
+- Added missing quotes for awk
+- Simplified statistics
 
 ## Screenshots
 

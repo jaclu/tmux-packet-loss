@@ -8,10 +8,6 @@
 #   Version: 0.1.0 2022-03-25
 #
 
-
-# if adv_vers_compare $version "<" "3.1"; then
-
-
 #
 #  Version checker that handles numerical versions, like 3.2
 #  without getting confused, and can compare it to items ending in an
@@ -30,18 +26,21 @@ adv_vers_compare() { # $1-a $2-op $3-$b
     while [[ $bl =~ ^[[:digit:]] ]]; do bl=${bl:1}; done
     local ai=${a%$al} bi=${b%$bl}
 
-    local ap=${ai//[[:digit:]]} bp=${bi//[[:digit:]]}
+    local ap=${ai//[[:digit:]]/} bp=${bi//[[:digit:]]/}
     ap=${ap//./.0} bp=${bp//./.0}
 
     local w=1 fmt=$a.$b x IFS=.
     for x in $fmt; do [ ${#x} -gt $w ] && w=${#x}; done
-    fmt=${*//[^.]}; fmt=${fmt//./%${w}s}
-    printf -v a $fmt $ai$bp; printf -v a "%s-%${w}s" $a $al
-    printf -v b $fmt $bi$ap; printf -v b "%s-%${w}s" $b $bl
+    fmt=${*//[^.]/}
+    fmt=${fmt//./%${w}s}
+    printf -v a $fmt $ai$bp
+    printf -v a "%s-%${w}s" $a $al
+    printf -v b $fmt $bi$ap
+    printf -v b "%s-%${w}s" $b $bl
 
     # shellcheck disable=SC1009,SC1072,SC1073
     case $op in
-        '<='|'>=' ) [ "$a" ${op:0:1} "$b" ] || [ "$a" = "$b" ] ;;
-        * )         [ "$a" $op "$b" ] ;;
+    '<=' | '>=') [ "$a" ${op:0:1} "$b" ] || [ "$a" = "$b" ] ;;
+    *) [ "$a" $op "$b" ] ;;
     esac
 }

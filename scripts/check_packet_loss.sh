@@ -12,9 +12,10 @@
 
 restart_monitor() {
     log_it "restarting monitor"
-    parrent_dir="$(dirname "$CURRENT_DIR")"
-    "$parrent_dir/packet-loss.tmux" stop
-    "$parrent_dir/packet-loss.tmux"
+    mkdir -p "$D_TPL_BASE_PATH/data" # ensure folder exists
+    date >>"$db_restart_log"         # for now log actions
+    "$D_TPL_BASE_PATH"/packet-loss.tmux stop
+    "$D_TPL_BASE_PATH"/packet-loss.tmux
     sleep 1 # give the first check time to complete
 }
 
@@ -25,13 +26,16 @@ restart_monitor() {
 #===============================================================
 
 # shellcheck disable=SC1007
-CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-# shellcheck disable=SC1091
-. "$CURRENT_DIR/utils.sh"
+D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
-get_settings
+#  shellcheck source=/dev/null
+. "$D_TPL_BASE_PATH/scripts/utils.sh"
 
-db="$(dirname -- "$CURRENT_DIR")/data/$sqlite_db"
+#
+#  Prevent tmux from running it every couple of seconds,
+#  convenient during debugging
+#
+# [ "$1" != "hepp" ] && exit 0
 
 #
 #  This is called once per active tmux session, so if multiple sessions
@@ -54,27 +58,24 @@ set_tmux_option "@packet-loss_tmp_last_check" "$script_start_time"
 #
 #  Some sanity check, ensuring the monitor is running
 #
-if [ ! -e "$db" ]; then
+if [ ! -e "$sqlite_db" ]; then
     log_it "DB missing"
 
     #
     #  If DB is missing, try to start the monitor
     #
     restart_monitor
-    if [ ! -e "$db" ]; then
+    if [ ! -e "$sqlite_db" ]; then
         log_it "repeated fails DB missing"
         # still missing, something is failing
-        error_msg "DB [$db] not found, and monitor failed to restart!" 1
+        error_msg "DB [$sqlite_db] not found, and monitor failed to restart!"
     fi
-fi
-
-if [ -n "$(find "$db" -mmin +1)" ]; then
+elif [ -n "$(find "$sqlite_db" -mmin +1)" ]; then
     log_it "DB is one minute old"
     #
     #  If DB is over a minute old,
-    #  assume the monitor is not running, so start it
+    #  assume the monitor is not running, so (re-)start it
     #
-    date >>"$log_file_db_old" # for now log actions
     restart_monitor
 fi
 
@@ -87,7 +88,7 @@ if bool_param "$is_weighted_avg"; then
     #    avg of last 3
     #    avg of last 4
     #    ...
-    #    avg of all
+    #    avg of last minute
     #
     sql_avg="max( \
       (SELECT loss FROM t_loss ORDER BY ROWID DESC limit 1), \
@@ -105,10 +106,10 @@ else
 fi
 
 sql="SELECT CAST(( $sql_avg ) + .499 AS INTEGER)"
-current_loss="$(sqlite3 "$db" "$sql")"
+current_loss="$(sqlite3 "$sqlite_db" "$sql")"
 
-if [ "$(echo "$current_loss < $lvl_disp" | bc)" -eq 1 ]; then
-    current_loss="" # no output if bellow threshold
+if [ "$(echo "$current_loss <$lvl_disp" | bc)" = "1" ]; then
+    exit 0 # no output if bellow threshold
 fi
 
 if [ -n "$current_loss" ]; then
@@ -148,7 +149,7 @@ if [ -n "$current_loss" ]; then
     #
     if bool_param "$hist_avg_display"; then
         sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER);"
-        avg_loss="$(sqlite3 "$db" "$sql")"
+        avg_loss="$(sqlite3 "$sqlite_db" "$sql")"
         if [ ! "$avg_loss" = "0" ]; then
             if awk -v val="$avg_loss" -v trig_lvl="$lvl_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
                 avg_loss="#[fg=$color_crit,bg=$color_bg]$avg_loss#[default]"
@@ -160,9 +161,9 @@ if [ -n "$current_loss" ]; then
     fi
 
     current_loss="$loss_prefix$current_loss$loss_suffix"
-    log_it "reported loss [$current_loss]"
-else
-    log_it "No packet loss"
+#     log_it "checker found loss [$current_loss]"
+# else
+#     log_it "checker found no packet loss"
 fi
 
 set_tmux_option "@packet-loss_tmp_last_result" "$current_loss"

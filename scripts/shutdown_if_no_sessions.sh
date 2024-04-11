@@ -12,10 +12,10 @@
 #
 
 # shellcheck disable=SC1007
-CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-PARRENT_DIR="$(dirname -- "$CURRENT_DIR")"
-# shellcheck disable=SC1091
-. "$CURRENT_DIR/utils.sh"
+D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
+
+#  shellcheck source=/dev/null
+. "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 ses_count="$($TMUX_BIN ls | wc -l)"
 
@@ -23,5 +23,5 @@ log_it "$no_sessions_shutdown_scr - session count [$ses_count]"
 
 if [ "$ses_count" -eq 0 ]; then
     log_it "No remaining sessions, shutting down monitor process"
-    "$PARRENT_DIR/packet-loss.tmux" stop
+    "$D_TPL_BASE_PATHPARRENT_DIR/packet-loss.tmux" stop
 fi

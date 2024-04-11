@@ -55,11 +55,20 @@ get_tmux_option() {
 #
 error_msg() {
     msg="ERROR: $1"
-    exit_code="${2:-0}"
+    exit_code="${2:-1}"
 
-    log_it "$msg"
-    $TMUX_BIN display-message "$plugin_name $msg"
+    if [ -t 0 ]; then
+        echo "$plugin_name $msg" # was run from the cmd line
+    else
+        log_it
+        log_it "$msg"
+        log_it
+        $TMUX_BIN display-message "$plugin_name $msg"
+    fi
     [ "$exit_code" -ne 0 ] && exit "$exit_code"
+
+    unset msg
+    unset exit_code
 }
 
 #
@@ -121,6 +130,54 @@ get_settings() {
     hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_session_closed_hook")"
 }
 
+show_settings() {
+    [ -z "$log_file" ] && return # if no logging, no need to continue
+
+    log_it "=====   All variables   ====="
+    log_it "ping_host=[$ping_host]"
+    log_it "ping_count=[$ping_count]"
+    log_it "history_size=[$history_size]"
+
+    if bool_param "$is_weighted_avg"; then
+        log_it "is_weighted_avg=true"
+    else
+        log_it "is_weighted_avg=false"
+    fi
+    if bool_param "$display_trend"; then
+        log_it "display_trend=true"
+    else
+        log_it "display_trend=false"
+    fi
+
+    log_it "lvl_disp [$lvl_disp]"
+    log_it "lvl_alert [$lvl_alert]"
+    log_it "lvl_crit [$lvl_crit]"
+
+    if bool_param "$hist_avg_display"; then
+        log_it "hist_avg_display=true"
+    else
+        log_it "hist_avg_display=false"
+    fi
+    log_it "hist_stat_mins=[$hist_stat_mins]"
+    log_it "hist_separator [$hist_separator]"
+
+    log_it "color_alert [$color_alert]"
+    log_it "color_crit [$color_crit]"
+    log_it "color_bg [$color_bg]"
+
+    log_it "loss_prefix [$loss_prefix]"
+    log_it "loss_suffix [$loss_suffix]"
+
+    log_it "hook_idx [$hook_idx]"
+    log_it
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
 #
 #  Shorthand, to avoid manually typing package name on multiple
 #  locations, easily getting out of sync.
@@ -133,7 +190,35 @@ plugin_name="tmux-packet-loss"
 #  no output will happen. This should be the case for normal operations.
 #  So unless you want logging, comment the next line out.
 #
-# log_file="/tmp/$plugin_name.log"
+log_file="/tmp/$plugin_name.log"
+
+#
+#  Should have been set in the calling script, must be done after
+#  log_file is (potentially) defined
+#
+[ -z "$D_TPL_BASE_PATH" ] && error_msg "D_TPL_BASE_PATH is not defined!"
+
+#
+#  These files are assumed to be in the directory scripts, so depending
+#  on location for the script using this, use the correct location prefix!
+#  Since this is sourced, the prefix can not be determined here.
+#
+monitor_process_scr="$D_TPL_BASE_PATH/scripts/packet_loss_monitor.sh"
+no_sessions_shutdown_scr="$D_TPL_BASE_PATH/scripts/shutdown_if_no_sessions.sh"
+
+#
+#  These files are assumed to be in the directory data, so depending
+#  on location for the script using this, use the correct location prefix!
+#  Since this is sourced, the prefix can not be determined here.
+#
+sqlite_db="$D_TPL_BASE_PATH/data/packet_loss.sqlite"
+db_restart_log="$D_TPL_BASE_PATH/data/db_restarted.log"
+monitor_pidfile="$D_TPL_BASE_PATH/data/monitor.pid"
+
+#  check one of the path items to verify D_TPL_BASE_PATH
+[ -f "$monitor_process_scr" ] || {
+    error_msg "D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"
+}
 
 #
 #  I use an env var TMUX_BIN to point at the current tmux, defined in my
@@ -172,18 +257,4 @@ default_suffix=" "
 
 default_session_closed_hook=41 #  array idx for session-closed hook
 
-#
-#  These files are assumed to be in the directory scripts, so depending
-#  on location for the script using this, use the correct location prefix!
-#  Since this is sourced, the prefix can not be determined here.
-#
-monitor_process_scr="packet_loss_monitor.sh"
-no_sessions_shutdown_scr="shutdown_if_no_sessions.sh"
-
-#
-#  These files are assumed to be in the directory data, so depending
-#  on location for the script using this, use the correct location prefix!
-#  Since this is sourced, the prefix can not be determined here.
-#
-sqlite_db="packet_loss.sqlite"
-monitor_pidfile="monitor.pid"
+get_settings

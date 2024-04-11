@@ -1,5 +1,4 @@
-data/packet_loss.sqlite
-data/monitor.pid
+data/
 
 *~
 

@@ -11,14 +11,10 @@
 #
 
 # shellcheck disable=SC1007
-CURRENT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-# shellcheck disable=SC1091
-. "$CURRENT_DIR/utils.sh"
+D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
-get_settings
-
-db="$(dirname -- "$CURRENT_DIR")/data/$sqlite_db"
-pidfile="$(dirname -- "$CURRENT_DIR")/data/$monitor_pidfile"
+#  shellcheck source=/dev/null
+. "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 #
 #  Since loss is treated as a float, indicate errors with results over 100
@@ -38,15 +34,15 @@ error_unable_to_detect_loss="201"
 #
 #  Ensure only one instance is running.
 #
-if [ -e "$pidfile" ]; then
-    error_msg "$monitor_process_scr seems to already be running, aborting!" 1
+if [ -e "$monitor_pidfile" ]; then
+    error_msg "$monitor_process_scr seems to already be running, aborting!"
 fi
 
 #
 #  Save pid for easier kill FROM packet-loss.tmux
 #
-log_it "Saving new pid [$$] into pidfile"
-echo "$$" >"$pidfile"
+log_it "Saving new pid [$$] into $monitor_pidfile"
+echo "$$" >"$monitor_pidfile"
 
 #
 #  Figuring out the nature of the available ping cmd
@@ -98,7 +94,7 @@ while :; do
         #
         percent_loss="$(echo "$output" | sed 's/packet loss/~/ ; s/%//' | cut -d~ -f 1 | awk 'NF>1{print $NF}')"
         if [ -z "$percent_loss" ]; then
-            error_msg "Failed to parse ping output, unlikely to self correct!"
+            error_msg "Failed to parse ping output, unlikely to self correct!" 0
             percent_loss="$error_unable_to_detect_loss"
         fi
     else
@@ -114,14 +110,15 @@ while :; do
         log_it "No ping output, will sleep $ping_count seconds"
         sleep "$ping_count"
     fi
-    sqlite3 "$db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
+    sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
 
     #  Add one line in statistics each minute
     sql="SELECT COUNT(*) FROM t_stats WHERE time_stamp >= datetime(strftime('%Y-%m-%d %H:%M'))"
-    items_this_minute="$(sqlite3 "$db" "$sql")"
+    items_this_minute="$(sqlite3 "$sqlite_db" "$sql")"
     if [ "$items_this_minute" -eq 0 ]; then
-        sqlite3 "$db" 'INSERT INTO t_stats (loss) SELECT avg(loss) FROM t_1_min'
+        sqlite3 "$sqlite_db" 'INSERT INTO t_stats (loss) SELECT avg(loss) FROM t_1_min'
     fi
 
-    log_it "stored in DB: $percent_loss"
+    #  A bit exessive in normal conditions
+    # log_it "stored in DB: $percent_loss"
 done

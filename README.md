@@ -84,7 +84,7 @@ reported.
 |-|-
 | 3.0 >=     | Background process is shut down when tmux exits using a session-closed hook with an array suffix.
 | 2.4 - 2.9  | Will shut down background process, but since hooks doesn't support arrays, binding to session-closed might interfere with other stuff using the same hook.
-| 1.9 - 2.3  | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux. If you run tmux most of the time, you can just leave the process running.
+| 1.9 - 2.3  | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add something like `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux. If you run tmux most of the time, you can just leave the process running.
 
 ## Verified to work in the following environments
 
@@ -141,65 +141,36 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 | @packet-loss-history_size     | 6             | How many results should be kept when calculating average loss.<br>I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For a longer-term historical overview it is probably better to use @packet-loss-hist_avg_display. 6 pings per check takes 5 secs so 6 here means 5 * 6 thus 30 seconds of loss history
 | | |
 | @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
 | @packet-loss-display_trend    | 0             | 1 = Display trend with + prefix if level is higher than last displayed and - prefix if lower<br>0 = Do not display trend
 | @packet-loss-level_disp       | 1             | Display loss if this or higher level
-| @packet-loss-level_alert      | 18            | Color loss with color_alert if at or above this level. Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers alert, even initially
+| @packet-loss-level_alert      | 18            | Color loss with color_alert if at or above this level. Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers alert, even initially.
 | @packet-loss-level_crit       | 40            | Color loss with color_crit if at or above this level
 |||
 | @packet-loss-hist_avg_display | 0             | 1 = Also show historical average when current losses are displayed
 | @packet-loss-hist_avg_minutes | 30            | Minutes to keep historical average
-| @packet-loss-hist_separator   | \\~           | Separator current/historical losses. Be aware that if you set it to a special char, you need to prefix it with backslash!
+| @packet-loss-hist_separator   | '~'           | Separator current/historical losses.
 ||
 | @packet-loss-color_alert      | colour226     | (bright yellow) Use this color if loss is at or above @packet-loss-level_alert
 | @packet-loss-color_crit       | colour196     | (bright red) Use this color if loss is at or above @packet-loss-level_crit
 | @packet-loss-color_bg         | black         | bg color when alert/crit colors are used in display
 ||
-| @packet-loss-prefix           | " pkt loss: " | Prefix for status when displayed
-| @packet-loss-suffix           | " "           | Suffix for status when displayed
+| @packet-loss-prefix           | ' pkt loss: ' | Prefix for status when displayed
+| @packet-loss-suffix           | ' '           | Suffix for status when displayed
 ||
-| @packet-loss-hook_idx         | 41            | Index for session-closed hook, only needs changing if it collides with other usages of session-closed using this index
+| @packet-loss-hook_idx         | 41            | Index for session-closed hook, only needs changing if it collides with other usages of session-closed using this index, check with `tmux show-hooks -g \| grep session-closed`
 
 ## My config
 
 ```tmux
-set -g @packet-loss-level_disp 3        #  ignore low loss levels
-set -g @packet-loss-display_trend 1     #  display trend prefix
-set -g @packet-loss-hist_avg_display 1  #  display historical average
-set -g @packet-loss-prefix \|           #  compact prefix
-set -g @packet-loss-suffix \|           #  compact suffix
+set -g @packet-loss-ping_count    4
+set -g @packet-loss-history_size 10
+set -g @packet-loss-display_trend     1
+set -g @packet-loss-level_alert      26
+set -g @packet-loss-hist_avg_display  1
+set -g @packet-loss-color_alert colour21
+set -g @packet-loss-color_bg    colour226
+set -g @packet-loss-prefix '|'
+set -g @packet-loss-suffix '|'
 ```
 
 ## Content in data folder

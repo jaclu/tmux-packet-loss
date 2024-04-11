@@ -247,13 +247,13 @@ default_lvl_crit=40        #  this or higher triggers critical color
 
 default_hist_avg_display=0    #  Display long term average
 default_hist_avg_minutes=30   #  Minutes to keep historical average
-default_hist_avg_separator=\~ #  Separaor between current and hist data
+default_hist_avg_separator='~' #  Separaor between current and hist data
 
 default_color_alert="colour226" # bright yellow
 default_color_crit="colour196"  # bright red
-default_color_bg="black"        #  only used when displaying alert/crit
-default_prefix=" pkt loss: "
-default_suffix=" "
+default_color_bg='black'        #  only used when displaying alert/crit
+default_prefix=' pkt loss: '
+default_suffix=' '
 
 default_session_closed_hook=41 #  array idx for session-closed hook
 

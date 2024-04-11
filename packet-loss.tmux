@@ -140,6 +140,8 @@ kill_running_monitor() {
     local pid_param
     local remaining_procs
 
+    mkdir -p "$D_TPL_BASE_PATH/data"  # ensure folder exists
+
     if [[ -e "$monitor_pidfile" ]]; then
         log_it "kill_running_monitor($monitor_pidfile)"
         pid="$(cat "$monitor_pidfile")"

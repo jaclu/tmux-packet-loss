@@ -60,11 +60,15 @@ kill_any_strays() {
     # log_it "kill_any_strays()"
     strays="$(stray_instances)"
     [ -n "$strays" ] && {
+        log_it "Found stray processes[$strays]"
+        log_it "procs before [$(ps ax)]"
         # error_msg "Found strays: $strays"
         echo "$strays" | xargs kill
+        log_it "procs after [$(ps ax)]"
         remaing_strays="$(stray_instances)"
         [ -n "$remaing_strays" ] && {
-            error_msg "Remaining strays: [$remaing_strays] [$(ps ax $remaing_strays)]"
+
+            error_msg "Remaining strays: [$remaing_strays]"
         }
     }
 }

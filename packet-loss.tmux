@@ -35,7 +35,7 @@ hook_handler() {
 
     # needed to be able to handle versions like 3.2a
     #  shellcheck source=/dev/null
-    . "$D_TPL_BASE_PATH/adv_vers_compare.sh"
+    . "$D_TPL_BASE_PATH/scripts/adv_vers_compare.sh"
 
     if adv_vers_compare "$tmux_vers" ">=" "3.0"; then
         hook_name="session-closed[$hook_idx]"

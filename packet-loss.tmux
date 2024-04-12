@@ -95,7 +95,7 @@ D_TPL_BASE_PATH=$(dirname -- "$(realpath -- "$0")")
 pkt_loss_interpolation="\#{packet_loss}"
 pkt_loss_command="#($D_TPL_BASE_PATH/scripts/check_packet_loss.sh)"
 
-log_it "running $0"
+log_it "running $0  -  param: $1"
 #
 #  Dependency check
 #
@@ -144,3 +144,4 @@ hook_handler set
 #
 update_tmux_option "status-left"
 update_tmux_option "status-right"
+exit 0

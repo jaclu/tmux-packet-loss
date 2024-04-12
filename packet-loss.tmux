@@ -35,7 +35,7 @@ hook_handler() {
 
     # needed to be able to handle versions like 3.2a
     #  shellcheck source=/dev/null
-    . scripts/adv_vers_compare.sh
+    . "$D_TPL_BASE_PATH/adv_vers_compare.sh"
 
     if adv_vers_compare "$tmux_vers" ">=" "3.0"; then
         hook_name="session-closed[$hook_idx]"
@@ -87,7 +87,7 @@ update_tmux_option() {
 D_TPL_BASE_PATH=$(dirname -- "$(realpath -- "$0")")
 
 #  shellcheck source=/dev/null
-. scripts/utils.sh
+. "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 #
 #  Match tag with polling script

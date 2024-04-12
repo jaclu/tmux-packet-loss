@@ -25,6 +25,8 @@ restart_monitor() {
 #
 #===============================================================
 
+# script_start_time="$(date +%s)"
+
 # shellcheck disable=SC1007
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
@@ -43,11 +45,10 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 #  once per tmux status bar update, in order to reduce expensive
 #  DB calls.
 #
-prev_check_time="$(get_tmux_option "@packet-loss_tmp_last_check" 0)"
-script_start_time="$(date +%s)"
-seconds_since_last_check="$((script_start_time - prev_check_time))"
-interval="$(tmux display -p "#{status-interval}")"
-set_tmux_option "@packet-loss_tmp_last_check" "$script_start_time"
+# prev_check_time="$(get_tmux_option "@packet-loss_tmp_last_check" 0)"
+# seconds_since_last_check="$((script_start_time - prev_check_time))"
+# interval="$(tmux display -p "#{status-interval}")"
+# set_tmux_option "@packet-loss_tmp_last_check" "$script_start_time"
 
 #
 #  Some sanity check, ensuring the monitor is running
@@ -101,13 +102,15 @@ fi
 
 sql="SELECT CAST(( $sql_avg ) + .499 AS INTEGER)"
 
-if [ "$seconds_since_last_check" -lt "$interval" ]; then
-    # This will echo last retrieved value
-    log_it "to soon, reporting cached value"
-    current_loss="$(get_tmux_option "@packet-loss_tmp_last_result" "0")"
-else
-    current_loss="$(sqlite3 "$sqlite_db" "$sql")"
-fi
+# if [ "$seconds_since_last_check" -lt "$interval" ]; then
+#     # This will echo last retrieved value
+#     log_it "to soon, reporting cached value"
+#     current_loss="$(get_tmux_option "@packet-loss_tmp_last_result" "0")"
+# else
+current_loss="$(sqlite3 "$sqlite_db" "$sql")"
+# fi
+
+result="" # indicating no losses
 
 [ "$current_loss" -lt "$lvl_disp" ] && current_loss=0
 

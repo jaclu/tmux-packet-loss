@@ -245,8 +245,8 @@ default_lvl_display=1      #  display loss if this or higher
 default_lvl_alert=17       #  this or higher triggers alert color
 default_lvl_crit=40        #  this or higher triggers critical color
 
-default_hist_avg_display=0    #  Display long term average
-default_hist_avg_minutes=30   #  Minutes to keep historical average
+default_hist_avg_display=0     #  Display long term average
+default_hist_avg_minutes=30    #  Minutes to keep historical average
 default_hist_avg_separator='~' #  Separaor between current and hist data
 
 default_color_alert="colour226" # bright yellow

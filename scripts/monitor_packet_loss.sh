@@ -173,15 +173,15 @@ check_pidfile_task && {
 }
 rm -f "$monitor_pidfile"
 
-define_ping_cmd # we need the ping_cmd in kill_any_strays
-
-kill_any_strays
-[ "$1" = "stop" ] && exit 0
+# kill_any_strays
+# [ "$1" = "stop" ] && exit 0
 
 log_it "$this_app - starting"
 echo $$ >"$monitor_pidfile"
 
 "$D_TPL_BASE_PATH"/scripts/prepare_db.sh
+
+define_ping_cmd # we need the ping_cmd in kill_any_strays
 
 #
 #  Main loop

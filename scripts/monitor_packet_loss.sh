@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=SC2154
+# shell check disable=SC2154
 #  Directives for shellcheck directly after bang path are global
 #
 #   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
@@ -37,10 +37,11 @@ stray_instances() {
     #  Find any other stray monitoring processes
     #
     log_it "stray_instances()"
+    # shellcheck disable=SC2154
     proc_to_check="/bin/sh $monitor_process_scr"
     if [ -n "$(command -v pgrep)" ]; then
         # log_it "procs before pgrep [$(ps ax)]"
-        pgrep -f "$proc_to_check" | grep -v "$this_pid"
+        pgrep -f "$proc_to_check" "$ping_cmd" | grep -v $$
     else
         #
         #  Figure our what ps is available, in order to determine
@@ -53,8 +54,15 @@ stray_instances() {
         fi
 
         # shellcheck disable=SC2009
-        ps axu | grep "$proc_to_check" | grep -v grep | awk -v p="$pid_param" '{ print $p }' | grep -v "$this_pid"
+        ps axu | grep "$proc_to_check" | grep -v grep | awk -v p="$pid_param" '{ print $p }' | grep -v $$
     fi
+}
+
+all_procs_but_me() {
+    echo
+    # shellcheck disable=SC2009
+    ps ax | grep "$monitor_process_scr" | grep -v grep | grep -v $$
+    echo
 }
 
 kill_any_strays() {
@@ -63,12 +71,13 @@ kill_any_strays() {
         log_it "proc error detected, skipping stray killing"
         return
     }
+
     strays="$(stray_instances)"
     [ -n "$strays" ] && {
         log_it "Found stray processes[$strays]"
-        # error_msg "Found strays: $strays"
+        log_it "procs before: $(all_procs_but_me)"
         echo "$strays" | xargs kill
-        # log_it "procs after [$(ps ax)]"
+        log_it "procs after: $(all_procs_but_me)"
         remaing_strays="$(stray_instances)"
         [ -n "$remaing_strays" ] && {
             touch "$f_proc_error"
@@ -99,6 +108,7 @@ define_ping_cmd() {
     fi
 
     if [ -n "$timeout_parameter" ]; then
+        # shellcheck disable=SC2154
         ping_cmd="ping -$timeout_parameter $ping_count"
     else
         #
@@ -108,8 +118,9 @@ define_ping_cmd() {
         ping_cmd="ping"
     fi
 
+    # shellcheck disable=SC2154
     ping_cmd="$ping_cmd -c $ping_count $ping_host"
-    log_it "$monitor_process_scr will use ping cmd [$ping_cmd]"
+    log_it "monitoring will use ping cmd [$ping_cmd]"
 
     unset timeout_help
     unset timeout_parameter
@@ -128,7 +139,6 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 this_app="$(basename "$0")"
-this_pid="$$"
 
 f_proc_error="$D_TPL_BASE_PATH"/data/proc_error
 
@@ -161,15 +171,16 @@ check_pidfile_task && {
     fi
 }
 rm -f "$monitor_pidfile"
+
+define_ping_cmd # we need the ping_cmd in kill_any_strays
+
 kill_any_strays
 [ "$1" = "stop" ] && exit 0
 
-log_it "[$this_pid] $this_app - starting"
-echo "$this_pid" >"$monitor_pidfile"
+log_it "$this_app - starting"
+echo $$ >"$monitor_pidfile"
 
 "$D_TPL_BASE_PATH"/scripts/prepare_db.sh
-
-define_ping_cmd
 
 #
 #  Main loop
@@ -216,6 +227,7 @@ while :; do
         log_it "No ping output, will sleep $ping_count seconds"
         sleep "$ping_count"
     fi
+    # shellcheck disable=SC2154
     sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
 
     #  Add one line in statistics each minute

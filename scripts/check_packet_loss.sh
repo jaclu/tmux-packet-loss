@@ -33,7 +33,7 @@ restart_monitor() {
 #  Prevent tmux from running it every couple of seconds,
 #  convenient during debugging
 #
-[ "$1" != "hepp" ] && exit 0
+# [ "$1" != "hepp" ] && exit 0
 
 # shellcheck disable=SC1007
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")

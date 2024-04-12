@@ -21,7 +21,7 @@ check_pidfile_task() {
     #   pid - what pid was listed in monitor_pidfile
     #
 
-    # log_it "check_pidfile_task()"
+    log_it "[$this_pid] check_pidfile_task()"
     _result=1 # false
     [ -z "$monitor_pidfile" ] && error_msg "monitor_pidfile is not defined!"
     if [ -e "$monitor_pidfile" ]; then
@@ -36,10 +36,10 @@ stray_instances() {
     #
     #  Find any other stray monitoring processes
     #
-    log_it "stray_instances()"
+    log_it "[$this_pid] stray_instances()"
     proc_to_check="/bin/sh $monitor_process_scr"
     if [ -n "$(command -v pgrep)" ]; then
-        pgrep -f "$proc_to_check" | grep -v "$my_pid"
+        pgrep -f "$proc_to_check" | grep -v "$this_pid"
     else
         #
         #  Figure our what ps is available, in order to determine
@@ -52,12 +52,16 @@ stray_instances() {
         fi
 
         # shellcheck disable=SC2009
-        ps axu | grep "$proc_to_check" | grep -v grep | awk -v p="$pid_param" '{ print $p }' | grep -v "$my_pid"
+        ps axu | grep "$proc_to_check" | grep -v grep | awk -v p="$pid_param" '{ print $p }' | grep -v "$this_pid"
     fi
 }
 
 kill_any_strays() {
-    log_it "kill_any_strays()"
+    log_it "[$this_pid] kill_any_strays()"
+    [ -f "$f_proc_error" ] && {
+        log_it "proc error detected, skipping stray killing"
+        return
+    }
     strays="$(stray_instances)"
     [ -n "$strays" ] && {
         log_it "Found stray processes[$strays]"
@@ -67,7 +71,7 @@ kill_any_strays() {
         log_it "procs after [$(ps ax)]"
         remaing_strays="$(stray_instances)"
         [ -n "$remaing_strays" ] && {
-
+            touch "$f_proc_error"
             error_msg "Remaining strays: [$remaing_strays]"
         }
     }
@@ -123,7 +127,11 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 this_app="$(basename "$0")"
-my_pid="$$"
+this_pid="$$"
+
+f_proc_error="$D_TPL_BASE_PATH"/data/proc_error
+
+log_it "[$this_pid] $this_app is starting"
 
 mkdir -p "$D_TPL_BASE_PATH/data" # ensure folder exists
 
@@ -139,24 +147,24 @@ mkdir -p "$D_TPL_BASE_PATH/data" # ensure folder exists
 #
 error_no_ping_output="101"
 
-# `ping_cmd | grep loss`  gave empty result, unlikely to self correct
+# ping_cmd | grep loss  gave empty result, unlikely to self correct
 error_unable_to_detect_loss="201"
 
 check_pidfile_task && {
     if [ "$1" = "stop" ]; then
-        log_it "Will kill [$my_pid] $this_app"
+        log_it "Will kill [$this_pid] $this_app"
         kill "$pid"
-        check_pidfile_task && error_mg "Failed to kill [$my_pid] $this_app"
+        check_pidfile_task && error_mg "Failed to kill [$this_pid] $this_app"
     else
-        error_msg "This is already running [$pid]"
+        error_msg "[$this_pid] This is already running [$pid]"
     fi
 }
 rm -f "$monitor_pidfile"
 kill_any_strays
 [ "$1" = "stop" ] && exit 0
 
-log_it "[$my_pid] $this_app - starting"
-echo "$my_pid" >"$monitor_pidfile"
+log_it "[$this_pid] $this_app - starting"
+echo "$this_pid" >"$monitor_pidfile"
 
 "$D_TPL_BASE_PATH"/scripts/prepare_db.sh
 

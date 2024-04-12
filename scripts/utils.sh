@@ -18,7 +18,7 @@ log_it() {
     if [ -z "$log_file" ]; then
         return
     fi
-    printf "[%s][$$] %s\n" "$(date '+%H:%M:%S')" "$@" >>"$log_file"
+    printf "[%s] [$$] %s\n" "$(date '+%H:%M:%S')" "$@" >>"$log_file"
 }
 
 #

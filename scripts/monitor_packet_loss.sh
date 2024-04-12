@@ -41,7 +41,8 @@ stray_instances() {
     proc_to_check="/bin/sh $monitor_process_scr"
     if [ -n "$(command -v pgrep)" ]; then
         # log_it "procs before pgrep [$(ps ax)]"
-        pgrep -f "$proc_to_check" "$ping_cmd" | grep -v $$
+        pgrep -f "$proc_to_check" | grep -v $$
+        pgrep -f "$ping_cmd"
     else
         #
         #  Figure our what ps is available, in order to determine

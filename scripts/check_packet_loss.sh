@@ -100,7 +100,7 @@ else
     sql_avg="SELECT avg(loss) FROM t_loss"
 fi
 
-sql="SELECT CAST(( $sql_avg ) + .499 AS INTEGER)"
+sql="SELECT CAST(( $sql_avg ) AS INTEGER)"
 
 # if [ "$seconds_since_last_check" -lt "$interval" ]; then
 #     # This will echo last retrieved value

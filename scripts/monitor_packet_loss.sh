@@ -21,7 +21,7 @@ check_pidfile_task() {
     #   pid - what pid was listed in monitor_pidfile
     #
 
-    log_it "[$this_pid] check_pidfile_task()"
+    log_it "check_pidfile_task()"
     _result=1 # false
     [ -z "$monitor_pidfile" ] && error_msg "monitor_pidfile is not defined!"
     if [ -e "$monitor_pidfile" ]; then
@@ -36,9 +36,11 @@ stray_instances() {
     #
     #  Find any other stray monitoring processes
     #
-    log_it "[$this_pid] stray_instances()"
+    log_it "stray_instances()"
     proc_to_check="/bin/sh $monitor_process_scr"
     if [ -n "$(command -v pgrep)" ]; then
+        log_it "procs before pgrep [$(ps ax)]"
+
         pgrep -f "$proc_to_check" | grep -v "$this_pid"
     else
         #
@@ -57,7 +59,7 @@ stray_instances() {
 }
 
 kill_any_strays() {
-    log_it "[$this_pid] kill_any_strays()"
+    log_it "kill_any_strays()"
     [ -f "$f_proc_error" ] && {
         log_it "proc error detected, skipping stray killing"
         return
@@ -65,7 +67,6 @@ kill_any_strays() {
     strays="$(stray_instances)"
     [ -n "$strays" ] && {
         log_it "Found stray processes[$strays]"
-        log_it "procs before [$(ps ax)]"
         # error_msg "Found strays: $strays"
         echo "$strays" | xargs kill
         log_it "procs after [$(ps ax)]"
@@ -131,7 +132,7 @@ this_pid="$$"
 
 f_proc_error="$D_TPL_BASE_PATH"/data/proc_error
 
-log_it "[$this_pid] $this_app is starting"
+log_it "$this_app is starting"
 
 mkdir -p "$D_TPL_BASE_PATH/data" # ensure folder exists
 
@@ -152,11 +153,11 @@ error_unable_to_detect_loss="201"
 
 check_pidfile_task && {
     if [ "$1" = "stop" ]; then
-        log_it "Will kill [$this_pid] $this_app"
+        log_it "Will kill [$pid]"
         kill "$pid"
-        check_pidfile_task && error_mg "Failed to kill [$this_pid] $this_app"
+        check_pidfile_task && error_mg "Failed to kill [$pid]"
     else
-        error_msg "[$this_pid] This is already running [$pid]"
+        error_msg "[$this_app] Is already running [$pid]"
     fi
 }
 rm -f "$monitor_pidfile"

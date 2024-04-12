@@ -64,7 +64,7 @@ kill_any_strays() {
         echo "$strays" | xargs kill
         remaing_strays="$(stray_instances)"
         [ -n "$remaing_strays" ] && {
-            error_msg "Remaining strays: [$remaing_strays]"
+            error_msg "Remaining strays: [$remaing_strays] [$(ps ax $remaing_strays)]"
         }
     }
 }

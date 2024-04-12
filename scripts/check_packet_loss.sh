@@ -2,12 +2,12 @@
 # shellcheck disable=SC2154
 #  Directives for shellcheck directly after bang path are global
 #
-#   Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.3.3 2022-06-10
+#   Reports current packet loss status for the plugin
 #
 
 restart_monitor() {

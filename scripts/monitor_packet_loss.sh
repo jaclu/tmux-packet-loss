@@ -79,12 +79,12 @@ kill_any_strays() {
         log_it "procs before: $(all_procs_but_me)"
         echo "$strays" | xargs kill
         log_it "procs after: $(all_procs_but_me)"
-        remaing_strays="$(stray_instances)"
-        [ -n "$remaing_strays" ] && {
-            log_it "remaining strays: [$remaing_strays] [$(ps -p "$remaing_strays")]"
-            touch "$f_proc_error"
-            error_msg "Created: $f_proc_error"
-        }
+        # remaing_strays="$(stray_instances)"
+        # [ -n "$remaing_strays" ] && {
+        #     log_it "remaining strays: [$remaing_strays] [$(ps -p "$remaing_strays")]"
+        #     touch "$f_proc_error"
+        #     error_msg "Created: $f_proc_error"
+        # }
     }
 }
 

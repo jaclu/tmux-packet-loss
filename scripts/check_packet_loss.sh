@@ -12,10 +12,12 @@
 
 restart_monitor() {
     log_it "restarting monitor"
-    mkdir -p "$D_TPL_BASE_PATH/data" # ensure folder exists
-    date >>"$db_restart_log"         # for now log actions
-    "$D_TPL_BASE_PATH"/packet-loss.tmux stop
-    "$D_TPL_BASE_PATH"/packet-loss.tmux
+    mkdir -p "$(dirname -- "$(realpath -- "$db_restart_log")")" # ensure folder exists
+    date >>"$db_restart_log"                                    # for now log actions
+
+    $monitor_process_scr stop
+    nohup "$monitor_process_scr" >/dev/null 2>&1 &
+
     sleep 1 # give the first check time to complete
 }
 
@@ -61,7 +63,7 @@ if [ ! -e "$sqlite_db" ]; then
     #
     restart_monitor
     if [ ! -e "$sqlite_db" ]; then
-        log_it "repeated fails DB missing"
+        log_it "repeated fails - DB still missing"
         # still missing, something is failing
         error_msg "DB [$sqlite_db] not found, and monitor failed to restart!"
     fi
@@ -165,9 +167,9 @@ if [ "$current_loss" -gt 0 ]; then
     result="${loss_prefix}${result}${loss_suffix}"
 
     #  typically comment out the next 3 lines unless you are debugging stuff
-#    log_it "checker detected loss:$current_loss avg:$avg_loss]"
-#else
-#    log_it "checker detected no packet losses"
+#     log_it "checker detected loss:$current_loss avg:$avg_loss]"
+# else
+#     log_it "checker detected no packet losses"
 fi
 
 set_tmux_option "@packet-loss_tmp_last_result" "$current_loss"

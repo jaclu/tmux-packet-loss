@@ -23,5 +23,5 @@ log_it "$no_sessions_shutdown_scr - session count [$ses_count]"
 
 if [ "$ses_count" -eq 0 ]; then
     log_it "No remaining sessions, shutting down monitor process"
-    "$D_TPL_BASE_PATHPARRENT_DIR/packet-loss.tmux" stop
+    "$monitor_process_scr" stop
 fi

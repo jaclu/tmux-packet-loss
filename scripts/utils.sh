@@ -21,34 +21,6 @@ log_it() {
     printf "[%s] %s\n" "$(date '+%H:%M:%S')" "$@" >>"$log_file"
 }
 
-set_tmux_option() {
-    sto_option="$1"
-    sto_value="$2"
-    [ -z "$sto_option" ] && error_msg "set_tmux_option() param 1 empty!"
-    $TMUX_BIN set -g "$sto_option" "$sto_value"
-    unset sto_option
-    unset sto_value
-}
-
-get_tmux_option() {
-    gto_option="$1"
-    gto_default="$2"
-
-    [ -z "$gto_option" ] && error_msg "get_tmux_option() param 1 empty!"
-    gto_value="$($TMUX_BIN show-option -gqv "$gto_option")"
-    if [ -z "$gto_value" ]; then
-        # log_it "get opt def : $gto_option = $gto_default"
-        echo "$gto_default"
-    else
-        # log_it "get opt     : $gto_option = $gto_value"
-        echo "$gto_value"
-    fi
-
-    unset gto_option
-    unset gto_default
-    unset gto_value
-}
-
 #
 #  Display $1 as an error message in log and as a tmux display-message
 #  If no $2 or set to 0, process is not exited
@@ -102,6 +74,38 @@ bool_param() {
 
     esac
     return 1
+}
+
+set_tmux_option() {
+    sto_option="$1"
+    sto_value="$2"
+
+    [ -z "$sto_option" ] && error_msg "set_tmux_option() param 1 empty!"
+    $TMUX_BIN set -g "$sto_option" "$sto_value"
+
+    unset sto_option
+    unset sto_value
+}
+
+get_tmux_option() {
+    gto_option="$1"
+    gto_default="$2"
+
+    # log_it "get_tmux_option($gto_option,$gto_default)"
+
+    [ -z "$gto_option" ] && error_msg "get_tmux_option() param 1 empty!"
+    gto_value="$($TMUX_BIN show-option -gqv "$gto_option")"
+    if [ -z "$gto_value" ]; then
+        # log_it "get opt def : $gto_option = $gto_default"
+        echo "$gto_default"
+    else
+        # log_it "get opt     : $gto_option = $gto_value"
+        echo "$gto_value"
+    fi
+
+    unset gto_option
+    unset gto_default
+    unset gto_value
 }
 
 get_settings() {
@@ -190,7 +194,7 @@ plugin_name="tmux-packet-loss"
 #  no output will happen. This should be the case for normal operations.
 #  So unless you want logging, comment the next line out.
 #
-# log_file="/tmp/$plugin_name.log"
+log_file="/tmp/$plugin_name.log"
 
 #
 #  Should have been set in the calling script, must be done after
@@ -203,7 +207,7 @@ plugin_name="tmux-packet-loss"
 #  on location for the script using this, use the correct location prefix!
 #  Since this is sourced, the prefix can not be determined here.
 #
-monitor_process_scr="$D_TPL_BASE_PATH/scripts/packet_loss_monitor.sh"
+monitor_process_scr="$D_TPL_BASE_PATH/scripts/monitor_packet_loss.sh"
 no_sessions_shutdown_scr="$D_TPL_BASE_PATH/scripts/shutdown_if_no_sessions.sh"
 
 #

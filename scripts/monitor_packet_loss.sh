@@ -176,7 +176,18 @@ define_ping_cmd
 #  Main loop
 #
 while :; do
-    output="$($ping_cmd | grep loss)"
+    #
+    #  Redirecting stderr is needed since on some platforms, like running
+    #  Debian 10 on iSH, you get warning printouts, yet the ping still works:
+    #
+    #    WARNING: your kernel is veeery old. No problems.
+    #    WARNING: setsockopt(IP_RETOPTS): Protocol not available
+    #
+    #  If the output gets garbled or no output, it is handled
+    #  so in that sense error msgs can be ignored.
+    #
+    output="$($ping_cmd | grep loss)" 2>/dev/null
+
     if [ -n "$output" ]; then
         #
         #  We cant rely on the absolute position of the %loss, since sometimes it is prepended with stuff like:

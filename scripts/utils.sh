@@ -29,14 +29,14 @@ error_msg() {
     msg="ERROR: $1"
     exit_code="${2:-1}"
 
-    if [ -t 0 ]; then
-        echo "$plugin_name $msg" # was run from the cmd line
-    else
-        log_it
-        log_it "$msg"
-        log_it
-        $TMUX_BIN display-message "$plugin_name $msg"
-    fi
+    #if [ -t 0 ]; then
+    #    echo "$plugin_name $msg" # was run from the cmd line
+    #else
+    log_it
+    log_it "$msg"
+    log_it
+    $TMUX_BIN display-message "$plugin_name $msg"
+
     [ "$exit_code" -ne 0 ] && exit "$exit_code"
 
     unset msg

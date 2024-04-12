@@ -73,6 +73,7 @@ kill_any_strays() {
         remaing_strays="$(stray_instances)"
         [ -n "$remaing_strays" ] && {
             touch "$f_proc_error"
+            log_it "Created: $f_proc_error"
             error_msg "Remaining strays: [$remaing_strays]"
         }
     }

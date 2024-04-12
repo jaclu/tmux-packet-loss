@@ -184,7 +184,7 @@ while :; do
     #    WARNING: setsockopt(IP_RETOPTS): Protocol not available
     #
     #  If the output gets garbled or no output, it is handled
-    #  so in that sense error msgs can be ignored.
+    #  so in that sense such error msgs can be ignored.
     #
     output="$($ping_cmd | grep loss)" 2>/dev/null
 

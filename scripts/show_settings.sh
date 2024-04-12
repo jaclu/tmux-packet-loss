@@ -18,6 +18,6 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 #  shellcheck source=/dev/null
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
-# $monitor_process_scr stop
+log_file="/dev/stderr"
 # shellcheck disable=SC2154
-nohup "$monitor_process_scr" >/dev/null 2>&1 &
+show_settings

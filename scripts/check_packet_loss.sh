@@ -29,17 +29,17 @@ restart_monitor() {
 
 # script_start_time="$(date +%s)"
 
+#
+#  Prevent tmux from running it every couple of seconds,
+#  convenient during debugging
+#
+[ "$1" != "hepp" ] && exit 0
+
 # shellcheck disable=SC1007
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
 #  shellcheck source=/dev/null
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
-
-#
-#  Prevent tmux from running it every couple of seconds,
-#  convenient during debugging
-#
-# [ "$1" != "hepp" ] && exit 0
 
 #
 #  This is called once per active tmux session, so if multiple sessions

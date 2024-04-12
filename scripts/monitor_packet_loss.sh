@@ -39,8 +39,7 @@ stray_instances() {
     log_it "stray_instances()"
     proc_to_check="/bin/sh $monitor_process_scr"
     if [ -n "$(command -v pgrep)" ]; then
-        log_it "procs before pgrep [$(ps ax)]"
-
+        # log_it "procs before pgrep [$(ps ax)]"
         pgrep -f "$proc_to_check" | grep -v "$this_pid"
     else
         #
@@ -69,7 +68,7 @@ kill_any_strays() {
         log_it "Found stray processes[$strays]"
         # error_msg "Found strays: $strays"
         echo "$strays" | xargs kill
-        log_it "procs after [$(ps ax)]"
+        # log_it "procs after [$(ps ax)]"
         remaing_strays="$(stray_instances)"
         [ -n "$remaing_strays" ] && {
             touch "$f_proc_error"

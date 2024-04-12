@@ -167,7 +167,7 @@ if [ "$current_loss" -gt 0 ]; then
     result="${loss_prefix}${result}${loss_suffix}"
 
     #  typically comment out the next 3 lines unless you are debugging stuff
-#     log_it "checker detected loss:$current_loss avg:$avg_loss]"
+    log_it "checker detected loss:$current_loss avg:$avg_loss]"
 # else
 #     log_it "checker detected no packet losses"
 fi

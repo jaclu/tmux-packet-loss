@@ -164,10 +164,10 @@ if [ "$current_loss" -gt 0 ]; then
 
     result="${loss_prefix}${result}${loss_suffix}"
 
-    # typically comment out the next 3 lines unless you are debugging stuff
-#    log_it "checker found loss [$current_loss]"
+    #  typically comment out the next 3 lines unless you are debugging stuff
+#    log_it "checker detected loss:$current_loss avg:$avg_loss]"
 #else
-#    log_it "checker found no packet loss"
+#    log_it "checker detected no packet losses"
 fi
 
 set_tmux_option "@packet-loss_tmp_last_result" "$current_loss"

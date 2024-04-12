@@ -36,7 +36,7 @@ stray_instances() {
     #
     #  Find any other stray monitoring processes
     #
-    # log_it "stray_instances()"
+    log_it "stray_instances()"
     proc_to_check="/bin/sh $monitor_process_scr"
     if [ -n "$(command -v pgrep)" ]; then
         pgrep -f "$proc_to_check" | grep -v "$my_pid"
@@ -57,7 +57,7 @@ stray_instances() {
 }
 
 kill_any_strays() {
-    # log_it "kill_any_strays()"
+    log_it "kill_any_strays()"
     strays="$(stray_instances)"
     [ -n "$strays" ] && {
         log_it "Found stray processes[$strays]"

@@ -12,12 +12,9 @@
 
 restart_monitor() {
     log_it "restarting monitor"
-    mkdir -p "$(dirname -- "$(realpath -- "$db_restart_log")")" # ensure folder exists
-    date >>"$db_restart_log"                                    # for now log actions
+    date >>"$db_restart_log" # log current time
 
-    $scr_controler stop
     nohup "$scr_controler" >/dev/null 2>&1 &
-
     #
     #  Happens in the background and will take a while, so give it some time.
     #  This hopefully also prevents tmux from triggering another call to this.
@@ -29,9 +26,9 @@ restart_monitor() {
         #  iSH is an Emulated Linux env for iOS, exceptionally slow,
         #  needs plenty of time to ensure db has time to startup.
         #
-        sleep 10
+        sleep 15
     else
-        sleep 1 #  Should be enough in most cases
+        sleep 5 #  Should be enough in most cases
     fi
 }
 
@@ -40,8 +37,6 @@ restart_monitor() {
 #   Main
 #
 #===============================================================
-
-#
 
 #  Prevent tmux from running it every couple of seconds,
 #  convenient during debugging
@@ -74,7 +69,7 @@ $cache_db_polls && {
     seconds_since_last_check="$((t_now - prev_check_time))"
     interval="$($TMUX_BIN display -p "#{status-interval}")"
     [ "$seconds_since_last_check" -lt "$interval" ] && {
-        log_it "using cache"
+        # log_it "using cache"
         get_tmux_option "$opt_last_result" ""
         exit 0
     }
@@ -90,7 +85,8 @@ if [ ! -e "$sqlite_db" ]; then
     #  If DB is missing, try to start the monitor
     #
     restart_monitor
-    
+    log_it "db missing restart is done"
+
     [ -e "$sqlite_db" ] || {
         error_msg "DB [$sqlite_db] not found, and monitor failed to restart!"
     }
@@ -101,6 +97,7 @@ elif [ -n "$(find "$sqlite_db" -mmin +1)" ]; then
     #  assume the monitor is not running, so (re-)start it
     #
     restart_monitor
+    log_it "no db updates restart is done"
 fi
 
 if bool_param "$is_weighted_avg"; then
@@ -187,9 +184,9 @@ if [ "$current_loss" -gt 0 ]; then
     result="${loss_prefix}${result}${loss_suffix}"
 
     #  typically comment out the next 3 lines unless you are debugging stuff
-    log_it "loss:$current_loss avg:$avg_loss"
-# else
-#     log_it "no packet losses"
+    log_it "loss: $current_loss  avg: $avg_loss"
+else
+    log_it "no packet losses"
 fi
 
 $cache_db_polls && set_tmux_option "$opt_last_result" "$result"

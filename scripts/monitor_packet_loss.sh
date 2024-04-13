@@ -140,5 +140,5 @@ while :; do
     fi
 
     #  A bit exessive in normal conditions
-    # log_it "stored in DB: $percent_loss"
+    [ "$percent_loss" != "0" ] && log_it "stored in DB: $percent_loss"
 done

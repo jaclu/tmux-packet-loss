@@ -12,12 +12,10 @@
 #
 #===============================================================
 
-# shellcheck disable=SC1007
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
-#  shellcheck source=/dev/null
+#  shellcheck source=utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 #log_file="/dev/stdout"
-# shellcheck disable=SC2154
 show_settings

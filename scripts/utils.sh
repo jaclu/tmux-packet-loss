@@ -1,7 +1,5 @@
 #!/bin/sh
-# Always sourced file - Fake bangpath to help editors
 # shellcheck disable=SC2034
-#  Directives for shellcheck directly after bang path are global
 #
 #   Copyright (c) 2022: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -18,7 +16,7 @@ log_it() {
     if [ -z "$log_file" ]; then
         return
     fi
-    printf "[%s] [$$] %s\n" "$(date '+%H:%M:%S')" "$@" >>"$log_file"
+    printf "%s $$ %s %s\n" "$(date '+%H:%M:%S')" "$log_prefix" "$@" >>"$log_file"
 }
 
 #
@@ -29,14 +27,14 @@ error_msg() {
     msg="ERROR: $1"
     exit_code="${2:-1}"
 
-    #if [ -t 0 ]; then
-    #    echo "$plugin_name $msg" # was run from the cmd line
-    #else
     log_it
     log_it "$msg"
     log_it
-    $TMUX_BIN display-message "$plugin_name $msg"
-
+    if [ -t 0 ]; then
+        echo "$msg" # was run from the cmd line
+    else
+        $TMUX_BIN display-message "$plugin_name $msg"
+    fi
     [ "$exit_code" -ne 0 ] && exit "$exit_code"
 
     unset msg
@@ -196,19 +194,15 @@ plugin_name="tmux-packet-loss"
 #
 log_file="/tmp/$plugin_name.log"
 
+log_prefix="???"
 #
 #  Should have been set in the calling script, must be done after
 #  log_file is (potentially) defined
 #
 [ -z "$D_TPL_BASE_PATH" ] && error_msg "D_TPL_BASE_PATH is not defined!"
 
-#
-#  These files are assumed to be in the directory scripts, so depending
-#  on location for the script using this, use the correct location prefix!
-#  Since this is sourced, the prefix can not be determined here.
-#
-monitor_process_scr="$D_TPL_BASE_PATH/scripts/monitor_packet_loss.sh"
-no_sessions_shutdown_scr="$D_TPL_BASE_PATH/scripts/shutdown_if_no_sessions.sh"
+scr_controler="$D_TPL_BASE_PATH/scripts/ctrl_monitor.sh"
+scr_monitor="$D_TPL_BASE_PATH/scripts/monitor_packet_loss.sh"
 
 #
 #  These files are assumed to be in the directory data, so depending
@@ -220,7 +214,7 @@ db_restart_log="$D_TPL_BASE_PATH/data/db_restarted.log"
 monitor_pidfile="$D_TPL_BASE_PATH/data/monitor.pid"
 
 #  check one of the path items to verify D_TPL_BASE_PATH
-[ -f "$monitor_process_scr" ] || {
+[ -f "$scr_monitor" ] || {
     error_msg "D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"
 }
 
@@ -233,6 +227,8 @@ monitor_pidfile="$D_TPL_BASE_PATH/data/monitor.pid"
 #  plugin.
 #
 [ -z "$TMUX_BIN" ] && TMUX_BIN="tmux"
+
+cache_db_polls=true
 
 #
 #  Sanity check that DB structure is current, if not it will be replaced

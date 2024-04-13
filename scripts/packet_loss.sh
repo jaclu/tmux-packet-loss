@@ -1,6 +1,6 @@
 #!/bin/sh
-# shellcheck disable=SC2154
-#  Directives for shellcheck directly after bang path are global
+# shel lcheck disable=SC2154
+#
 #
 #   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -15,8 +15,8 @@ restart_monitor() {
     mkdir -p "$(dirname -- "$(realpath -- "$db_restart_log")")" # ensure folder exists
     date >>"$db_restart_log"                                    # for now log actions
 
-    $monitor_process_scr stop
-    nohup "$monitor_process_scr" >/dev/null 2>&1 &
+    $scr_controler stop
+    nohup "$scr_controler" >/dev/null 2>&1 &
 
     sleep 1 # give the first check time to complete
 }
@@ -27,30 +27,44 @@ restart_monitor() {
 #
 #===============================================================
 
-# script_start_time="$(date +%s)"
-
 #
+
 #  Prevent tmux from running it every couple of seconds,
 #  convenient during debugging
 #
 # [ "$1" != "hepp" ] && exit 0
 
-# shellcheck disable=SC1007
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
-#  shellcheck source=/dev/null
+# shellcheck source=utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
+
+log_prefix="chk"
+
+# used to indicate trends
+opt_last_value="@packet-loss_tmp_last_value"
+
+# for caching
+opt_last_check="@packet-loss_tmp_last_check"
+opt_last_result="@packet-loss_tmp_last_result"
 
 #
 #  This is called once per active tmux session, so if multiple sessions
-#  are used, this will be called multiple times in a row. Only check DB
-#  once per tmux status bar update, in order to reduce expensive
-#  DB calls.
+#  are used, this will be called multiple times in a row.
+#  Using the cache feature makes generating a new result only happen
+#  once per status bar update.
 #
-# prev_check_time="$(get_tmux_option "@packet-loss_tmp_last_check" 0)"
-# seconds_since_last_check="$((script_start_time - prev_check_time))"
-# interval="$(tmux display -p "#{status-interval}")"
-# set_tmux_option "@packet-loss_tmp_last_check" "$script_start_time"
+$cache_db_polls && {
+    prev_check_time="$(get_tmux_option "$opt_last_check" 0)"
+    t_now="$(date +%s)"
+    seconds_since_last_check="$((t_now - prev_check_time))"
+    interval="$($TMUX_BIN display -p "#{status-interval}")"
+    [ "$seconds_since_last_check" -lt "$interval" ] && {
+        log_it "using cache"
+        get_tmux_option "$opt_last_result" ""
+        exit 0
+    }
+}
 
 #
 #  Some sanity check, ensuring the monitor is running
@@ -62,13 +76,11 @@ if [ ! -e "$sqlite_db" ]; then
     #  If DB is missing, try to start the monitor
     #
     restart_monitor
-    if [ ! -e "$sqlite_db" ]; then
-        log_it "repeated fails - DB still missing"
-        # still missing, something is failing
+    [ -e "$sqlite_db" ] || {
         error_msg "DB [$sqlite_db] not found, and monitor failed to restart!"
-    fi
+    }
 elif [ -n "$(find "$sqlite_db" -mmin +1)" ]; then
-    log_it "DB is one minute old"
+    log_it "DB is over one minute old - restarting monitor"
     #
     #  If DB is over a minute old,
     #  assume the monitor is not running, so (re-)start it
@@ -98,22 +110,15 @@ if bool_param "$is_weighted_avg"; then
       (SELECT avg(loss) FROM t_loss) \
      )"
 else
-    # shellcheck disable=SC2034
     sql_avg="SELECT avg(loss) FROM t_loss"
 fi
 
 sql="SELECT CAST(( $sql_avg ) AS INTEGER)"
-
-# if [ "$seconds_since_last_check" -lt "$interval" ]; then
-#     # This will echo last retrieved value
-#     log_it "to soon, reporting cached value"
-#     current_loss="$(get_tmux_option "@packet-loss_tmp_last_result" "0")"
-# else
 current_loss="$(sqlite3 "$sqlite_db" "$sql")"
-# fi
+
+$cache_db_polls && set_tmux_option "$opt_last_check" "$(date +%s)"
 
 result="" # indicating no losses
-
 [ "$current_loss" -lt "$lvl_disp" ] && current_loss=0
 
 if [ "$current_loss" -gt 0 ]; then
@@ -121,9 +126,9 @@ if [ "$current_loss" -gt 0 ]; then
         #
         #  Calculate trend, ie change since last update
         #
-        prev_loss="$(get_tmux_option "@packet-loss_tmp_last_value" 0)"
+        prev_loss="$(get_tmux_option "$opt_last_value" 0)"
         if [ "$prev_loss" -ne "$current_loss" ]; then
-            set_tmux_option @packet-loss_tmp_last_value "$current_loss"
+            set_tmux_option "$opt_last_value" "$current_loss"
         fi
 
         if [ "$current_loss" -gt "$prev_loss" ]; then
@@ -138,7 +143,7 @@ if [ "$current_loss" -gt 0 ]; then
     fi
 
     #
-    #  If loss over trigger levels, display in appropriate color
+    #  If loss is over trigger levels, display in appropriate color
     #
     if awk -v val="$current_loss" -v trig_lvl="$lvl_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
         result="#[fg=$color_crit,bg=$color_bg]$loss_trend$current_loss#[default]"
@@ -167,10 +172,10 @@ if [ "$current_loss" -gt 0 ]; then
     result="${loss_prefix}${result}${loss_suffix}"
 
     #  typically comment out the next 3 lines unless you are debugging stuff
-    log_it "checker detected loss:$current_loss avg:$avg_loss]"
+    log_it "loss:$current_loss avg:$avg_loss"
 # else
-#     log_it "checker detected no packet losses"
+#     log_it "no packet losses"
 fi
 
-set_tmux_option "@packet-loss_tmp_last_result" "$current_loss"
+$cache_db_polls && set_tmux_option "$opt_last_result" "$result"
 echo "$result"

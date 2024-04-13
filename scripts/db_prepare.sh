@@ -1,5 +1,4 @@
 #!/bin/sh
-# shellcheck disable=SC2154
 #
 #   Copyright (c) 2024: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -88,11 +87,12 @@ update_triggers() {
 #
 #===============================================================
 
-# shellcheck disable=SC1007
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
-#  shellcheck source=/dev/null
-. "$D_TPL_BASE_PATH/scripts/utils.sh"
+# shellcheck source=utils.sh
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
+
+log_prefix="prp"
 
 mkdir -p "$D_TPL_BASE_PATH/data" # ensure folder exists
 

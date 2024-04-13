@@ -1,6 +1,4 @@
 #!/bin/sh
-# shell check disable=SC2154
-#  Directives for shellcheck directly after bang path are global
 #
 #   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -10,83 +8,8 @@
 #   This runs forever unless it is given the option stop, so waiting for
 #   it to complete might not be handy when called from other scripts.
 #   This is how I use it:
-#     nohup "$monitor_process_scr" >/dev/null 2>&1 &
+#     nohup "$scr_monitor" >/dev/null 2>&1 &
 #
-
-check_pidfile_task() {
-    #
-    #  Check if pidfile is relevant
-    #
-    #  Variables defined:
-    #   pid - what pid was listed in monitor_pidfile
-    #
-
-    log_it "check_pidfile_task()"
-    _result=1 # false
-    [ -z "$monitor_pidfile" ] && error_msg "monitor_pidfile is not defined!"
-    if [ -e "$monitor_pidfile" ]; then
-        pid="$(cat "$monitor_pidfile")"
-        ps -p "$pid" >/dev/null && _result=0 # true
-    fi
-    return "$_result"
-}
-
-stray_instances() {
-
-    #
-    #  Find any other stray monitoring processes
-    #
-    log_it "stray_instances()"
-    # shellcheck disable=SC2154
-    proc_to_check="/bin/sh $monitor_process_scr"
-    if [ -n "$(command -v pgrep)" ]; then
-        # log_it "procs before pgrep [$(ps ax)]"
-        pgrep -f "$proc_to_check" | grep -v $$
-        pgrep -f "$ping_cmd"
-    else
-        #
-        #  Figure our what ps is available, in order to determine
-        #  which param is the pid
-        #
-        if readlink "$(command -v ps)" | grep -q busybox; then
-            pid_param=1
-        else
-            pid_param=2
-        fi
-
-        # shellcheck disable=SC2009
-        ps axu | grep "$proc_to_check" | grep -v grep | awk -v p="$pid_param" '{ print $p }' | grep -v $$
-    fi
-}
-
-all_procs_but_me() {
-    echo
-    # shellcheck disable=SC2009
-    ps ax | grep "$monitor_process_scr" | grep -v grep | grep -v $$
-    echo
-}
-
-kill_any_strays() {
-    log_it "kill_any_strays()"
-    [ -f "$f_proc_error" ] && {
-        log_it "proc error detected, skipping stray killing"
-        return
-    }
-
-    strays="$(stray_instances)"
-    [ -n "$strays" ] && {
-        log_it "Found stray processes[$strays]"
-        log_it "procs before: $(all_procs_but_me)"
-        echo "$strays" | xargs kill
-        log_it "procs after: $(all_procs_but_me)"
-        # remaing_strays="$(stray_instances)"
-        # [ -n "$remaing_strays" ] && {
-        #     log_it "remaining strays: [$remaing_strays] [$(ps -p "$remaing_strays")]"
-        #     touch "$f_proc_error"
-        #     error_msg "Created: $f_proc_error"
-        # }
-    }
-}
 
 define_ping_cmd() {
     #
@@ -109,7 +32,6 @@ define_ping_cmd() {
     fi
 
     if [ -n "$timeout_parameter" ]; then
-        # shellcheck disable=SC2154
         ping_cmd="ping -$timeout_parameter $ping_count"
     else
         #
@@ -119,7 +41,6 @@ define_ping_cmd() {
         ping_cmd="ping"
     fi
 
-    # shellcheck disable=SC2154
     ping_cmd="$ping_cmd -c $ping_count $ping_host"
     log_it "monitoring will use ping cmd [$ping_cmd]"
 
@@ -133,25 +54,22 @@ define_ping_cmd() {
 #
 #===============================================================
 
-# shellcheck disable=SC1007
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
-#  shellcheck source=/dev/null
+#  shellcheck source=utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
-this_app="$(basename "$0")"
-
-f_proc_error="$D_TPL_BASE_PATH"/data/proc_error
-
-log_it "$this_app is starting"
+log_prefix="mon"
 
 mkdir -p "$D_TPL_BASE_PATH/data" # ensure folder exists
+
+[ -f "$monitor_pidfile" ] && error_msg "pidfile prevents starting"
+echo $$ >"$monitor_pidfile"
+log_it "- starting"
 
 #
 #  Since loss is <=100, indicate errors with results over 100
 #  Not crucial to remember exactly what it means, enough to know is >100 means monitor error
-#
-
 #
 #  Failed to find %loss in ping output, most likely temporary, some pings just report:
 #    ping: sendto: Host is unreachable
@@ -162,24 +80,7 @@ error_no_ping_output="101"
 # ping_cmd | grep loss  gave empty result, unlikely to self correct
 error_unable_to_detect_loss="201"
 
-check_pidfile_task && {
-    if [ "$1" = "stop" ]; then
-        log_it "Will kill [$pid]"
-        kill "$pid"
-        check_pidfile_task && error_mg "Failed to kill [$pid]"
-    else
-        error_msg "[$this_app] Is already running [$pid]"
-    fi
-}
-rm -f "$monitor_pidfile"
-
-# kill_any_strays
-# [ "$1" = "stop" ] && exit 0
-
-log_it "$this_app - starting"
-echo $$ >"$monitor_pidfile"
-
-"$D_TPL_BASE_PATH"/scripts/prepare_db.sh
+"$D_TPL_BASE_PATH"/scripts/db_prepare.sh
 
 define_ping_cmd # we need the ping_cmd in kill_any_strays
 
@@ -228,7 +129,7 @@ while :; do
         log_it "No ping output, will sleep $ping_count seconds"
         sleep "$ping_count"
     fi
-    # shellcheck disable=SC2154
+
     sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
 
     #  Add one line in statistics each minute
@@ -239,5 +140,5 @@ while :; do
     fi
 
     #  A bit exessive in normal conditions
-    log_it "stored in DB: $percent_loss"
+    # log_it "stored in DB: $percent_loss"
 done

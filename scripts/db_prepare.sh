@@ -94,8 +94,6 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
 log_prefix="prp"
 
-mkdir -p "$D_TPL_BASE_PATH/data" # ensure folder exists
-
 #
 #  Create fresh database if it is missing or obsolete
 #

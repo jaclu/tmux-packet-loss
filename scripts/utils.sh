@@ -16,7 +16,7 @@ log_it() {
     if [ -z "$log_file" ]; then
         return
     fi
-    printf "%s $$ %s %s\n" "$(date '+%H:%M:%S')" "$log_prefix" "$@" >>"$log_file"
+    printf "%s $$ %s%*s%s\n" "$(date '+%H:%M:%S')" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
 }
 
 #
@@ -33,7 +33,7 @@ error_msg() {
     if [ -t 0 ]; then
         echo "$msg" # was run from the cmd line
     else
-        $TMUX_BIN display-message "$plugin_name $msg"
+        $TMUX_BIN display-message -d 0 "$plugin_name $msg"
     fi
     [ "$exit_code" -ne 0 ] && exit "$exit_code"
 
@@ -171,6 +171,20 @@ show_settings() {
     log_it "loss_suffix [$loss_suffix]"
 
     log_it "hook_idx [$hook_idx]"
+
+    log_it
+    log_it "temp variables stored in tmux by packet_loss.sh"
+
+    # used to indicate trends
+    opt_last_value="@packet-loss_tmp_last_value"
+
+    # for caching
+    opt_last_check="@packet-loss_tmp_last_check"
+    opt_last_result="@packet-loss_tmp_last_result"
+
+    log_it "last_check  [$(get_tmux_option "$opt_last_check" "$opt_last_check unset")]"
+    log_it "last_value  [$(get_tmux_option "$opt_last_value" "$opt_last_value unset")]"
+    log_it "last_result [$(get_tmux_option "$opt_last_result" "$opt_last_result unset")]"
     log_it
 }
 
@@ -186,6 +200,17 @@ show_settings() {
 #
 plugin_name="tmux-packet-loss"
 
+#  common folders
+d_data="$D_TPL_BASE_PATH/data"
+
+[ -d "$d_data" ] || {
+    log_it "mkdir $d_data"
+    mkdir -p "$d_data" # ensure it exists
+}
+
+# shellcheck source=pidfile_handler.sh
+. "$D_TPL_BASE_PATH"/scripts/pidfile_handler.sh
+
 #
 #  log_it is used to display status to $log_file if it is defined.
 #  Good for testing and monitoring actions. If $log_file is unset
@@ -195,6 +220,7 @@ plugin_name="tmux-packet-loss"
 log_file="/tmp/$plugin_name.log"
 
 log_prefix="???"
+log_indent=1
 #
 #  Should have been set in the calling script, must be done after
 #  log_file is (potentially) defined
@@ -209,9 +235,9 @@ scr_monitor="$D_TPL_BASE_PATH/scripts/monitor_packet_loss.sh"
 #  on location for the script using this, use the correct location prefix!
 #  Since this is sourced, the prefix can not be determined here.
 #
-sqlite_db="$D_TPL_BASE_PATH/data/packet_loss.sqlite"
-db_restart_log="$D_TPL_BASE_PATH/data/db_restarted.log"
-monitor_pidfile="$D_TPL_BASE_PATH/data/monitor.pid"
+sqlite_db="$d_data/packet_loss.sqlite"
+db_restart_log="$d_data/db_restarted.log"
+monitor_pidfile="$d_data/monitor.pid"
 
 #  check one of the path items to verify D_TPL_BASE_PATH
 [ -f "$scr_monitor" ] || {

@@ -5,17 +5,14 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-
-#===============================================================
+#   Displays current settings for plugin
 #
-#   Main
-#
-#===============================================================
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
 #  shellcheck source=utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
-#log_file="/dev/stdout"
+log_prefix="show"
+log_file="/dev/stdout"
 show_settings

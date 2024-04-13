@@ -29,7 +29,7 @@ restart_monitor() {
         #  iSH is an Emulated Linux env for iOS, exceptionally slow,
         #  needs plenty of time to ensure db has time to startup.
         #
-        sleep 3
+        sleep 10
     else
         sleep 1 #  Should be enough in most cases
     fi

@@ -18,7 +18,21 @@ restart_monitor() {
     $scr_controler stop
     nohup "$scr_controler" >/dev/null 2>&1 &
 
-    sleep 1 # give the first check time to complete
+    #
+    #  Happens in the background and will take a while, so give it some time.
+    #  This hopefully also prevents tmux from triggering another call to this.
+    #  Such a call might trigger restarts during the restart, each time aborting
+    #  the monitor setting things up in an endless loop
+    #
+    if [ -d /proc/ish ]; then
+        #
+        #  iSH is an Emulated Linux env for iOS, exceptionally slow,
+        #  needs plenty of time to ensure db has time to startup.
+        #
+        sleep 3
+    else
+        sleep 1 #  Should be enough in most cases
+    fi
 }
 
 #===============================================================
@@ -76,6 +90,7 @@ if [ ! -e "$sqlite_db" ]; then
     #  If DB is missing, try to start the monitor
     #
     restart_monitor
+    
     [ -e "$sqlite_db" ] || {
         error_msg "DB [$sqlite_db] not found, and monitor failed to restart!"
     }

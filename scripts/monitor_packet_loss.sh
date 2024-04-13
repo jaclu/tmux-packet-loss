@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 #   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -23,15 +23,15 @@ define_ping_cmd() {
     #
     timeout_help="$(ping -h 2>/dev/stdout | grep timeout)"
 
-    if [ "${timeout_help#*-t}" != "$timeout_help" ]; then
+    if [[ "${timeout_help#*-t}" != "$timeout_help" ]]; then
         timeout_parameter="t"
-    elif [ "${timeout_help#*-W}" != "$timeout_help" ]; then
+    elif [[ "${timeout_help#*-W}" != "$timeout_help" ]]; then
         timeout_parameter="W"
     else
         timeout_parameter=""
     fi
 
-    if [ -n "$timeout_parameter" ]; then
+    if [[ -n "$timeout_parameter" ]]; then
         ping_cmd="ping -$timeout_parameter $ping_count"
     else
         #
@@ -42,7 +42,7 @@ define_ping_cmd() {
     fi
 
     ping_cmd="$ping_cmd -c $ping_count $ping_host"
-    log_it "monitoring will use ping cmd [$ping_cmd]"
+    log_it "ping cmd used: [$ping_cmd]"
 
     unset timeout_help
     unset timeout_parameter
@@ -61,11 +61,7 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
 log_prefix="mon"
 
-mkdir -p "$D_TPL_BASE_PATH/data" # ensure folder exists
-
-[ -f "$monitor_pidfile" ] && error_msg "pidfile prevents starting"
-echo $$ >"$monitor_pidfile"
-log_it "- starting"
+pidfile_acquire "$monitor_pidfile" || error_msg "$monitor_pidfile - is owned by [$pidfile_proc]"
 
 #
 #  Since loss is <=100, indicate errors with results over 100
@@ -100,7 +96,7 @@ while :; do
     #
     output="$($ping_cmd | grep loss)" 2>/dev/null
 
-    if [ -n "$output" ]; then
+    if [[ -n "$output" ]]; then
         #
         #  We cant rely on the absolute position of the %loss, since sometimes it is prepended with stuff like:
         #  "+1 duplicates,"
@@ -112,7 +108,7 @@ while :; do
         #  5 display last remaining word - packet loss as a float with no % sign!
         #
         percent_loss="$(echo "$output" | sed 's/packet loss/~/ ; s/%//' | cut -d~ -f 1 | awk 'NF>1{print $NF}')"
-        if [ -z "$percent_loss" ]; then
+        if [[ -z "$percent_loss" ]]; then
             error_msg "Failed to parse ping output, unlikely to self correct!" 0
             percent_loss="$error_unable_to_detect_loss"
         fi
@@ -135,10 +131,10 @@ while :; do
     #  Add one line in statistics each minute
     sql="SELECT COUNT(*) FROM t_stats WHERE time_stamp >= datetime(strftime('%Y-%m-%d %H:%M'))"
     items_this_minute="$(sqlite3 "$sqlite_db" "$sql")"
-    if [ "$items_this_minute" -eq 0 ]; then
+    if [[ "$items_this_minute" -eq 0 ]]; then
         sqlite3 "$sqlite_db" 'INSERT INTO t_stats (loss) SELECT avg(loss) FROM t_1_min'
     fi
 
     #  A bit exessive in normal conditions
-    [ "$percent_loss" != "0" ] && log_it "stored in DB: $percent_loss"
+    # [[ "$percent_loss" != "0" ] && log_it "stored in DB: $percent_loss"
 done

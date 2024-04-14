@@ -191,8 +191,6 @@ if [[ "$current_loss" -gt 0 ]]; then
             result="${result}${hist_separator}${avg_loss}"
         fi
     fi
-    plugin_display "$result"
-
     #  typically comment out the next 3 lines unless you are debugging stuff
     log_it "loss: $current_loss  avg: $avg_loss"
 else
@@ -200,3 +198,4 @@ else
 fi
 
 $cache_db_polls && set_tmux_option "$opt_last_result" "$result"
+script_exit "$result"

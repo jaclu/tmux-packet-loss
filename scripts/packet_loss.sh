@@ -15,6 +15,19 @@ restart_monitor() {
     date >>"$db_restart_log" # log current time
 
     $scr_controler
+    #
+    #  Happens in the background and will take a while for the DB to be
+    #  available, so give it some time.
+    #
+    if [ -d /proc/ish ]; then
+        #
+        #  iSH is an Emulated Linux env for iOS, exceptionally slow,
+        #  needs plenty of time to ensure db has time to startup.
+        #
+        sleep 15
+    else
+        sleep 5 #  Should be enough in most cases
+    fi
 }
 
 #===============================================================
@@ -73,7 +86,7 @@ if [ ! -e "$sqlite_db" ]; then
     log_it "db missing restart is done"
 
     [ -e "$sqlite_db" ] || {
-        error_msg "DB [$sqlite_db] not found, and monitor failed to restart!"
+        error_msg "DB not found, and monitor failed to restart!"
     }
 elif [ -n "$(find "$sqlite_db" -mmin +1)" ]; then
     log_it "DB is over one minute old - restarting monitor"

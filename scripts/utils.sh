@@ -1,7 +1,6 @@
-#!/bin/sh
-# shellcheck disable=SC2034
+#!/usr/bin/env bash
 #
-#   Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
@@ -13,7 +12,7 @@
 #  If $log_file is empty or undefined, no logging will occur.
 #
 log_it() {
-    if [ -z "$log_file" ]; then
+    if [[ -z "$log_file" ]]; then
         return
     fi
     printf "%s $$ %s%*s%s\n" "$(date '+%H:%M:%S')" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
@@ -30,12 +29,12 @@ error_msg() {
     log_it
     log_it "$msg"
     log_it
-    if [ -t 0 ]; then
+    if [[ -t 0 ]]; then
         echo "$msg" # was run from the cmd line
     else
         $TMUX_BIN display-message -d 0 "$plugin_name $msg"
     fi
-    [ "$exit_code" -ne 0 ] && exit "$exit_code"
+    [[ "$exit_code" -ne 0 ]] && exit "$exit_code"
 
     unset msg
     unset exit_code
@@ -78,7 +77,7 @@ set_tmux_option() {
     sto_option="$1"
     sto_value="$2"
 
-    [ -z "$sto_option" ] && error_msg "set_tmux_option() param 1 empty!"
+    [[ -z "$sto_option" ]] && error_msg "set_tmux_option() param 1 empty!"
     $TMUX_BIN set -g "$sto_option" "$sto_value"
 
     unset sto_option
@@ -91,9 +90,9 @@ get_tmux_option() {
 
     # log_it "get_tmux_option($gto_option,$gto_default)"
 
-    [ -z "$gto_option" ] && error_msg "get_tmux_option() param 1 empty!"
+    [[ -z "$gto_option" ]] && error_msg "get_tmux_option() param 1 empty!"
     gto_value="$($TMUX_BIN show-option -gqv "$gto_option")"
-    if [ -z "$gto_value" ]; then
+    if [[ -z "$gto_value" ]]; then
         # log_it "get opt def : $gto_option = $gto_default"
         echo "$gto_default"
     else
@@ -133,7 +132,7 @@ get_settings() {
 }
 
 show_settings() {
-    [ -z "$log_file" ] && return # if no logging, no need to continue
+    [[ -z "$log_file" ]] && return # if no logging, no need to continue
 
     log_it "=====   All variables   ====="
     log_it "ping_host=[$ping_host]"
@@ -203,7 +202,7 @@ plugin_name="tmux-packet-loss"
 #  common folders
 d_data="$D_TPL_BASE_PATH/data"
 
-[ -d "$d_data" ] || {
+[[ -d "$d_data" ]] || {
     log_it "mkdir $d_data"
     mkdir -p "$d_data" # ensure it exists
 }
@@ -225,8 +224,9 @@ log_indent=1
 #  Should have been set in the calling script, must be done after
 #  log_file is (potentially) defined
 #
-[ -z "$D_TPL_BASE_PATH" ] && error_msg "D_TPL_BASE_PATH is not defined!"
+[[ -z "$D_TPL_BASE_PATH" ]] && error_msg "D_TPL_BASE_PATH is not defined!"
 
+#  shellcheck disable=SC2034
 scr_controler="$D_TPL_BASE_PATH/scripts/ctrl_monitor.sh"
 scr_monitor="$D_TPL_BASE_PATH/scripts/monitor_packet_loss.sh"
 
@@ -235,12 +235,15 @@ scr_monitor="$D_TPL_BASE_PATH/scripts/monitor_packet_loss.sh"
 #  on location for the script using this, use the correct location prefix!
 #  Since this is sourced, the prefix can not be determined here.
 #
+#  shellcheck disable=SC2034
 sqlite_db="$d_data/packet_loss.sqlite"
+#  shellcheck disable=SC2034
 db_restart_log="$d_data/db_restarted.log"
+#  shellcheck disable=SC2034
 monitor_pidfile="$d_data/monitor.pid"
 
 #  check one of the path items to verify D_TPL_BASE_PATH
-[ -f "$scr_monitor" ] || {
+[[ -f "$scr_monitor" ]] || {
     error_msg "D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"
 }
 
@@ -252,13 +255,15 @@ monitor_pidfile="$d_data/monitor.pid"
 #  impact. In all calls to tmux I use $TMUX_BIN instead in the rest of this
 #  plugin.
 #
-[ -z "$TMUX_BIN" ] && TMUX_BIN="tmux"
+[[ -z "$TMUX_BIN" ]] && TMUX_BIN="tmux"
 
+#  shellcheck disable=SC2034
 cache_db_polls=true
 
 #
 #  Sanity check that DB structure is current, if not it will be replaced
 #
+#  shellcheck disable=SC2034
 db_version=10
 
 default_host="8.8.4.4" #  Default host to ping

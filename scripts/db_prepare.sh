@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
-#   Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
@@ -12,7 +12,7 @@
 #
 
 create_db() {
-    [ -f "$sqlite_db" ] && {
+    [[ -f "$sqlite_db" ]] && {
         rm -f "$sqlite_db"
         log_it "old_db removed"
     }
@@ -53,7 +53,7 @@ update_triggers() {
     #
     triggers="$(sqlite3 "$sqlite_db" "SELECT * FROM sqlite_master where type = 'trigger'")"
 
-    if [ -n "$triggers" ]; then
+    if [[ -n "$triggers" ]]; then
         sqlite3 "$sqlite_db" "DROP TRIGGER new_data"
     fi
 
@@ -97,7 +97,7 @@ log_prefix="prp"
 #
 #  Create fresh database if it is missing or obsolete
 #
-[ "$(sqlite3 "$sqlite_db" "PRAGMA user_version")" != "$db_version" ] && {
+[[ "$(sqlite3 "$sqlite_db" "PRAGMA user_version")" != "$db_version" ]] && {
     create_db
 }
 

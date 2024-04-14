@@ -49,21 +49,23 @@ D_TPL_BASE_PATH=$(dirname -- "$(realpath -- "$0")")
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 #
-#  Match tag with polling script
-#
-pkt_loss_interpolation="\#{packet_loss}"
-pkt_loss_command="#($D_TPL_BASE_PATH/scripts/packet_loss.sh)"
-
-#
 #  Dependency check
 #
 if ! command -v sqlite3 >/dev/null 2>&1; then
     error_msg "Missing dependency sqlite3"
 fi
 
+# create DB if needed & start monitoring
+$scr_controler
+
+#
+#  Match tag with polling script
+#
+pkt_loss_interpolation="\#{packet_loss}"
+pkt_loss_command="#($D_TPL_BASE_PATH/scripts/packet_loss.sh)"
+
 #
 #  Activate #{packet_loss} tag if used
 #
 update_tmux_option "status-left"
 update_tmux_option "status-right"
-exit 0

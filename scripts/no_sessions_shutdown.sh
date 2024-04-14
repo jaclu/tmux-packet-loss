@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
-#   Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
@@ -13,7 +13,7 @@
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
 #  shellcheck source=utils.sh
-. "$D_TPL_BASE_PATH/scripts/utils.sh"
+. utils.sh
 
 log_prefix="hok"
 
@@ -22,7 +22,7 @@ ses_count="$($TMUX_BIN ls | wc -l)"
 
 log_it "$this_app - session count [$ses_count]"
 
-if [ "$ses_count" -eq 0 ]; then
+if [[ "$ses_count" -eq 0 ]]; then
     log_it "No remaining sessions, shutting down monitor process"
     "$scr_controler" stop
 fi

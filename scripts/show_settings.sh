@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 #   Copyright (c) 2024: Jacob.Lundqvist@gmail.com
 #   License: MIT

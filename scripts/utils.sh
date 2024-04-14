@@ -8,6 +8,11 @@
 #  Common stuff
 #
 
+get_tmux_socket() {
+    #  shellcheck disable=SC2154
+    echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
+}
+
 #
 #  If $log_file is empty or undefined, no logging will occur.
 #
@@ -15,11 +20,10 @@ log_it() {
     if [[ -z "$log_file" ]]; then
         return
     fi
-    #  shellcheck disable=SC2154
-    ses=" $(echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}')"
-    # only show session name if not default
-    [[ "$ses" = " default" ]] && ses=""
-    printf "%s%s $$ %s%*s%s\n" "$(date '+%H:%M:%S')" "$ses" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
+    socket=" $(get_tmux_socket)"
+    # only show socket name if not default
+    [[ "$socket" = " default" ]] && socket=""
+    printf "%s%s $$ %s%*s%s\n" "$(date '+%H:%M:%S')" "$socket" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
 }
 
 #
@@ -29,7 +33,6 @@ log_it() {
 error_msg() {
     msg="ERROR: $1"
     exit_code="${2:-1}"
-
     log_it
     log_it "$msg"
     log_it
@@ -268,8 +271,12 @@ monitor_pidfile="$d_data/monitor.pid"
 #  If not found, it is set to whatever is in path, so should have no negative
 #  impact. In all calls to tmux I use $TMUX_BIN instead in the rest of this
 #  plugin.
+#  By also suplying the current socket, no risk of interfering with
+#  the wrong tmux instance
 #
-[[ -z "$TMUX_BIN" ]] && TMUX_BIN="tmux"
+[[ -z "$TMUX_BIN" ]] && TMUX_BIN="tmux -L $(get_socket)"
+# ensure socket is included, in case TMUX_BIN didn't set it
+[[ -n "${TMUX_BIN##*-L*}" ]] && TMUX_BIN="$TMUX_BIN -L $(get_tmux_socket)"
 
 #  shellcheck disable=SC2034
 cache_db_polls=true

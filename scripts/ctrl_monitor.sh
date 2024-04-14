@@ -73,7 +73,6 @@ pidfile_is_live "$monitor_pidfile" && {
 }
 rm -f "$monitor_pidfile"
 
-log_it "clearing after shutdown"
 hook_handler clear
 
 case "$1" in

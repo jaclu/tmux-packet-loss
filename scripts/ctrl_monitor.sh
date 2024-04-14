@@ -57,7 +57,7 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
 log_prefix="ctr"
 
-pidfile_acquire || error_msg "$pid_file - is owned by [$pidfile_proc]"
+pidfile_acquire "" || error_msg "$pid_file - is owned by [$pidfile_proc]"
 log_it "aquire successfull"
 log_it
 db_monitor="$(basename "$scr_monitor")"
@@ -103,4 +103,4 @@ sleep 1 # wait for monitor to start
 #
 hook_handler set
 
-pidfile_release
+pidfile_release ""

@@ -55,8 +55,13 @@ if ! command -v sqlite3 >/dev/null 2>&1; then
     error_msg "Missing dependency sqlite3"
 fi
 
-# create DB if needed & start monitoring
-$scr_controler
+#
+#  Really slow systems like iSH tends to crash if the plugin init
+#  script takes to long to complete, dont know why...
+#  Since the check script scripts/packet_loss.sh starts the backend
+#  if need-be, simplest for now is to just not start it here
+#
+# $scr_controler # create DB if needed & start monitoring
 
 #
 #  Match tag with polling script

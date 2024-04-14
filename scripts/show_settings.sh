@@ -14,5 +14,5 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 log_prefix="show"
-log_file="/dev/stdout"
+log_file="/dev/stderr"
 show_settings

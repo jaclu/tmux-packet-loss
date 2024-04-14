@@ -19,8 +19,8 @@ script_exit() {
     # report status and exit gracefully
     local status="$1"
 
+    log_it "result [$status]"
     [[ -n "$status" ]] && echo "${loss_prefix}${status}${loss_suffix}"
-    log_it "script_exit($status)"
     exit 0
 }
 

@@ -19,7 +19,7 @@
 #
 #  The following variables are exposed and can be used by calling entity
 #   pid_file - name of current pid_file
-#   pidfile_proc - process owning the pid_file if any
+#   pidfile_proc - process owning the pid_file or ""
 #
 
 _pf_log() {

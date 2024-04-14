@@ -48,6 +48,12 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
 log_prefix="chk"
 
+pidfile_acquire "" || {
+    #error_msg "pid_file - is owned by [$pidfile_proc]"
+    echo "busy"
+    exit 0
+}
+
 # used to indicate trends
 opt_last_value="@packet-loss_tmp_last_value"
 
@@ -69,6 +75,7 @@ $cache_db_polls && {
     [ "$seconds_since_last_check" -lt "$interval" ] && {
         log_it "using cache"
         get_tmux_option "$opt_last_result" ""
+        pidfile_release
         exit 0
     }
 }
@@ -189,3 +196,4 @@ fi
 
 $cache_db_polls && set_tmux_option "$opt_last_result" "$result"
 echo "$result"
+pidfile_release ""

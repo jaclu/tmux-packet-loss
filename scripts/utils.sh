@@ -17,6 +17,8 @@ get_tmux_socket() {
 #  If $log_file is empty or undefined, no logging will occur.
 #
 log_it() {
+    local socket
+
     if [[ -z "$log_file" ]]; then
         return
     fi
@@ -31,8 +33,9 @@ log_it() {
 #  If no $2 or set to 0, process is not exited
 #
 error_msg() {
-    msg="ERROR: $1"
-    exit_code="${2:-1}"
+    local msg="ERROR: $1"
+    local exit_code="${2:-1}"
+
     log_it
     log_it "$msg"
     log_it
@@ -43,8 +46,6 @@ error_msg() {
     fi
     [[ "$exit_code" -ne 0 ]] && exit "$exit_code"
 
-    unset msg
-    unset exit_code
 }
 
 #
@@ -90,23 +91,29 @@ bool_param() {
 }
 
 set_tmux_option() {
-    sto_option="$1"
-    sto_value="$2"
+    local sto_option="$1"
+    local sto_value="$2"
 
     [[ -z "$sto_option" ]] && error_msg "set_tmux_option() param 1 empty!"
-    $TMUX_BIN set -g "$sto_option" "$sto_value"
 
-    unset sto_option
-    unset sto_value
+    [[ "$TMUX" = "" ]] && return # this is run standalone
+
+    $TMUX_BIN set -g "$sto_option" "$sto_value"
 }
 
 get_tmux_option() {
-    gto_option="$1"
-    gto_default="$2"
+    local gto_option="$1"
+    local gto_default="$2"
+    local gto_value
 
     # log_it "get_tmux_option($gto_option,$gto_default)"
-
     [[ -z "$gto_option" ]] && error_msg "get_tmux_option() param 1 empty!"
+    [[ "$TMUX" = "" ]] && {
+        # this is run standalone, just report the defaults
+        echo "$gto_default"
+        return
+    }
+
     gto_value="$($TMUX_BIN show-option -gqv "$gto_option")"
     if [[ -z "$gto_value" ]]; then
         # log_it "get opt def : $gto_option = $gto_default"
@@ -115,10 +122,6 @@ get_tmux_option() {
         # log_it "get opt     : $gto_option = $gto_value"
         echo "$gto_value"
     fi
-
-    unset gto_option
-    unset gto_default
-    unset gto_value
 }
 
 get_settings() {

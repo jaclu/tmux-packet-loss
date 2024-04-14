@@ -19,7 +19,7 @@ create_db() {
     #
     #  t_loss is limited to $history_size rows, in order to make statistics consistent
     #
-    sql="
+    local sql="
     CREATE TABLE t_loss (
         time_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
@@ -41,8 +41,6 @@ create_db() {
     "
     sqlite3 "$sqlite_db" "$sql"
     log_it "Created db"
-
-    unset sql
 }
 
 update_triggers() {
@@ -51,6 +49,9 @@ update_triggers() {
     #  a user defined setting, that might have changed since the DB
     #  was created
     #
+    local triggers
+    local sql
+
     triggers="$(sqlite3 "$sqlite_db" "SELECT * FROM sqlite_master where type = 'trigger'")"
 
     if [[ -n "$triggers" ]]; then
@@ -76,9 +77,6 @@ update_triggers() {
     "
     sqlite3 "$sqlite_db" "$sql"
     log_it "Created db-triggers"
-
-    unset triggers
-    unset sql
 }
 
 #===============================================================

@@ -17,6 +17,8 @@ define_ping_cmd() {
     #  Variables provided:
     #    ping_cmd - options adjusted for the local environment
     #
+    local timeout_help
+    local timeout_parameter
 
     #
     #  Selecting the right timeout option
@@ -43,9 +45,6 @@ define_ping_cmd() {
 
     ping_cmd="$ping_cmd -c $ping_count $ping_host"
     log_it "ping cmd used: [$ping_cmd]"
-
-    unset timeout_help
-    unset timeout_parameter
 }
 
 #===============================================================

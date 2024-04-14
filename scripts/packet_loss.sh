@@ -75,15 +75,16 @@ opt_last_result="@packet-loss_tmp_last_result"
 $cache_db_polls && {
     prev_check_time="$(get_tmux_option "$opt_last_check" 0)"
     t_now="$(date +%s)"
-    last_check="$((t_now - prev_check_time))"
-    last_check=$((last_check - 1)) # make it slightly less to return cached data
     interval="$($TMUX_BIN display -p "#{status-interval}")"
-    [[ "$last_check" -le "$interval" ]] && {
+    age_last_check="$((t_now - prev_check_time))"
+
+    # if calls come in really quickly, try resetting status-interval
+    ((age_last_check < (interval / 2))) && restore_status_intervall
+
+    # make it slightly less likely to return cached data
+    age_last_check=$((age_last_check + 1))
+    [[ "$age_last_check" -lt "$interval" ]] && {
         log_it "using cache"
-
-        # if calls come in really quickly, try resetting status-interval
-        ((last_check < (interval / 2))) && restore_status_intervall
-
         script_exit "$(get_tmux_option "$opt_last_result" "")"
     }
 }

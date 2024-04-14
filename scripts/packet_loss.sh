@@ -82,11 +82,10 @@ $cache_db_polls && {
     prev_check_time="$(get_tmux_option "$opt_last_check" 0)"
     t_now="$(date +%s)"
     seconds_since_last_check="$((t_now - prev_check_time))"
-    # interval="$($TMUX_BIN display -p "#{status-interval}")"
-    # [[ "$seconds_since_last_check" -lt "$interval" ]] && {
-    [[ "$seconds_since_last_check" -lt 5 ]] && {
+    interval="$($TMUX_BIN display -p "#{status-interval}")"
+    interval=$((interval + 1)) # make it slightly less to return cached data
+    [[ "$seconds_since_last_check" -lt "$interval" ]] && {
         log_it "using cache"
-        # sleep 3600
         script_exit "$(get_tmux_option "$opt_last_result" "")"
     }
 }

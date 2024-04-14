@@ -53,22 +53,23 @@ error_msg() {
 #  them here in order for assignment to follow boolean logic in caller
 #
 bool_param() {
+
     case "$1" in
 
-    "0") return 1 ;;
+    "0") b=1 ;;
 
-    "1") return 0 ;;
+    "1") b=0 ;;
 
     "yes" | "Yes" | "YES" | "true" | "True" | "TRUE")
         #  Be a nice guy and accept some common positives
         log_it "Converted incorrect positive [$1] to 1"
-        return 0
+        b=0
         ;;
 
     "no" | "No" | "NO" | "false" | "False" | "FALSE")
         #  Be a nice guy and accept some common negatives
         log_it "Converted incorrect negative [$1] to 0"
-        return 1
+        b=1
         ;;
 
     *)
@@ -77,7 +78,15 @@ bool_param() {
         ;;
 
     esac
-    return 1
+    b=1
+    [[ "$2" = "printable" ]] && {
+        if [[ "$b" = 0 ]]; then
+            echo "true"
+        else
+            echo "false"
+        fi
+    }
+    return "$b"
 }
 
 set_tmux_option() {

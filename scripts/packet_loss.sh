@@ -13,30 +13,13 @@ restart_monitor() {
     date >>"$db_restart_log" # log current time
 
     $scr_controler
-    #
-    #  Happens in the background and will take a while for the DB to be
-    #  available, so give it some time.
-    #
-    # if [[ -d /proc/ish ]]; then
-    #     #
-    #     #  iSH is an Emulated Linux env for iOS, exceptionally slow,
-    #     #  needs plenty of time to ensure db has time to startup.
-    #     #
-    #     sleep 15
-    # else
-    #     sleep 5 #  Should be enough in most cases
-    # fi
-}
-
-plugin_display() {
-    status="$1"
-    echo "${loss_prefix}${status}${loss_suffix}"
 }
 
 script_exit() {
     # report status and exit gracefully
-    status="$1"
-    [[ -n "$status" ]] && plugin_display "$status"
+    local status="$1"
+
+    [[ -n "$status" ]] && echo "${loss_prefix}${status}${loss_suffix}"
     log_it "script_exit($status)"
     exit 0
 }

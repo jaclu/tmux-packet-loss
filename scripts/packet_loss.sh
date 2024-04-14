@@ -82,7 +82,7 @@ $cache_db_polls && {
         log_it "using cache"
 
         # if calls come in really quickly, try resetting status-interval
-        ((last_check < interval / 2)) && restore_status_intervall
+        ((last_check < (interval / 2))) && restore_status_intervall
 
         script_exit "$(get_tmux_option "$opt_last_result" "")"
     }

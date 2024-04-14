@@ -14,22 +14,7 @@ restart_monitor() {
     log_it "restarting monitor"
     date >>"$db_restart_log" # log current time
 
-    nohup "$scr_controler" >/dev/null 2>&1 &
-    #
-    #  Happens in the background and will take a while, so give it some time.
-    #  This hopefully also prevents tmux from triggering another call to this.
-    #  Such a call might trigger restarts during the restart, each time aborting
-    #  the monitor setting things up in an endless loop
-    #
-    if [ -d /proc/ish ]; then
-        #
-        #  iSH is an Emulated Linux env for iOS, exceptionally slow,
-        #  needs plenty of time to ensure db has time to startup.
-        #
-        sleep 15
-    else
-        sleep 5 #  Should be enough in most cases
-    fi
+    $scr_controler
 }
 
 #===============================================================

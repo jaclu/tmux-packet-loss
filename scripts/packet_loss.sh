@@ -78,9 +78,6 @@ $cache_db_polls && {
     interval="$($TMUX_BIN display -p "#{status-interval}")"
     age_last_check="$((t_now - prev_check_time))"
 
-    # if calls come in really quickly, try resetting status-interval
-    ((age_last_check < (interval / 2))) && restore_status_intervall
-
     # make it slightly less likely to return cached data
     age_last_check=$((age_last_check + 1))
     [[ "$age_last_check" -lt "$interval" ]] && {

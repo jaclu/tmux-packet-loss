@@ -201,6 +201,7 @@ restore_status_intervall() {
     #  not sure if it is needed yet..
     #
     t="$($TMUX_BIN show-options -gv status-interval)"
+    log_it "$TMUX_BIN - setting status interval: [$t]"
     $TMUX_BIN set -g status-interval "$t"
 }
 

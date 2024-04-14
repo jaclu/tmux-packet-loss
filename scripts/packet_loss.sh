@@ -80,7 +80,10 @@ $cache_db_polls && {
     interval="$($TMUX_BIN display -p "#{status-interval}")"
     [[ "$last_check" -le "$interval" ]] && {
         log_it "using cache"
-        restore_status_intervall
+
+        # if calls come in really quickly, try resetting status-interval
+        ((last_check < interval / 2)) && restore_status_intervall
+
         script_exit "$(get_tmux_option "$opt_last_result" "")"
     }
 }

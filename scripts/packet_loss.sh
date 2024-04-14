@@ -38,7 +38,6 @@ script_exit() {
     status="$1"
     [[ -n "$status" ]] && plugin_display "$status"
     log_it "script_exit($status)"
-    pidfile_release
     exit 0
 }
 
@@ -59,11 +58,6 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 log_prefix="chk"
-
-pidfile_acquire "" || {
-    #error_msg "pid_file - is owned by [$pidfile_proc]"
-    script_exit "busy"
-}
 
 # used to indicate trends
 opt_last_value="@packet-loss_tmp_last_value"
@@ -206,4 +200,3 @@ else
 fi
 
 $cache_db_polls && set_tmux_option "$opt_last_result" "$result"
-pidfile_release ""

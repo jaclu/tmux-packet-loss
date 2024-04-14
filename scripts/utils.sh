@@ -15,7 +15,11 @@ log_it() {
     if [[ -z "$log_file" ]]; then
         return
     fi
-    printf "%s $$ %s%*s%s\n" "$(date '+%H:%M:%S')" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
+    #  shellcheck disable=SC2154
+    ses=" $(echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}')"
+    # only show session name if not default
+    [ "$ses" = " default" ] && ses=""
+    printf "%s%s $$ %s%*s%s\n" "$(date '+%H:%M:%S')" "$ses" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
 }
 
 #

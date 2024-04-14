@@ -18,7 +18,7 @@ log_it() {
     #  shellcheck disable=SC2154
     ses=" $(echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}')"
     # only show session name if not default
-    [ "$ses" = " default" ] && ses=""
+    [[ "$ses" = " default" ]] && ses=""
     printf "%s%s $$ %s%*s%s\n" "$(date '+%H:%M:%S')" "$ses" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
 }
 
@@ -189,6 +189,16 @@ show_settings() {
     log_it "last_value  [$(get_tmux_option "$opt_last_value" "$opt_last_value unset")]"
     log_it "last_result [$(get_tmux_option "$opt_last_result" "$opt_last_result unset")]"
     log_it
+}
+
+restore_status_intervall() {
+    #
+    #  Another tmux weirdity, after this plugin is loaded
+    #  status-interval is still displayed at its original value,
+    #  not sure if it is needed yet..
+    #
+    t="$($TMUX_BIN show-options -gv status-interval)"
+    $TMUX_BIN set -g status-interval "$t"
 }
 
 #===============================================================

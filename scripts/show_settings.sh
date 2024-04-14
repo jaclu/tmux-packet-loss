@@ -34,7 +34,7 @@ show_item() {
     echo "$msg"
 }
 
-echo "=====   All variables   ====="
+echo "=====   All variables session: $(get_tmux_socket)  ====="
 show_item ping_host "$ping_host" "$default_host"
 show_item ping_count "$ping_count" "$default_ping_count"
 show_item history_size "$history_size" "$default_history_size"
@@ -59,6 +59,9 @@ show_item loss_prefix "$loss_prefix" "$default_prefix"
 show_item loss_suffix "$loss_suffix" "$default_suffix"
 
 show_item hook_idx "$hook_idx" "$default_session_closed_hook"
+
+# The rest depends on a tmux session
+[[ -z "$TMUX" ]] && exit 0
 
 echo
 echo "===   temp variables stored in tmux by scripts/packet_loss.sh   ==="

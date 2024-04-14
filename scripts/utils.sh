@@ -10,7 +10,11 @@
 
 get_tmux_socket() {
     #  shellcheck disable=SC2154
-    echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
+    if [[ -n "$TMUX" ]]; then
+        echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
+    else
+        echo "standalone"
+    fi
 }
 
 #

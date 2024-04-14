@@ -84,7 +84,7 @@ $cache_db_polls && {
     # make it slightly less likely to return cached data
     age_last_check=$((age_last_check + 1))
     [[ "$age_last_check" -lt "$interval" ]] && {
-        log_it "using cache"
+        log_it "using cache age last check: $age_last_check"
         script_exit "$(get_tmux_option "$opt_last_result" "")"
     }
 }

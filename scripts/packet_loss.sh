@@ -78,7 +78,7 @@ $cache_db_polls && {
     last_check="$((t_now - prev_check_time))"
     last_check=$((last_check - 1)) # make it slightly less to return cached data
     interval="$($TMUX_BIN display -p "#{status-interval}")"
-    [[ "$last_check" -lt "$interval" ]] && {
+    [[ "$last_check" -le "$interval" ]] && {
         log_it "using cache"
         script_exit "$(get_tmux_option "$opt_last_result" "")"
     }

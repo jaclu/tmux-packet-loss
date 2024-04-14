@@ -12,8 +12,10 @@
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
-#  shellcheck source=utils.sh
-. utils.sh
+echo ">>< $D_TPL_BASE_PATH"
+exit 0
+# #  shellcheck source=utils.sh
+# . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 log_prefix="hok"
 

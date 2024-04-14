@@ -272,12 +272,10 @@ monitor_pidfile="$d_data/monitor.pid"
 #  If not found, it is set to whatever is in path, so should have no negative
 #  impact. In all calls to tmux I use $TMUX_BIN instead in the rest of this
 #  plugin.
-#  By also suplying the current socket, no risk of interfering with
-#  the wrong tmux instance
 #
-[[ -z "$TMUX_BIN" ]] && TMUX_BIN="tmux -L $(get_socket)"
+[[ -z "$TMUX_BIN" ]] && TMUX_BIN="tmux" # -L $(get_socket)"
 # ensure socket is included, in case TMUX_BIN didn't set it
-[[ -n "${TMUX_BIN##*-L*}" ]] && TMUX_BIN="$TMUX_BIN -L $(get_tmux_socket)"
+# [[ -n "${TMUX_BIN##*-L*}" ]] && TMUX_BIN="$TMUX_BIN -L $(get_tmux_socket)"
 
 #  shellcheck disable=SC2034
 cache_db_polls=true

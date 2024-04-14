@@ -1,6 +1,4 @@
-#!/bin/sh
-# shel lcheck disable=SC2154
-#
+#!/usr/bin/env bash
 #
 #   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -19,15 +17,29 @@ restart_monitor() {
     #  Happens in the background and will take a while for the DB to be
     #  available, so give it some time.
     #
-    if [ -d /proc/ish ]; then
-        #
-        #  iSH is an Emulated Linux env for iOS, exceptionally slow,
-        #  needs plenty of time to ensure db has time to startup.
-        #
-        sleep 15
-    else
-        sleep 5 #  Should be enough in most cases
-    fi
+    # if [[ -d /proc/ish ]]; then
+    #     #
+    #     #  iSH is an Emulated Linux env for iOS, exceptionally slow,
+    #     #  needs plenty of time to ensure db has time to startup.
+    #     #
+    #     sleep 15
+    # else
+    #     sleep 5 #  Should be enough in most cases
+    # fi
+}
+
+plugin_display() {
+    status="$1"
+    echo "${loss_prefix}${status}${loss_suffix}"
+}
+
+script_exit() {
+    # report status and exit gracefully
+    status="$1"
+    [[ -n "$status" ]] && plugin_display "$status"
+    log_it "script_exit($status)"
+    pidfile_release
+    exit 0
 }
 
 #===============================================================
@@ -39,7 +51,7 @@ restart_monitor() {
 #  Prevent tmux from running it every couple of seconds,
 #  convenient during debugging
 #
-# [ "$1" != "hepp" ] && exit 0
+# [[ "$1" != "hepp" ]] && exit 0
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
@@ -50,8 +62,7 @@ log_prefix="chk"
 
 pidfile_acquire "" || {
     #error_msg "pid_file - is owned by [$pidfile_proc]"
-    echo "busy"
-    exit 0
+    script_exit "busy"
 }
 
 # used to indicate trends
@@ -71,19 +82,19 @@ $cache_db_polls && {
     prev_check_time="$(get_tmux_option "$opt_last_check" 0)"
     t_now="$(date +%s)"
     seconds_since_last_check="$((t_now - prev_check_time))"
-    interval="$($TMUX_BIN display -p "#{status-interval}")"
-    [ "$seconds_since_last_check" -lt "$interval" ] && {
+    # interval="$($TMUX_BIN display -p "#{status-interval}")"
+    # [[ "$seconds_since_last_check" -lt "$interval" ]] && {
+    [[ "$seconds_since_last_check" -lt 5 ]] && {
         log_it "using cache"
-        get_tmux_option "$opt_last_result" ""
-        pidfile_release
-        exit 0
+        # sleep 3600
+        script_exit "$(get_tmux_option "$opt_last_result" "")"
     }
 }
 
 #
 #  Some sanity check, ensuring the monitor is running
 #
-if [ ! -e "$sqlite_db" ]; then
+if [[ ! -e "$sqlite_db" ]]; then
     log_it "DB missing"
 
     #
@@ -92,10 +103,11 @@ if [ ! -e "$sqlite_db" ]; then
     restart_monitor
     log_it "db missing restart is done"
 
-    [ -e "$sqlite_db" ] || {
-        error_msg "DB not found, and monitor failed to restart!"
+    [[ -e "$sqlite_db" ]] || {
+        script_exit "DB missing"
+        #error_msg "DB not found, and monitor failed to restart!"
     }
-elif [ -n "$(find "$sqlite_db" -mmin +1)" ]; then
+elif [[ -n "$(find "$sqlite_db" -mmin +1)" ]]; then
     log_it "DB is over one minute old - restarting monitor"
     #
     #  If DB is over a minute old,
@@ -103,6 +115,7 @@ elif [ -n "$(find "$sqlite_db" -mmin +1)" ]; then
     #
     restart_monitor
     log_it "no db updates restart is done"
+    script_exit "DB old"
 fi
 
 if bool_param "$is_weighted_avg"; then
@@ -136,21 +149,21 @@ current_loss="$(sqlite3 "$sqlite_db" "$sql")"
 $cache_db_polls && set_tmux_option "$opt_last_check" "$(date +%s)"
 
 result="" # indicating no losses
-[ "$current_loss" -lt "$lvl_disp" ] && current_loss=0
+[[ "$current_loss" -lt "$lvl_disp" ]] && current_loss=0
 
-if [ "$current_loss" -gt 0 ]; then
+if [[ "$current_loss" -gt 0 ]]; then
     if bool_param "$display_trend"; then
         #
         #  Calculate trend, ie change since last update
         #
         prev_loss="$(get_tmux_option "$opt_last_value" 0)"
-        if [ "$prev_loss" -ne "$current_loss" ]; then
+        if [[ "$prev_loss" -ne "$current_loss" ]]; then
             set_tmux_option "$opt_last_value" "$current_loss"
         fi
 
-        if [ "$current_loss" -gt "$prev_loss" ]; then
+        if [[ "$current_loss" -gt "$prev_loss" ]]; then
             loss_trend="+"
-        elif [ "$current_loss" -lt "$prev_loss" ]; then
+        elif [[ "$current_loss" -lt "$prev_loss" ]]; then
             loss_trend="-"
         else
             loss_trend=""
@@ -176,7 +189,7 @@ if [ "$current_loss" -gt 0 ]; then
     if bool_param "$hist_avg_display"; then
         sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER);"
         avg_loss="$(sqlite3 "$sqlite_db" "$sql")"
-        if [ ! "$avg_loss" = "0" ]; then
+        if [[ ! "$avg_loss" = "0" ]]; then
             if awk -v val="$avg_loss" -v trig_lvl="$lvl_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
                 avg_loss="#[fg=$color_crit,bg=$color_bg]$avg_loss#[default]"
             elif awk -v val="$avg_loss" -v trig_lvl="$lvl_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
@@ -185,8 +198,7 @@ if [ "$current_loss" -gt 0 ]; then
             result="${result}${hist_separator}${avg_loss}"
         fi
     fi
-
-    result="${loss_prefix}${result}${loss_suffix}"
+    plugin_display "$result"
 
     #  typically comment out the next 3 lines unless you are debugging stuff
     log_it "loss: $current_loss  avg: $avg_loss"
@@ -195,5 +207,4 @@ else
 fi
 
 $cache_db_polls && set_tmux_option "$opt_last_result" "$result"
-echo "$result"
 pidfile_release ""

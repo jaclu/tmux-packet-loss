@@ -93,7 +93,7 @@ while :; do
     #  If the output gets garbled or no output, it is handled
     #  so in that sense such error msgs can be ignored.
     #
-    output="$($ping_cmd | grep loss)" 2>/dev/null
+    output="$($ping_cmd 2>/dev/null | grep loss)"
 
     if [[ -n "$output" ]]; then
         #
@@ -135,5 +135,5 @@ while :; do
     fi
 
     #  A bit exessive in normal conditions
-    # [[ "$percent_loss" != "0"]] && log_it "stored in DB: $percent_loss"
+    # [[ "$percent_loss" != "0" ]] && log_it "stored in DB: $percent_loss"
 done

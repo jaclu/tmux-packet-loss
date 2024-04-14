@@ -17,7 +17,6 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
 log_prefix="hok"
 
-this_app="$(basename "$0")"
 ses_count="$($TMUX_BIN ls | wc -l)"
 
 if [[ "$ses_count" -eq 0 ]]; then

@@ -20,6 +20,8 @@ log_prefix="hok"
 this_app="$(basename "$0")"
 ses_count="$($TMUX_BIN ls | wc -l)"
 
+log_it "$this_app - ses_count: [$ses_count]"
+log_it "$TMUX"
 log_it "$this_app - session count [$ses_count]"
 
 if [[ "$ses_count" -eq 0 ]]; then

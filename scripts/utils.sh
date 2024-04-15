@@ -57,24 +57,29 @@ error_msg() {
 #  more relatable for users 1 is yes and 0 is no, so we need to switch
 #  them here in order for assignment to follow boolean logic in caller
 #
+
+bool_printable() {
+    bool_param "$1" && echo "true" || echo "false"
+}
+
 bool_param() {
 
     case "$1" in
 
-    "0") b=1 ;;
+    "0") return 1 ;;
 
-    "1") b=0 ;;
+    "1") return 0 ;;
 
     "yes" | "Yes" | "YES" | "true" | "True" | "TRUE")
         #  Be a nice guy and accept some common positives
         log_it "Converted incorrect positive [$1] to 1"
-        b=0
+        return 0
         ;;
 
     "no" | "No" | "NO" | "false" | "False" | "FALSE")
         #  Be a nice guy and accept some common negatives
         log_it "Converted incorrect negative [$1] to 0"
-        b=1
+        return 1
         ;;
 
     *)
@@ -83,15 +88,8 @@ bool_param() {
         ;;
 
     esac
-    b=1
-    [[ "$2" = "printable" ]] && {
-        if [[ "$b" = 0 ]]; then
-            echo "true"
-        else
-            echo "false"
-        fi
-    }
-    return "$b"
+
+    return 1
 }
 
 set_tmux_option() {
@@ -129,29 +127,29 @@ get_tmux_option() {
 }
 
 get_settings() {
-    ping_host="$(get_tmux_option "@packet-loss-ping_host" "$default_host")"
+    ping_host="$(get_tmux_option "@packet-loss-ping_host" "$default_ping_host")"
     ping_count="$(get_tmux_option "@packet-loss-ping_count" "$default_ping_count")"
     history_size="$(get_tmux_option "@packet-loss-history_size" "$default_history_size")"
 
-    is_weighted_avg="$(get_tmux_option "@packet-loss-weighted_average" "$default_weighted_average")"
+    weighted_average="$(get_tmux_option "@packet-loss-weighted_average" "$default_weighted_average")"
     display_trend="$(get_tmux_option "@packet-loss-display_trend" "$default_display_trend")"
 
-    lvl_disp="$(get_tmux_option "@packet-loss-level_disp" "$default_lvl_display")"
-    lvl_alert="$(get_tmux_option "@packet-loss-level_alert" "$default_lvl_alert")"
-    lvl_crit="$(get_tmux_option "@packet-loss-level_crit" "$default_lvl_crit")"
+    level_disp="$(get_tmux_option "@packet-loss-level_disp" "$default_level_disp")"
+    level_alert="$(get_tmux_option "@packet-loss-level_alert" "$default_level_alert")"
+    level_crit="$(get_tmux_option "@packet-loss-level_crit" "$default_level_crit")"
 
     hist_avg_display="$(get_tmux_option "@packet-loss-hist_avg_display" "$default_hist_avg_display")"
-    hist_stat_mins="$(get_tmux_option "@packet-loss-hist_avg_minutes" "$default_hist_avg_minutes")"
-    hist_separator="$(get_tmux_option "@packet-loss-hist_separator" "$default_hist_avg_separator")"
+    hist_avg_minutes="$(get_tmux_option "@packet-loss-hist_avg_minutes" "$default_hist_avg_minutes")"
+    hist_separator="$(get_tmux_option "@packet-loss-hist_separator" "$default_hist_separator")"
 
     color_alert="$(get_tmux_option "@packet-loss-color_alert" "$default_color_alert")"
     color_crit="$(get_tmux_option "@packet-loss-color_crit" "$default_color_crit")"
     color_bg="$(get_tmux_option "@packet-loss-color_bg" "$default_color_bg")"
 
-    loss_prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
-    loss_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
+    prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
+    suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
 
-    hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_session_closed_hook")"
+    hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_hook_idx")"
 }
 
 #===============================================================
@@ -235,26 +233,28 @@ cache_db_polls=true
 #  shellcheck disable=SC2034
 db_version=10
 
-default_host="8.8.4.4" #  Default host to ping
-default_ping_count=6   #  how often to report packet loss statistics
-default_history_size=6 #  how many ping results to keep in the primary table
+default_ping_host="8.8.4.4" #  Default host to ping
+default_ping_count=6        #  how often to report packet loss statistics
+default_history_size=6      #  how many ping results to keep in the primary table
 
 default_weighted_average=1 #  Use weighted average over averaging all data points
-default_display_trend=1    #  display ^/v prefix if value is increasing/decreasing
-default_lvl_display=1      #  display loss if this or higher
-default_lvl_alert=17       #  this or higher triggers alert color
-default_lvl_crit=40        #  this or higher triggers critical color
+default_display_trend=0    #  display ^/v prefix if value is increasing/decreasing
 
-default_hist_avg_display=0     #  Display long term average
-default_hist_avg_minutes=30    #  Minutes to keep historical average
-default_hist_avg_separator='~' #  Separaor between current and hist data
+default_level_disp=1   #  display loss if this or higher
+default_level_alert=18 #  this or higher triggers alert color
+default_level_crit=40  #  this or higher triggers critical color
+
+default_hist_avg_display=0  #  Display long term average
+default_hist_avg_minutes=30 #  Minutes to keep historical average
+default_hist_separator='~'  #  Separaor between current and hist data
 
 default_color_alert="colour226" # bright yellow
 default_color_crit="colour196"  # bright red
 default_color_bg='black'        #  only used when displaying alert/crit
+
 default_prefix=' pkt loss: '
 default_suffix=' '
 
-default_session_closed_hook=41 #  array idx for session-closed hook
+default_hook_idx=41 #  array idx for session-closed hook
 
 get_settings

@@ -22,8 +22,12 @@ show_item() {
     local bool="$4"
 
     [[ "$bool" = "b" ]] && {
-        value="$(bool_param "$value" printable)"
-        default="$(bool_param "$default" printable)"
+
+        _value="$(bool_printable "$value")"
+        _default="$(bool_printable "$default")"
+        # echo "value [$value] as [$_value] - default [$default] as [$_default]"
+        value="$_value"
+        default="$_default"
     }
     msg="$label [$value]"
     if [[ "$value" = "$default" ]]; then
@@ -35,30 +39,30 @@ show_item() {
 }
 
 echo "=====   All variables session: $(get_tmux_socket)  ====="
-show_item ping_host "$ping_host" "$default_host"
+show_item ping_host "$ping_host" "$default_ping_host"
 show_item ping_count "$ping_count" "$default_ping_count"
 show_item history_size "$history_size" "$default_history_size"
 
-show_item is_weighted_avg "$is_weighted_avg" "$default_weighted_average" b
+show_item weighted_average "$weighted_average" "$default_weighted_average" b
 show_item display_trend "$display_trend" "$default_display_trend" b
 
-show_item lvl_disp "$lvl_disp" "$default_lvl_display"
-show_item lvl_alert "$lvl_alert" "$default_lvl_alert"
-show_item lvl_crit "$lvl_crit" "$default_lvl_crit"
+show_item level_disp "$level_disp" "$default_level_disp"
+show_item level_alert "$level_alert" "$default_level_alert"
+show_item level_crit "$level_crit" "$default_level_crit"
 
 show_item hist_avg_display "$hist_avg_display" "$default_hist_avg_display" b
 
-show_item hist_stat_mins "$hist_stat_mins" "$default_hist_avg_minutes"
-show_item hist_separator "$hist_separator" "$default_hist_avg_separator"
+show_item hist_avg_minutes "$hist_avg_minutes" "$default_hist_avg_minutes"
+show_item hist_separator "$hist_separator" "$default_hist_separator"
 
 show_item color_alert "$color_alert" "$default_color_alert"
 show_item color_crit "$color_crit" "$default_color_crit"
 show_item color_bg "$color_bg" "$default_color_bg"
 
-show_item loss_prefix "$loss_prefix" "$default_prefix"
-show_item loss_suffix "$loss_suffix" "$default_suffix"
+show_item prefix "$prefix" "$default_prefix"
+show_item suffix "$suffix" "$default_suffix"
 
-show_item hook_idx "$hook_idx" "$default_session_closed_hook"
+show_item hook_idx "$hook_idx" "$default_hook_idx"
 
 # The rest depends on a tmux session
 [[ -z "$TMUX" ]] && exit 0

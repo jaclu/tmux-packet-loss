@@ -56,12 +56,12 @@ if ! command -v sqlite3 >/dev/null 2>&1; then
 fi
 
 #
-#  Really slow systems like iSH tends to crash if the plugin init
-#  script takes to long to complete, dont know why...
-#  Since the check script scripts/packet_loss.sh starts the backend
-#  if need-be, simplest for now is to just not start it here
+#  stop any running monitor instances
+#  create DB if needed
+#  update triggers baesd on tmux plgin config
+#  start monitoring
 #
-# $scr_controler # create DB if needed & start monitoring
+$scr_controler 
 
 #
 #  Match tag with polling script

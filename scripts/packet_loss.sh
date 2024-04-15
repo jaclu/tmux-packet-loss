@@ -18,9 +18,19 @@ restart_monitor() {
 script_exit() {
     # report status and exit gracefully
     local status="$1"
+    local log_prefix="$2"
 
-    log_it "result [$status]"
-    [[ -n "$status" ]] && echo "${loss_prefix}${status}${loss_suffix}"
+    if [[ -n "$log_prefix" ]]; then
+        log_it "${log_prefix}result [$status]"
+    else
+        log_it "result [$status]"
+        # log_it "PPID [$PPID]  result [$status]"
+    fi
+    if [[ -n "$status" ]]; then
+        echo "${prefix}${status}${suffix}"
+    else
+        echo
+    fi
     exit 0
 }
 
@@ -64,8 +74,8 @@ $cache_db_polls && {
     # make it slightly less likely to return cached data
     age_last_check=$((age_last_check + 1))
     [[ "$age_last_check" -lt "$interval" ]] && {
-        log_it "using cache age last check: $age_last_check"
-        script_exit "$(get_tmux_option "$opt_last_result" "")"
+        script_exit "$(get_tmux_option "$opt_last_result" "")" \
+            "cache age ${age_last_check} - "
     }
 }
 
@@ -96,7 +106,7 @@ elif [[ -n "$(find "$sqlite_db" -mmin +1)" ]]; then
     script_exit "DB old"
 fi
 
-if bool_param "$is_weighted_avg"; then
+if bool_param "$weighted_average"; then
     # weighted_average=1
     #
     #  To give loss a declining history weighting, it is displayed as the largest of:
@@ -127,7 +137,7 @@ current_loss="$(sqlite3 "$sqlite_db" "$sql")"
 $cache_db_polls && set_tmux_option "$opt_last_check" "$(date +%s)"
 
 result="" # indicating no losses
-[[ "$current_loss" -lt "$lvl_disp" ]] && current_loss=0
+[[ "$current_loss" -lt "$level_disp" ]] && current_loss=0
 
 if [[ "$current_loss" -gt 0 ]]; then
     if bool_param "$display_trend"; then
@@ -153,9 +163,9 @@ if [[ "$current_loss" -gt 0 ]]; then
     #
     #  If loss is over trigger levels, display in appropriate color
     #
-    if awk -v val="$current_loss" -v trig_lvl="$lvl_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
+    if awk -v val="$current_loss" -v trig_lvl="$level_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
         result="#[fg=$color_crit,bg=$color_bg]$loss_trend$current_loss#[default]"
-    elif awk -v val="$current_loss" -v trig_lvl="$lvl_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
+    elif awk -v val="$current_loss" -v trig_lvl="$level_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
         result="#[fg=$color_alert,bg=$color_bg]$loss_trend$current_loss#[default]"
     else
         result="$loss_trend$current_loss"
@@ -168,9 +178,9 @@ if [[ "$current_loss" -gt 0 ]]; then
         sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER);"
         avg_loss="$(sqlite3 "$sqlite_db" "$sql")"
         if [[ ! "$avg_loss" = "0" ]]; then
-            if awk -v val="$avg_loss" -v trig_lvl="$lvl_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
+            if awk -v val="$avg_loss" -v trig_lvl="$level_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
                 avg_loss="#[fg=$color_crit,bg=$color_bg]$avg_loss#[default]"
-            elif awk -v val="$avg_loss" -v trig_lvl="$lvl_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
+            elif awk -v val="$avg_loss" -v trig_lvl="$level_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
                 avg_loss="#[fg=$color_alert,bg=$color_bg]$avg_loss#[default]"
             fi
             result="${result}${hist_separator}${avg_loss}"

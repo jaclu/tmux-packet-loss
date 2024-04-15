@@ -72,7 +72,7 @@ update_triggers() {
         DELETE FROM t_1_min WHERE time_stamp <= datetime('now', '-1 minutes');
 
         -- keep statistics table within specified size
-        DELETE FROM t_stats WHERE time_stamp <= datetime('now', '-$hist_stat_mins minutes');
+        DELETE FROM t_stats WHERE time_stamp <= datetime('now', '-$hist_avg_minutes minutes');
     END;
     "
     sqlite3 "$sqlite_db" "$sql"

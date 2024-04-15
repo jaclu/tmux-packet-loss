@@ -145,7 +145,7 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 ||||
 | @packet-loss-hist_avg_display | 0             | 1 = Also show historical average when current losses are displayed |
 | @packet-loss-hist_avg_minutes | 30            | Minutes to keep historical average |
-| @packet-loss-hist_separator   | '~'           | Separator current/historical losses. |
+| @packet-loss-hist_separator   | '\~'           | Separator current/historical losses. |
 ||||
 | @packet-loss-color_alert      | colour226     | (bright yellow) Use this color if loss is at or above @packet-loss-level_alert |
 | @packet-loss-color_crit       | colour196     | (bright red) Use this color if loss is at or above @packet-loss-level_crit |

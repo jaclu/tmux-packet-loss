@@ -7,8 +7,9 @@
 #
 #   This can be called any number of times, if db exist and is of the
 #   current $db_version, db itself is not touched.
+#
 #   The triggers are replaced on each run, to ensure they use current
-#   settings.
+#   tmux settings.
 #
 
 create_db() {

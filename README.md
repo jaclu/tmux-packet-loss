@@ -22,22 +22,22 @@ Partial status bar config, this plugins output takes no space when under
 
 ### Loss levels
 
-| Display | With hist avg | Status
-| - | - | -
-| ![no_loss  ](https://user-images.githubusercontent.com/5046648/215356290-3155afac-c14f-4f92-9a9a-13752e396410.png) | ![no_loss_h](https://user-images.githubusercontent.com/5046648/215356290-3155afac-c14f-4f92-9a9a-13752e396410.png)   | under threshold
-| ![lvl_low  ](https://user-images.githubusercontent.com/5046648/215364078-e139daf0-d224-4275-afe2-6f3894420630.png) | ![lvl_low_h](https://user-images.githubusercontent.com/5046648/215363685-eaf8bc66-44f6-461b-83f1-0b3c16e76869.png)   | low level losses
-| ![lvl_alert](https://user-images.githubusercontent.com/5046648/215363408-4b043df3-fcd3-46d7-a3fa-6c3698806955.png) | ![lvl_alert_h](https://user-images.githubusercontent.com/5046648/215363791-c1ca0731-57d5-4f34-a580-896b22fbf76b.png) | alert level losses
-| ![lvl_crit ](https://user-images.githubusercontent.com/5046648/215363311-0c925d11-c015-45df-8143-460d2f9d9ec8.png) | ![lvl_crit_h](https://user-images.githubusercontent.com/5046648/215363877-01509d06-f58e-442a-9ebf-06b80688dd7c.png)  | critical level losses
+| Display | With hist avg | Status|
+| - | - | - |
+| ![no_loss  ](https://user-images.githubusercontent.com/5046648/215356290-3155afac-c14f-4f92-9a9a-13752e396410.png) | ![no_loss_h](https://user-images.githubusercontent.com/5046648/215356290-3155afac-c14f-4f92-9a9a-13752e396410.png)   | under threshold |
+| ![lvl_low  ](https://user-images.githubusercontent.com/5046648/215364078-e139daf0-d224-4275-afe2-6f3894420630.png) | ![lvl_low_h](https://user-images.githubusercontent.com/5046648/215363685-eaf8bc66-44f6-461b-83f1-0b3c16e76869.png)   | low level losses |
+| ![level_alert](https://user-images.githubusercontent.com/5046648/215363408-4b043df3-fcd3-46d7-a3fa-6c3698806955.png) | ![level_alert_h](https://user-images.githubusercontent.com/5046648/215363791-c1ca0731-57d5-4f34-a580-896b22fbf76b.png) | alert level losses |
+| ![level_crit ](https://user-images.githubusercontent.com/5046648/215363311-0c925d11-c015-45df-8143-460d2f9d9ec8.png) | ![level_crit_h](https://user-images.githubusercontent.com/5046648/215363877-01509d06-f58e-442a-9ebf-06b80688dd7c.png)  | critical level losses |
 
 ### Trends
 
 If @packet-loss-display_trend is 1, change since previous check is indicated with a prefix character
 
-| Display | Status
-| - | -
-|![incr  ](https://user-images.githubusercontent.com/5046648/226140494-1715b5fa-61fe-4583-a9d4-d0c94c5ff63d.png) | Increasing
-|![stable](https://user-images.githubusercontent.com/5046648/226140512-fdd824bc-fcd0-4d5e-b960-eb5ec043e190.png) | Stable
-|![decr  ](https://user-images.githubusercontent.com/5046648/226140473-94032422-c028-4ffd-96ef-da8aade23460.png) | Decreasing
+| Display | Status |
+| - | - |
+|![incr  ](https://user-images.githubusercontent.com/5046648/226140494-1715b5fa-61fe-4583-a9d4-d0c94c5ff63d.png) | Increasing |
+|![stable](https://user-images.githubusercontent.com/5046648/226140512-fdd824bc-fcd0-4d5e-b960-eb5ec043e190.png) | Stable     |
+|![decr  ](https://user-images.githubusercontent.com/5046648/226140473-94032422-c028-4ffd-96ef-da8aade23460.png) | Decreasing |
 
 ## Operation
 
@@ -66,10 +66,10 @@ healing.
 If the monitor experiences errors, packet loss of 101% or higher are
 reported.
 
-| Result | Explanation
-| -|-
-| 101 | Failed to find % loss in ping output. Temporary issue.<br /> Some pings don't report loss % if there is no connection to host.<br> They just report `ping: sendto: Host is unreachable`
-| 201 | Could not parse output. This condition is unlikely to self correct.<br /> If you file the output of `ping -c 5 8.8.4.4` as an Issue and also mention what Operating System this is and any other factors you think are relevant, I will try to fix it by including parsing of that output format.
+| Result | Explanation |
+| -|- |
+| 101 | Failed to find % loss in ping output. Temporary issue.  Some pings don't report loss % if there is no connection to host.<br> They just report `ping: sendto: Host is unreachable` |
+| 201 | Could not parse output. This condition is unlikely to self correct.<br /> If you file the output of `ping -c 5 8.8.4.4` as an Issue and also mention what Operating System this is and any other factors you think are relevant, I will try to fix it by including parsing of that output format. |
 
 ## Dependencies
 
@@ -77,11 +77,11 @@ reported.
 
 ## Tmux Compatibility
 
-| Version    | Notice
-|-|-
-| 3.0 >=     | Background process is shut down when tmux exits using a session-closed hook with an array suffix.
-| 2.4 - 2.9  | Will shut down background process, but since hooks doesn't support arrays, binding to session-closed might interfere with other stuff using the same hook.
-| 1.9 - 2.3  | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add something like `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux. If you run tmux most of the time, you can just leave the process running.
+| Version    | Notice |
+|-|-|
+| 3.0 >=     | Background process is shut down when tmux exits using a session-closed hook with an array suffix. |
+| 2.4 - 2.9  | Will shut down background process, but since hooks doesn't support arrays, binding to session-closed might interfere with other stuff using the same hook. |
+| 1.9 - 2.3  | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add something like `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux. If you run tmux most of the time, you can just leave the process running. |
 
 ## Verified to work in the following environments
 
@@ -125,36 +125,36 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 
 ## Supported Format Strings
 
-| Code           | Action
-| -|-
-| `#{packet_loss}` | Displays average packet loss % if at or above @packet-loss-level_disp
+| Code           | Action |
+|-|-|
+| `#{packet_loss}` | Displays average packet loss % if at or above @packet-loss-level_disp |
 
 ## Variables
 
-| Variable                      | Default       | Purpose
-| -|-|-
-| @packet-loss-ping_host        | 8.8.4.4       | What host to ping
-| @packet-loss-ping_count       | 6             | This many pings per statistics update.
-| @packet-loss-history_size     | 6             | How many results should be kept when calculating average loss.<br>I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For a longer-term historical overview it is probably better to use @packet-loss-hist_avg_display. 6 pings per check takes 5 secs so 6 here means 5 * 6 thus 30 seconds of loss history
-| | |
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points
-| @packet-loss-display_trend    | 0             | 1 = Display trend with + prefix if level is higher than last displayed and - prefix if lower<br>0 = Do not display trend
-| @packet-loss-level_disp       | 1             | Display loss if this or higher level
-| @packet-loss-level_alert      | 18            | Color loss with color_alert if at or above this level. Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers alert, even initially.
-| @packet-loss-level_crit       | 40            | Color loss with color_crit if at or above this level
-|||
-| @packet-loss-hist_avg_display | 0             | 1 = Also show historical average when current losses are displayed
-| @packet-loss-hist_avg_minutes | 30            | Minutes to keep historical average
-| @packet-loss-hist_separator   | '~'           | Separator current/historical losses.
-||
-| @packet-loss-color_alert      | colour226     | (bright yellow) Use this color if loss is at or above @packet-loss-level_alert
-| @packet-loss-color_crit       | colour196     | (bright red) Use this color if loss is at or above @packet-loss-level_crit
-| @packet-loss-color_bg         | black         | bg color when alert/crit colors are used in display
-||
-| @packet-loss-prefix           | ' pkt loss: ' | Prefix for status when displayed
-| @packet-loss-suffix           | ' '           | Suffix for status when displayed
-||
-| @packet-loss-hook_idx         | 41            | Index for session-closed hook, only needs changing if it collides with other usages of session-closed using this index, check with `tmux show-hooks -g \| grep session-closed`
+| Variable                      | Default       | Purpose |
+|-|-|-|
+| @packet-loss-ping_host        | 8.8.4.4       | What host to ping |
+| @packet-loss-ping_count       | 6             | This many pings per statistics update. |
+| @packet-loss-history_size     | 6             | How many results should be kept when calculating average loss.<br>I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For a longer-term historical overview it is probably better to use @packet-loss-hist_avg_display. 6 pings per check takes 5 secs so 6 here means 5 * 6 thus 30 seconds of loss history |
+||||
+| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points<br> 0 = Average over all data points |
+| @packet-loss-display_trend    | 0             | 1 = Display trend with + prefix if level is higher than last displayed and - prefix if lower<br>0 = Do not display trend |
+| @packet-loss-level_disp       | 1             | Display loss if this or higher level |
+| @packet-loss-level_alert      | 18            | Color loss with color_alert if at or above this level. Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers alert, even initially. |
+| @packet-loss-level_crit       | 40            | Color loss with color_crit if at or above this level |
+||||
+| @packet-loss-hist_avg_display | 0             | 1 = Also show historical average when current losses are displayed |
+| @packet-loss-hist_avg_minutes | 30            | Minutes to keep historical average |
+| @packet-loss-hist_separator   | '~'           | Separator current/historical losses. |
+||||
+| @packet-loss-color_alert      | colour226     | (bright yellow) Use this color if loss is at or above @packet-loss-level_alert |
+| @packet-loss-color_crit       | colour196     | (bright red) Use this color if loss is at or above @packet-loss-level_crit |
+| @packet-loss-color_bg         | black         | bg color when alert/crit colors are used in display |
+||||
+| @packet-loss-prefix           | ' pkt loss: ' | Prefix for status when displayed |
+| @packet-loss-suffix           | ' '           | Suffix for status when displayed |
+||||
+| @packet-loss-hook_idx         | 41            | Index for session-closed hook, only needs changing if it collides with other usages of session-closed using this index, check with `tmux show-hooks -g \| grep session-closed` |
 
 ## My config
 
@@ -220,11 +220,11 @@ are displayed as the largest of:
 If set to 0, average of all samples is allways displayed.
 
 There are three tables in the DB
-| table | Description
-| -|-
-| t_loss | Contains the current loss statuses
-| t_1_min   | Keeps all samples from the last minute, in order to feed one minute averages to the t_stats table
-| t_stats  | Keeps one minute averages for the last @packet-loss-hist_avg_minutes minutes
+| table | Description |
+| -|- |
+| t_loss | Contains the current loss statuses |
+| t_1_min   | Keeps all samples from the last minute, in order to feed one minute averages to the t_stats table |
+| t_stats  | Keeps one minute averages for the last @packet-loss-hist_avg_minutes minutes |
 
 You can inspect the DB to get current losses by running:
 

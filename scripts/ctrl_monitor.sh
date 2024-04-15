@@ -56,8 +56,9 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 . "$D_TPL_BASE_PATH/scripts/vers_check.sh"
 
 log_prefix="ctr"
+killed_monitor=false
 
-pidfile_acquire "" || error_msg "pid_file - is owned by [$pidfile_proc]"
+pidfile_acquire "" || error_msg "pid_file - is owned by process [$pidfile_proc]"
 log_it "aquire successfull"
 log_it
 db_monitor="$(basename "$scr_monitor")"
@@ -66,10 +67,12 @@ db_monitor="$(basename "$scr_monitor")"
 pidfile_is_live "$monitor_pidfile" && {
     log_it "Will kill [$pidfile_proc] $db_monitor"
     kill "$pidfile_proc"
-    sleep 2
+    sleep 1
     pidfile_is_live "$monitor_pidfile" && {
         error_msg "Failed to kill [$pidfile_proc]"
     }
+    log_it "$db_monitor is shutdown"
+    killed_monitor=true
 }
 rm -f "$monitor_pidfile"
 
@@ -78,8 +81,11 @@ hook_handler clear
 case "$1" in
 
 "stop")
-    log_it "$db_monitor is shutdown"
-    log_it
+    if $killed_monitor; then
+        echo "terminated $scr_monitor"
+    else
+        echo "Did not find any running instances of $scr_monitor"
+    fi
     pidfile_release
     exit 0
     ;;

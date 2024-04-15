@@ -47,17 +47,20 @@ script_exit() {
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 
-# shellcheck source=utils.sh
+#  shellcheck source=utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 log_prefix="chk"
 
-# used to indicate trends
-opt_last_value="@packet-loss_tmp_last_value"
-
-# for caching
+#  for caching
 opt_last_check="@packet-loss_tmp_last_check"
 opt_last_result="@packet-loss_tmp_last_result"
+
+#
+#  Used to indicate trends, unlike opt_last_result above,
+#  this only uses the numerical loss value.
+#
+opt_last_value="@packet-loss_tmp_last_value"
 
 #
 #  This is called once per active tmux session, so if multiple sessions

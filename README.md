@@ -54,8 +54,7 @@ the monitor background process hasn't been updated for a minute,
 the monitor is restarted, So an accidental stop of the monitor 
 should in all normal cases be  self-healing.
 
-If the monitor experiences errors, packet loss of 101% or higher are
-reported.
+If the monitor experiences errors, packet loss of above 100% is reported.
 
 | Result | Explanation |
 | -|- |
@@ -72,7 +71,7 @@ reported.
 |-|-|
 | 3.0 >=     | The Background process is shut down when tmux exits using a session-closed hook with an array suffix. |
 | 2.4 - 2.9  | Will shut down the background process, but since hooks don't support arrays, binding to session-closed might interfere with other stuff using the same hook. |
-| 1.9 - 2.3  | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add something like `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux. If you run tmux most of the time, you can just leave the process running. |
+| 1.9 - 2.3  | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add something like `~/.tmux/plugins/tmux-packet-loss/scripts/ctrl_monitor.sh stop` to a script starting tmux. If you run tmux most of the time, you can just leave the process running. |
 
 ## Verified to work in the following environments
 
@@ -129,7 +128,7 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 | @packet-loss-history_size     | 6             | How many results should be kept when calculating average loss<br> 6 pings per check take 5 seconds so 6 here means 5 * 6 thus 30 seconds of loss history<br> I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average.<br> For a longer-term historical overview, it is probably better to use `@packet-loss-hist_avg_display` |
 ||||
 | @packet-loss-weighted_average | yes             | yes = Use weighted average focusing on the latest data points<br> no = Average over all data points |
-| @packet-loss-display_trend    | no            | yes = Display trend with + prefix if the level is higher than last displayed and - prefix if lower<br> no = Do not display trend |
+| @packet-loss-display_trend    | no            | yes = Display trend with + prefix if the level is higher than the last gathered and - prefix if lower<br> no = Do not display trend |
 | @packet-loss-level_disp       | 1             | Display loss if this or higher level |
 | @packet-loss-level_alert      | 18            | Color loss with color_alert if at or above this level.<br> Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers an alert, even initially. |
 | @packet-loss-level_crit       | 40            | Color loss with color_crit if at or above this level |
@@ -151,6 +150,7 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 
 ```tmux
 set -g @packet-loss-display_trend     yes
+set -g @packet-loss-hist_avg_display  yes
 
 set -g @packet-loss-color_alert colour21
 set -g @packet-loss-color_bg    colour226
@@ -215,6 +215,21 @@ There are three tables in the DB
 | t_stats  | Keeps one-minute averages for the last @packet-loss-hist_avg_minutes minutes |
 
 Each table contains two fields, time_stamp, and value. The time_stamp field is only used to purge old data.
+
+If you want to examine the plugin displaying losses you can pause the monitor and 
+feed the DB with fake losses like this:
+
+```bash
+./scripts/ctrl_monitor.sh stop
+```
+
+Then run this a suitable number of times, adjusting the loss level
+
+```bash
+sqlite3 data/packet_loss.sqlite "INSERT INTO t_loss (loss) VALUES (50)"
+```
+
+The monitor will be automatically restarted one minute after the last update
 
 ## Contributing
 

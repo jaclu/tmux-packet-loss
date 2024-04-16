@@ -15,6 +15,11 @@ hook_handler() {
     local tmux_vers
     local hook_name
 
+    [[ "$hook_idx" = "-1" ]] && {
+        log_it "session-closed hook not used, due to hook_idx=-1"
+        return
+    }
+
     tmux_vers="$($TMUX_BIN -V | cut -d' ' -f2)"
 
     log_it "hook_handler($action) - current tmux vers: $tmux_vers"

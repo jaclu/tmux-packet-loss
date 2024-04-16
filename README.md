@@ -154,6 +154,8 @@ To obtain a clearer picture of the current situation, consider adjusting the pin
 
 However, be cautious not to exceed a certain limit, as a higher ping count prolongs the time taken for each test. This delay may render the reported data irrelevant to the current link status, particularly if your focus is on real-time monitoring.
 
+For longer term averages it is better to use @packet-loss-hist_avg_display
+
 Additionally, it's advisable to review and potentially adjust the `status-interval` setting to align with your reporting needs. Ensuring that the update rate for this plugin in the status bar remains relevant enhances the effectiveness of your monitoring system.
 
 Given that ping is instantaneous, consider setting the `status-interval` to one lower than `@packet-loss-ping_count`. This adjustment synchronizes the sampling and reporting processes more effectively, providing timely and accurate updates.

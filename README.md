@@ -1,6 +1,6 @@
 # Tmux-Packet-Loss
 
-Tmux-Packet-Loss is a plugin for Tmux that displays the percentage of packet loss on your connection. It calculates the loss level as a weighted average by default, giving more emphasis to recent checks. 
+Tmux-Packet-Loss is a plugin for Tmux that displays the percentage of packet loss on your connection. It calculates the loss level as a weighted average by default, giving more emphasis to recent checks.
 
 ## Recent changes
 
@@ -80,9 +80,9 @@ Tmux-Packet-Loss has been tested and verified to work in the following environme
 
 Add the plugin to the list of TPM plugins in `.tmux.conf`:
 
-\`\`\`tmux
+```tmux
 set -g @plugin 'jaclu/tmux-packet-loss'
-\`\`\`
+```
 
 Hit `prefix + I` to fetch the plugin and source it. That's it!
 
@@ -90,15 +90,15 @@ Hit `prefix + I` to fetch the plugin and source it. That's it!
 
 Clone the repository:
 
-\`\`\`bash
+```bash
 git clone https://github.com/jaclu/tmux-packet-loss.git ~/clone/path
-\`\`\`
+```
 
 Add this line to the bottom of `.tmux.conf`:
 
-\`\`\`tmux
+```tmux
 run-shell ~/clone/path/packet-loss.tmux
-\`\`\`
+```
 
 Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 
@@ -134,7 +134,6 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 | @packet-loss-suffix           | ' '           | Suffix for status when displayed. |
 |                               |               | |
 | @packet-loss-hook_idx         | 41            | Index for session-closed hook. Only change if it collides with other usages of session-closed using this index. Check with `tmux show-hooks -g \| grep session-closed`.<br>If you do not want to use session-closed hook - set this to -1 |
-
 
 ## My config
 
@@ -213,4 +212,4 @@ The best way to send feedback is to file an issue at tmux-packet-loss/issues
 
 #### License
 
-[MIT](LICENSE.md)
+[MIT](LICENSE)

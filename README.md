@@ -1,24 +1,23 @@
 # Tmux-Packet-Loss
 
-Displays % packet loss to the selected host, default is to use weighted
+Displays % packet loss to the selected host, the default is to use weighted
 average, giving more current checks greater emphasis.
 
 ## Recent changes
 
 - Updated section My config
-- Esure folder data exist before inspecting it
+- Ensure folder data exists before inspecting it
 - General cleanup
 - Added missing quotes for awk
 - Simplified statistics
 
 ## Screenshots
 
-Be aware this uses my compact prefix & sufix settings!
+Be aware this uses my compact prefix & suffix settings! Partial status bar config `#{battery_smart}#{packet_loss}%a %h-%d %H:%M`
 
-Partial status bar config, this plugins output takes no space when under
-@packet-loss-level_disp
+Plugin output takes no space when under @packet-loss-level_disp level
 
-... #{battery_smart}#{packet_loss}%a %h-%d %H:%M ...
+
 
 ### Loss levels
 
@@ -48,7 +47,7 @@ If @packet-loss-hist_avg_display is 1, then when losses are displayed,
 the historical average losses are also displayed.
 
 This plugin runs a background process using repeated runs of ping to
-determine % package loss. Loss level is calculated as a weighted average
+determine % package loss. The loss level is calculated as a weighted average
 of the stored data points, making the latest checks stand out.
 Past the decline point, the average of all samples is used.
 
@@ -68,8 +67,8 @@ reported.
 
 | Result | Explanation |
 | -|- |
-| 101 | Failed to find % loss in ping output. Temporary issue.  Some pings don't report loss % if there is no connection to host. They just report `ping: sendto: Host is unreachable` |
-| 201 | Could not parse output. This condition is unlikely to self correct.  If you file the output of `ping -c 5 8.8.4.4` as an Issue and also mention what Operating System this is and any other factors you think are relevant, I will try to fix it by including parsing of that output format. |
+| 101 | Failed to find % loss in ping output. Temporary issue.  Some pings don't report loss % if there is no connection to the host. They just report `ping: sendto: Host is unreachable` |
+| 201 | Could not parse output. This condition is unlikely to self-correct.  If you file the output of `ping -c 5 8.8.4.4` as an Issue and also mention what Operating System this is and any other factors you think are relevant, I will try to fix it by including parsing of that output format. |
 
 ## Dependencies
 
@@ -79,8 +78,8 @@ reported.
 
 | Version    | Notice |
 |-|-|
-| 3.0 >=     | Background process is shut down when tmux exits using a session-closed hook with an array suffix. |
-| 2.4 - 2.9  | Will shut down background process, but since hooks doesn't support arrays, binding to session-closed might interfere with other stuff using the same hook. |
+| 3.0 >=     | The Background process is shut down when tmux exits using a session-closed hook with an array suffix. |
+| 2.4 - 2.9  | Will shut down the background process, but since hooks don't support arrays, binding to session-closed might interfere with other stuff using the same hook. |
 | 1.9 - 2.3  | session-closed hook not available. If you want to kill the background monitoring process after tmux shutdown, you need to add something like `~/.tmux/plugins/tmux-packet-loss/packet-loss.tmux stop` to a script starting tmux. If you run tmux most of the time, you can just leave the process running. |
 
 ## Verified to work in the following environments
@@ -135,20 +134,20 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 |-|-|-|
 | @packet-loss-ping_host        | 8.8.4.4       | What host to ping |
 | @packet-loss-ping_count       | 6             | This many pings per statistics update. |
-| @packet-loss-history_size     | 6             | How many results should be kept when calculating average loss  I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For a longer-term historical overview it is probably better to use @packet-loss-hist_avg_display. 6 pings per check takes 5 secs so 6 here means 5 * 6 thus 30 seconds of loss history |
+| @packet-loss-history_size     | 6             | How many results should be kept when calculating average loss  I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For a longer-term historical overview, it is probably better to use @packet-loss-hist_avg_display. 6 pings per check takes 5 seconds so 6 here means 5 * 6 thus 30 seconds of loss history |
 ||||
 | @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points  0 = Average over all data points |
-| @packet-loss-display_trend    | 0             | 1 = Display trend with + prefix if level is higher than last displayed and - prefix if lower  0 = Do not display trend |
+| @packet-loss-display_trend    | 0             | 1 = Display trend with + prefix if the level is higher than last displayed and - prefix if lower  0 = Do not display trend |
 | @packet-loss-level_disp       | 1             | Display loss if this or higher level |
-| @packet-loss-level_alert      | 18            | Color loss with color_alert if at or above this level. Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers alert, even initially. |
+| @packet-loss-level_alert      | 18            | Color loss with color_alert if at or above this level. Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers an alert, even initially. |
 | @packet-loss-level_crit       | 40            | Color loss with color_crit if at or above this level |
 ||||
 | @packet-loss-hist_avg_display | 0             | 1 = Also show historical average when current losses are displayed |
 | @packet-loss-hist_avg_minutes | 30            | Minutes to keep historical average |
 | @packet-loss-hist_separator   | '\~'           | Separator current/historical losses. |
 ||||
-| @packet-loss-color_alert      | colour226     | (bright yellow) Use this color if loss is at or above @packet-loss-level_alert |
-| @packet-loss-color_crit       | colour196     | (bright red) Use this color if loss is at or above @packet-loss-level_crit |
+| @packet-loss-color_alert      | colour226     | (bright yellow) Use this color if the loss is at or above @packet-loss-level_alert |
+| @packet-loss-color_crit       | colour196     | (bright red) Use this color if the loss is at or above @packet-loss-level_crit |
 | @packet-loss-color_bg         | black         | bg color when alert/crit colors are used in display |
 ||||
 | @packet-loss-prefix           | ' pkt loss: ' | Prefix for status when displayed |
@@ -189,17 +188,17 @@ are focusing on that.
 
 You are recommended to also consider changing status-interval to keep
 the update rate for this plugin relevant to your reporting needs.
-If you do 6 samples, the recomended intervall would be 5
+If you do 6 samples, the recommended interview would be 5
 
-Since ping is basically instantaneous it can be set to one higher than
-status-intervall. Then sampling and reporting would be more or less in
+Since ping is instantaneous it can be set to one higher than
+status-interval. Then sampling and reporting would be more or less in
 sync.
 
 ```tmux
 set -g status-interval 5
 ```
 
-## Nerdy stuf
+## Nerdy stuff
 
 All timestamps in the DB use generic time i.e. in most cases UTC.
 Not having to bother with timezones simplifies the code, since DB times
@@ -217,14 +216,14 @@ are displayed as the largest of:
 - avg of last 7
 - avg of all
 
-If set to 0, average of all samples is allways displayed.
+If set to 0, the average of all samples is always displayed.
 
 There are three tables in the DB
 | table | Description |
 | -|- |
 | t_loss | Contains the current loss statuses |
-| t_1_min   | Keeps all samples from the last minute, in order to feed one minute averages to the t_stats table |
-| t_stats  | Keeps one minute averages for the last @packet-loss-hist_avg_minutes minutes |
+| t_1_min   | Keeps all samples from the last minute, to feed one-minute averages to the t_stats table |
+| t_stats  | Keeps one-minute averages for the last @packet-loss-hist_avg_minutes minutes |
 
 You can inspect the DB to get current losses by running:
 
@@ -232,13 +231,13 @@ You can inspect the DB to get current losses by running:
 sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'SELECT * FROM t_loss'
 ```
 
-And as stated above, dont care too much about the exact timestamps, they will
+As stated above, don't care too much about the exact timestamps, they will
 likely not match your local time!
 
 ## Contributing
 
 Contributions are welcome, and they're appreciated.
-Every little bit helps, and a credit is always be given.
+Every little bit helps, and credit is always given.
 
 The best way to send feedback is to file an issue at [tmux-packet-loss/issues](https://github.com/jaclu/tmux-packet-loss/issues)
 

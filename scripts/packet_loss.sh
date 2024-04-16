@@ -46,11 +46,10 @@ script_exit() {
 # [[ "$1" != "hepp" ]] && exit 0
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
+log_prefix="chk"
 
 #  shellcheck source=utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
-
-log_prefix="chk"
 
 #  for caching
 opt_last_check="@packet-loss_tmp_last_check"
@@ -99,7 +98,7 @@ if [[ ! -e "$sqlite_db" ]]; then
         #error_msg "DB not found, and monitor failed to restart!"
     }
 elif [[ -n "$(find "$sqlite_db" -mmin +1)" ]]; then
-    log_it "DB is over one minute old - restarting monitor"
+    log_it "DB is over one minute old"
     #
     #  If DB is over a minute old,
     #  assume the monitor is not running, so (re-)start it

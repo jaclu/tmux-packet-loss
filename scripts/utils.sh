@@ -29,7 +29,12 @@ log_it() {
     socket=" $(get_tmux_socket)"
     # only show socket name if not default
     [[ "$socket" = " default" ]] && socket=""
-    printf "%s%s $$ %s%*s%s\n" "$(date '+%H:%M:%S')" "$socket" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
+
+    if [[ -t 0 ]]; then
+        printf "%s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
+    else
+        printf "%s%s $$ %s%*s%s\n" "$(date '+%H:%M:%S')" "$socket" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
+    fi
 }
 
 #
@@ -59,32 +64,45 @@ error_msg() {
 #
 
 bool_printable() {
-    bool_param "$1" && echo "true" || echo "false"
+    case "$1" in
+    0) echo "true" ;;
+    1) echo "false" ;;
+    "") echo "ERROR: bool_param($1) - no param" ;;
+    *) echo "ERROR: bool_param($1) - unrecognized param" ;;
+    esac
 }
 
-bool_param() {
-
+param_as_bool() {
     case "$1" in
-
-    "0") return 1 ;;
-
-    "1") return 0 ;;
+    #
+    #  First handle the mindboggling tradition by tmux to use
+    #  1 to indicate selected / active.
+    #  This means 1 is 0 and 0 is 1, how Orwellian...
+    #
+    "0")
+        # log_it "param_as_bool($1) - false by 0" >/dev/stderr
+        return 1
+        ;;
+    "1")
+        # log_it "param_as_bool($1) - true by 1" >/dev/stderr
+        return 0
+        ;;
 
     "yes" | "Yes" | "YES" | "true" | "True" | "TRUE")
-        #  Be a nice guy and accept some common positives
-        log_it "Converted incorrect positive [$1] to 1"
+        #  Be a nice guy and accept some common positive notations
+        # log_it "Converted [$1] to boolean:  0"
         return 0
         ;;
 
     "no" | "No" | "NO" | "false" | "False" | "FALSE")
-        #  Be a nice guy and accept some common negatives
-        log_it "Converted incorrect negative [$1] to 0"
+        #  Be a nice guy and accept some common false notations
+        # log_it "Converted [$1] to boolean:  1"
         return 1
         ;;
 
     *)
-        log_it "Invalid parameter bool_param($1)"
-        error_msg "bool_param($1) - should be 0 or 1" 1
+        log_it "Invalid parameter param_as_bool($1)"
+        error_msg "param_as_bool($1) - should be yes/true or no/false" 1
         ;;
 
     esac
@@ -108,7 +126,6 @@ get_tmux_option() {
     local gto_default="$2"
     local gto_value
 
-    # log_it "get_tmux_option($gto_option,$gto_default)"
     [[ -z "$gto_option" ]] && error_msg "get_tmux_option() param 1 empty!"
     [[ "$TMUX" = "" ]] && {
         # this is run standalone, just report the defaults
@@ -118,10 +135,8 @@ get_tmux_option() {
 
     gto_value="$($TMUX_BIN show-option -gqv "$gto_option")"
     if [[ -z "$gto_value" ]]; then
-        # log_it "get opt def : $gto_option = $gto_default"
         echo "$gto_default"
     else
-        # log_it "get opt     : $gto_option = $gto_value"
         echo "$gto_value"
     fi
 }
@@ -131,14 +146,18 @@ get_settings() {
     ping_count="$(get_tmux_option "@packet-loss-ping_count" "$default_ping_count")"
     history_size="$(get_tmux_option "@packet-loss-history_size" "$default_history_size")"
 
-    weighted_average="$(get_tmux_option "@packet-loss-weighted_average" "$default_weighted_average")"
-    display_trend="$(get_tmux_option "@packet-loss-display_trend" "$default_display_trend")"
+    # in order to assign a boolean to a variable this two line aproach is needed
+    param_as_bool "$(get_tmux_option "@packet-loss-weighted_average" "$default_weighted_average")"
+    weighted_average=$?
+    param_as_bool "$(get_tmux_option "@packet-loss-display_trend" "$default_display_trend")"
+    display_trend=$?
 
     level_disp="$(get_tmux_option "@packet-loss-level_disp" "$default_level_disp")"
     level_alert="$(get_tmux_option "@packet-loss-level_alert" "$default_level_alert")"
     level_crit="$(get_tmux_option "@packet-loss-level_crit" "$default_level_crit")"
 
-    hist_avg_display="$(get_tmux_option "@packet-loss-hist_avg_display" "$default_hist_avg_display")"
+    param_as_bool "$(get_tmux_option "@packet-loss-hist_avg_display" "$default_hist_avg_display")"
+    hist_avg_display=$?
     hist_avg_minutes="$(get_tmux_option "@packet-loss-hist_avg_minutes" "$default_hist_avg_minutes")"
     hist_separator="$(get_tmux_option "@packet-loss-hist_separator" "$default_hist_separator")"
 
@@ -183,7 +202,7 @@ d_data="$D_TPL_BASE_PATH/data"
 #
 log_file="/tmp/$plugin_name.log"
 
-log_prefix="???"
+[[ -z "$log_prefix" ]] && log_prefix="???"
 log_indent=1
 #
 #  Should have been set in the calling script, must be done after
@@ -237,16 +256,16 @@ default_ping_host="8.8.4.4" #  Default host to ping
 default_ping_count=6        #  how often to report packet loss statistics
 default_history_size=6      #  how many ping results to keep in the primary table
 
-default_weighted_average=1 #  Use weighted average over averaging all data points
-default_display_trend=0    #  display ^/v prefix if value is increasing/decreasing
+default_weighted_average="true" #  Use weighted average over averaging all data points
+default_display_trend="false"   #  display ^/v prefix if value is increasing/decreasing
 
 default_level_disp=1   #  display loss if this or higher
 default_level_alert=18 #  this or higher triggers alert color
 default_level_crit=40  #  this or higher triggers critical color
 
-default_hist_avg_display=0  #  Display long term average
-default_hist_avg_minutes=30 #  Minutes to keep historical average
-default_hist_separator='~'  #  Separaor between current and hist data
+default_hist_avg_display="false" #  Display long term average
+default_hist_avg_minutes=30      #  Minutes to keep historical average
+default_hist_separator='~'       #  Separaor between current and hist data
 
 default_color_alert="colour226" # bright yellow
 default_color_crit="colour196"  # bright red

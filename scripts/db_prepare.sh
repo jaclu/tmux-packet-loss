@@ -87,11 +87,10 @@ update_triggers() {
 #===============================================================
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
+log_prefix="prp"
 
 # shellcheck source=utils.sh
 . "$D_TPL_BASE_PATH"/scripts/utils.sh
-
-log_prefix="prp"
 
 #
 #  Create fresh database if it is missing or obsolete

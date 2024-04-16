@@ -61,7 +61,7 @@ fi
 #  update triggers baesd on tmux plgin config
 #  start monitoring
 #
-$scr_controler 
+$scr_controler
 
 #
 #  Match tag with polling script

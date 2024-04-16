@@ -9,11 +9,10 @@
 #
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
+log_prefix="shw"
 
 #  shellcheck source=utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
-
-log_prefix="show"
 
 show_item() {
     local label="$1"
@@ -21,14 +20,7 @@ show_item() {
     local default="$3"
     local bool="$4"
 
-    [[ "$bool" = "b" ]] && {
-
-        _value="$(bool_printable "$value")"
-        _default="$(bool_printable "$default")"
-        # echo "value [$value] as [$_value] - default [$default] as [$_default]"
-        value="$_value"
-        default="$_default"
-    }
+    [[ "$bool" = "b" ]] && value="$(bool_printable "$value")"
     msg="$label [$value]"
     if [[ "$value" = "$default" ]]; then
         msg="$(printf "%-17s      (default) [%s]" "$label" "$value")"
@@ -43,7 +35,7 @@ show_item ping_host "$ping_host" "$default_ping_host"
 show_item ping_count "$ping_count" "$default_ping_count"
 show_item history_size "$history_size" "$default_history_size"
 
-show_item weighted_average "$weighted_average" "$default_weighted_average" b
+show_item weighted_average "$weighted_average" "$default_weighted_average" "b"
 show_item display_trend "$display_trend" "$default_display_trend" b
 
 show_item level_disp "$level_disp" "$default_level_disp"

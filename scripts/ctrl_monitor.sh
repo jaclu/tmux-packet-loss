@@ -48,6 +48,7 @@ hook_handler() {
 #===============================================================
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
+log_prefix="ctr"
 
 #  shellcheck source=utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
@@ -55,7 +56,6 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 #  shellcheck source=vers_check.sh
 . "$D_TPL_BASE_PATH/scripts/vers_check.sh"
 
-log_prefix="ctr"
 killed_monitor=false
 
 pidfile_acquire "" || error_msg "pid_file - is owned by process [$pidfile_proc]"
@@ -82,9 +82,9 @@ case "$1" in
 
 "stop")
     if $killed_monitor; then
-        echo "terminated $scr_monitor"
+        log_it "terminated $scr_monitor"
     else
-        echo "Did not find any running instances of $scr_monitor"
+        log_it "Did not find any running instances of $scr_monitor"
     fi
     pidfile_release
     exit 0

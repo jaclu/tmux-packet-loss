@@ -125,6 +125,7 @@ pidfile_release() {
     # If this was sourced this variable would already have been set
 
     D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
+    log_prefix="pid"
 
     #  shellcheck source=utils.sh
     . "$D_TPL_BASE_PATH/scripts/utils.sh"

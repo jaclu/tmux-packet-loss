@@ -54,11 +54,10 @@ define_ping_cmd() {
 #===============================================================
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
+log_prefix="mon"
 
 #  shellcheck source=utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
-
-log_prefix="mon"
 
 pidfile_acquire "$monitor_pidfile" || error_msg "$monitor_pidfile - is owned by [$pidfile_proc]"
 

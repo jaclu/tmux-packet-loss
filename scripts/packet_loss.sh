@@ -40,6 +40,7 @@ script_exit() {
 #
 #===============================================================
 
+#
 #  Prevent tmux from running it every couple of seconds,
 #  convenient during debugging
 #
@@ -108,8 +109,7 @@ elif [[ -n "$(find "$sqlite_db" -mmin +1)" ]]; then
     script_exit "DB old"
 fi
 
-if bool_param "$weighted_average"; then
-    # weighted_average=1
+if param_as_bool "$weighted_average"; then
     #
     #  To give loss a declining history weighting, it is displayed as the largest of:
     #    last value
@@ -142,7 +142,7 @@ result="" # indicating no losses
 [[ "$current_loss" -lt "$level_disp" ]] && current_loss=0
 
 if [[ "$current_loss" -gt 0 ]]; then
-    if bool_param "$display_trend"; then
+    if param_as_bool "$display_trend"; then
         #
         #  Calculate trend, ie change since last update
         #
@@ -165,9 +165,13 @@ if [[ "$current_loss" -gt 0 ]]; then
     #
     #  If loss is over trigger levels, display in appropriate color
     #
-    if awk -v val="$current_loss" -v trig_lvl="$level_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
+    if awk -v val="$current_loss" -v trig_lvl="$level_crit" \
+        'BEGIN{exit !(val >= trig_lvl)}'; then
+
         result="#[fg=$color_crit,bg=$color_bg]$loss_trend$current_loss#[default]"
-    elif awk -v val="$current_loss" -v trig_lvl="$level_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
+    elif awk -v val="$current_loss" -v trig_lvl="$level_alert" \
+        'BEGIN{exit !(val >= trig_lvl)}'; then
+
         result="#[fg=$color_alert,bg=$color_bg]$loss_trend$current_loss#[default]"
     else
         result="$loss_trend$current_loss"
@@ -176,7 +180,7 @@ if [[ "$current_loss" -gt 0 ]]; then
     #
     #  If history is requested, include it in display
     #
-    if bool_param "$hist_avg_display"; then
+    if param_as_bool "$hist_avg_display"; then
         sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER);"
         avg_loss="$(sqlite3 "$sqlite_db" "$sql")"
         if [[ ! "$avg_loss" = "0" ]]; then

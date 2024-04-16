@@ -53,7 +53,8 @@ update_triggers() {
     local triggers
     local sql
 
-    triggers="$(sqlite3 "$sqlite_db" "SELECT * FROM sqlite_master where type = 'trigger'")"
+    triggers="$(sqlite3 "$sqlite_db" \
+        "SELECT * FROM sqlite_master where type = 'trigger'")"
 
     if [[ -n "$triggers" ]]; then
         sqlite3 "$sqlite_db" "DROP TRIGGER new_data"

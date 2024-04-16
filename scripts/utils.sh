@@ -23,18 +23,18 @@ get_tmux_socket() {
 log_it() {
     local socket
 
-    if [[ -z "$log_file" ]]; then
+    if [[ -t 0 ]]; then
+        printf "%s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
+        return
+    elif [[ -z "$log_file" ]]; then
         return
     fi
+
     socket=" $(get_tmux_socket)"
     # only show socket name if not default
     [[ "$socket" = " default" ]] && socket=""
 
-    if [[ -t 0 ]]; then
-        printf "%s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
-    else
-        printf "%s%s $$ %s%*s%s\n" "$(date '+%H:%M:%S')" "$socket" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
-    fi
+    printf "%s%s $$ %s%*s%s\n" "$(date '+%H:%M:%S')" "$socket" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
 }
 
 #
@@ -45,12 +45,12 @@ error_msg() {
     local msg="ERROR: $1"
     local exit_code="${2:-1}"
 
-    log_it
-    log_it "$msg"
-    log_it
     if [[ -t 0 ]]; then
-        echo "$msg" # was run from the cmd line
+        echo "$msg"
     else
+        log_it
+        log_it "$msg"
+        log_it
         $TMUX_BIN display-message -d 0 "$plugin_name $msg"
     fi
     [[ "$exit_code" -ne 0 ]] && exit "$exit_code"
@@ -63,46 +63,45 @@ error_msg() {
 #  them here in order for assignment to follow boolean logic in caller
 #
 
-bool_printable() {
-    case "$1" in
-    0) echo "true" ;;
-    1) echo "false" ;;
-    "") echo "ERROR: bool_param($1) - no param" ;;
-    *) echo "ERROR: bool_param($1) - unrecognized param" ;;
-    esac
-}
+# bool_printable() {
+#     case "$1" in
+#     0 | true) echo "true" ;;
+#     1 | false) echo "false" ;;
+#     "") echo "ERROR: bool_printable($1) - no param" ;;
+#     *) echo "ERROR: bool_printable($1) - unrecognized param" ;;
+#     esac
+# }
 
 param_as_bool() {
+    [[ "$1" = "true" ]] && return 0
+    return 1
+}
+
+normalize_bool_param() {
+    #
+    #  Ensure boolean style params use consistent states
+    #
     case "$1" in
     #
     #  First handle the mindboggling tradition by tmux to use
     #  1 to indicate selected / active.
     #  This means 1 is 0 and 0 is 1, how Orwellian...
     #
-    "0")
-        # log_it "param_as_bool($1) - false by 0" >/dev/stderr
-        return 1
-        ;;
-    "1")
-        # log_it "param_as_bool($1) - true by 1" >/dev/stderr
-        return 0
-        ;;
-
-    "yes" | "Yes" | "YES" | "true" | "True" | "TRUE")
+    "1" | "yes" | "Yes" | "YES" | "true" | "True" | "TRUE")
         #  Be a nice guy and accept some common positive notations
         # log_it "Converted [$1] to boolean:  0"
-        return 0
+        echo "true"
         ;;
 
-    "no" | "No" | "NO" | "false" | "False" | "FALSE")
+    "0" | "no" | "No" | "NO" | "false" | "False" | "FALSE")
         #  Be a nice guy and accept some common false notations
         # log_it "Converted [$1] to boolean:  1"
-        return 1
+        echo "false"
         ;;
 
     *)
-        log_it "Invalid parameter param_as_bool($1)"
-        error_msg "param_as_bool($1) - should be yes/true or no/false" 1
+        log_it "Invalid parameter normalize_bool_param($1)"
+        error_msg "normalize_bool_param($1) - should be yes/true or no/false" 1
         ;;
 
     esac
@@ -142,27 +141,38 @@ get_tmux_option() {
 }
 
 get_settings() {
-    ping_host="$(get_tmux_option "@packet-loss-ping_host" "$default_ping_host")"
-    ping_count="$(get_tmux_option "@packet-loss-ping_count" "$default_ping_count")"
-    history_size="$(get_tmux_option "@packet-loss-history_size" "$default_history_size")"
+    ping_host="$(get_tmux_option "@packet-loss-ping_host" \
+        "$default_ping_host")"
+    ping_count="$(get_tmux_option "@packet-loss-ping_count" \
+        "$default_ping_count")"
+    history_size="$(get_tmux_option "@packet-loss-history_size" \
+        "$default_history_size")"
 
     # in order to assign a boolean to a variable this two line aproach is needed
-    param_as_bool "$(get_tmux_option "@packet-loss-weighted_average" "$default_weighted_average")"
-    weighted_average=$?
-    param_as_bool "$(get_tmux_option "@packet-loss-display_trend" "$default_display_trend")"
-    display_trend=$?
 
-    level_disp="$(get_tmux_option "@packet-loss-level_disp" "$default_level_disp")"
-    level_alert="$(get_tmux_option "@packet-loss-level_alert" "$default_level_alert")"
-    level_crit="$(get_tmux_option "@packet-loss-level_crit" "$default_level_crit")"
+    weighted_average="$(normalize_bool_param "$(get_tmux_option \
+        "@packet-loss-weighted_average" "$default_weighted_average")")"
+    display_trend="$(normalize_bool_param "$(get_tmux_option \
+        "@packet-loss-display_trend" "$default_display_trend")")"
 
-    param_as_bool "$(get_tmux_option "@packet-loss-hist_avg_display" "$default_hist_avg_display")"
-    hist_avg_display=$?
-    hist_avg_minutes="$(get_tmux_option "@packet-loss-hist_avg_minutes" "$default_hist_avg_minutes")"
-    hist_separator="$(get_tmux_option "@packet-loss-hist_separator" "$default_hist_separator")"
+    level_disp="$(get_tmux_option "@packet-loss-level_disp" \
+        "$default_level_disp")"
+    level_alert="$(get_tmux_option "@packet-loss-level_alert" \
+        "$default_level_alert")"
+    level_crit="$(get_tmux_option "@packet-loss-level_crit" \
+        "$default_level_crit")"
 
-    color_alert="$(get_tmux_option "@packet-loss-color_alert" "$default_color_alert")"
-    color_crit="$(get_tmux_option "@packet-loss-color_crit" "$default_color_crit")"
+    hist_avg_display="$(normalize_bool_param "$(get_tmux_option \
+        "@packet-loss-hist_avg_display" "$default_hist_avg_display")")"
+    hist_avg_minutes="$(get_tmux_option "@packet-loss-hist_avg_minutes" \
+        "$default_hist_avg_minutes")"
+    hist_separator="$(get_tmux_option "@packet-loss-hist_separator" \
+        "$default_hist_separator")"
+
+    color_alert="$(get_tmux_option "@packet-loss-color_alert" \
+        "$default_color_alert")"
+    color_crit="$(get_tmux_option "@packet-loss-color_crit" \
+        "$default_color_crit")"
     color_bg="$(get_tmux_option "@packet-loss-color_bg" "$default_color_bg")"
 
     prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
@@ -183,17 +193,6 @@ get_settings() {
 #
 plugin_name="tmux-packet-loss"
 
-#  common folders
-d_data="$D_TPL_BASE_PATH/data"
-
-[[ -d "$d_data" ]] || {
-    log_it "mkdir $d_data"
-    mkdir -p "$d_data" # ensure it exists
-}
-
-# shellcheck source=pidfile_handler.sh
-. "$D_TPL_BASE_PATH"/scripts/pidfile_handler.sh
-
 #
 #  log_it is used to display status to $log_file if it is defined.
 #  Good for testing and monitoring actions. If $log_file is unset
@@ -204,11 +203,21 @@ log_file="/tmp/$plugin_name.log"
 
 [[ -z "$log_prefix" ]] && log_prefix="???"
 log_indent=1
+
 #
 #  Should have been set in the calling script, must be done after
 #  log_file is (potentially) defined
 #
 [[ -z "$D_TPL_BASE_PATH" ]] && error_msg "D_TPL_BASE_PATH is not defined!"
+
+d_data="$D_TPL_BASE_PATH/data" # location for all runtime data
+[[ -d "$d_data" ]] || {
+    log_it "Creating $d_data"
+    mkdir -p "$d_data" # ensure it exists
+}
+
+# shellcheck source=pidfile_handler.sh
+. "$D_TPL_BASE_PATH"/scripts/pidfile_handler.sh
 
 #  shellcheck disable=SC2034
 scr_controler="$D_TPL_BASE_PATH/scripts/ctrl_monitor.sh"
@@ -256,16 +265,20 @@ default_ping_host="8.8.4.4" #  Default host to ping
 default_ping_count=6        #  how often to report packet loss statistics
 default_history_size=6      #  how many ping results to keep in the primary table
 
-default_weighted_average="true" #  Use weighted average over averaging all data points
-default_display_trend="false"   #  display ^/v prefix if value is increasing/decreasing
+#  Use weighted average over averaging all data points
+default_weighted_average="$(normalize_bool_param "true")"
+
+#  display ^/v prefix if value is increasing/decreasing
+default_display_trend="$(normalize_bool_param "false")"
 
 default_level_disp=1   #  display loss if this or higher
 default_level_alert=18 #  this or higher triggers alert color
 default_level_crit=40  #  this or higher triggers critical color
 
-default_hist_avg_display="false" #  Display long term average
-default_hist_avg_minutes=30      #  Minutes to keep historical average
-default_hist_separator='~'       #  Separaor between current and hist data
+#  Display long term average
+default_hist_avg_display="$(normalize_bool_param "false")"
+default_hist_avg_minutes=30 #  Minutes to keep historical average
+default_hist_separator='~'  #  Separaor between current and hist data
 
 default_color_alert="colour226" # bright yellow
 default_color_crit="colour196"  # bright red

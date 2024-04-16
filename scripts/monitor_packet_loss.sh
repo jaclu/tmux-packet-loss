@@ -59,13 +59,17 @@ log_prefix="mon"
 #  shellcheck source=utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
-pidfile_acquire "$monitor_pidfile" || error_msg "$monitor_pidfile - is owned by [$pidfile_proc]"
+pidfile_acquire "$monitor_pidfile" || {
+    error_msg "$monitor_pidfile - is owned by process [$pidfile_proc]"
+}
 
 #
 #  Since loss is <=100, indicate errors with results over 100
-#  Not crucial to remember exactly what it means, enough to know is >100 means monitor error
+#  Not crucial to remember exactly what it means,
+#  enough to know is >100 means monitor error
 #
-#  Failed to find %loss in ping output, most likely temporary, some pings just report:
+#  Failed to find %loss in ping output, most likely temporary,
+#  some pings just report:
 #    ping: sendto: Host is unreachable
 #  if network is unreachable
 #
@@ -96,16 +100,21 @@ while :; do
 
     if [[ -n "$output" ]]; then
         #
-        #  We cant rely on the absolute position of the %loss, since sometimes it is prepended with stuff like:
+        #  We cant rely on the absolute position of the %loss,
+        #  since sometimes it is prepended with stuff like:
         #  "+1 duplicates,"
-        #  To handle this we search for "packet loss" and use the word just before it.
+        #  To handle this we search for "packet loss" and use the word
+        #  just before it.
         #  1 Only bother with the line containing the word loss
-        #  2 replace "packet loss" with ~, since cut needs a single char delimiter
+        #  2 replace "packet loss" with ~, since cut needs a single char
+        #    delimiter
         #  3 remove any % chars, we want loss as a float
         #  4 only keep line up to not including ~ (packet loss)
-        #  5 display last remaining word - packet loss as a float with no % sign!
+        #  5 display last remaining word - packet loss as a float with
+        #    no % sign!
         #
-        percent_loss="$(echo "$output" | sed 's/packet loss/~/ ; s/%//' | cut -d~ -f 1 | awk 'NF>1{print $NF}')"
+        percent_loss="$(echo "$output" | sed 's/packet loss/~/ ; s/%//' |
+            cut -d~ -f 1 | awk 'NF>1{print $NF}')"
         if [[ -z "$percent_loss" ]]; then
             error_msg "Failed to parse ping output, unlikely to self correct!" 0
             percent_loss="$error_unable_to_detect_loss"
@@ -117,8 +126,9 @@ while :; do
         percent_loss="$error_no_ping_output"
         #
         #  Some pings instantly aborts on no connection, this will keep
-        #  the poll rate kind of normal and avoid rapidly filling the DB with bad data,
-        #  Worst case, this will delay monitoring a bit during an outage.
+        #  the poll rate kind of normal and avoid rapidly filling the DB
+        #  with bad data. Worst case, this will delay monitoring a bit
+        #  during an outage.
         #
         log_it "No ping output, will sleep $ping_count seconds"
         sleep "$ping_count"
@@ -130,7 +140,8 @@ while :; do
     sql="SELECT COUNT(*) FROM t_stats WHERE time_stamp >= datetime(strftime('%Y-%m-%d %H:%M'))"
     items_this_minute="$(sqlite3 "$sqlite_db" "$sql")"
     if [[ "$items_this_minute" -eq 0 ]]; then
-        sqlite3 "$sqlite_db" 'INSERT INTO t_stats (loss) SELECT avg(loss) FROM t_1_min'
+        sqlite3 "$sqlite_db" \
+            'INSERT INTO t_stats (loss) SELECT avg(loss) FROM t_1_min'
     fi
 
     #  A bit exessive in normal conditions

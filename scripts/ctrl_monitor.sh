@@ -63,7 +63,10 @@ log_prefix="ctr"
 
 killed_monitor=false
 
-pidfile_acquire "" || error_msg "pid_file - is owned by process [$pidfile_proc]"
+pidfile_acquire "" || {
+    error_msg "pid_file - is owned by process [$pidfile_proc]"
+}
+
 log_it "aquire successfull"
 log_it
 db_monitor="$(basename "$scr_monitor")"
@@ -104,6 +107,10 @@ esac
 #
 #  Starting a fresh monitor
 #
+[[ -t 0 ]] && {
+    log_it "$db_monitor runs in the background, so cant print it's output here"
+    [[ -n "$log_file" ]] && log_it " it is sent to log_file: $log_file"
+}
 nohup "$scr_monitor" >/dev/null 2>&1 &
 
 sleep 1 # wait for monitor to start

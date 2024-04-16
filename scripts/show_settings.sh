@@ -25,7 +25,8 @@ show_item() {
     if [[ "$value" = "$default" ]]; then
         msg="$(printf "%-17s      (default) [%s]" "$label" "$value")"
     else
-        msg="$(printf "%-17s [%s] - default: [%s]" "$label" "$value" "$default")"
+        msg="$(printf "%-17s [%s] - default: [%s]" "$label" "$value" \
+            "$default")"
     fi
     echo "$msg"
 }
@@ -35,14 +36,14 @@ show_item ping_host "$ping_host" "$default_ping_host"
 show_item ping_count "$ping_count" "$default_ping_count"
 show_item history_size "$history_size" "$default_history_size"
 
-show_item weighted_average "$weighted_average" "$default_weighted_average" "b"
-show_item display_trend "$display_trend" "$default_display_trend" b
+show_item weighted_average "$weighted_average" "$default_weighted_average"
+show_item display_trend "$display_trend" "$default_display_trend"
 
 show_item level_disp "$level_disp" "$default_level_disp"
 show_item level_alert "$level_alert" "$default_level_alert"
 show_item level_crit "$level_crit" "$default_level_crit"
 
-show_item hist_avg_display "$hist_avg_display" "$default_hist_avg_display" b
+show_item hist_avg_display "$hist_avg_display" "$default_hist_avg_display"
 
 show_item hist_avg_minutes "$hist_avg_minutes" "$default_hist_avg_minutes"
 show_item hist_separator "$hist_separator" "$default_hist_separator"
@@ -69,6 +70,9 @@ opt_last_value="@packet-loss_tmp_last_value"
 opt_last_check="@packet-loss_tmp_last_check"
 opt_last_result="@packet-loss_tmp_last_result"
 
-echo "last_check  [$(get_tmux_option "$opt_last_check" "$opt_last_check unset")]"
-echo "last_value  [$(get_tmux_option "$opt_last_value" "$opt_last_value unset")]"
-echo "last_result [$(get_tmux_option "$opt_last_result" "$opt_last_result unset")]"
+echo "last_check  [$(get_tmux_option "$opt_last_check" \
+    "$opt_last_check unset")]"
+echo "last_value  [$(get_tmux_option "$opt_last_value" \
+    "$opt_last_value unset")]"
+echo "last_result [$(get_tmux_option "$opt_last_result" \
+    "$opt_last_result unset")]"

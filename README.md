@@ -5,11 +5,9 @@ average, giving more current checks greater emphasis.
 
 ## Recent changes
 
-- Updated section My config
-- Ensure folder data exists before inspecting it
-- General cleanup
-- Added missing quotes for awk
-- Simplified statistics
+- Fixed boolean param handling to also allow for yes/no true/false
+- Renamed variables and defaults to match the tmux option names
+- Refactored code into more task isolated modules
 
 ## Screenshots
 
@@ -30,7 +28,7 @@ Plugin output takes no space when under @packet-loss-level_disp level
 
 ### Trends
 
-If @packet-loss-display_trend is 1, change since previous check is indicated with a prefix character
+If @packet-loss-display_trend is 1, change since the previous check is indicated with a prefix character
 
 | Display | Status |
 | - | - |
@@ -40,16 +38,9 @@ If @packet-loss-display_trend is 1, change since previous check is indicated wit
 
 ## Operation
 
-Appears if losses are at or above the threshold level.
-A convenient way to see if there are connectivity issues.
-
-If @packet-loss-hist_avg_display is 1, then when losses are displayed,
-the historical average losses are also displayed.
-
 This plugin runs a background process using repeated runs of ping to
-determine % package loss. The loss level is calculated as a weighted average
+determine % package loss. The loss level is by default calculated as a weighted average
 of the stored data points, making the latest checks stand out.
-Past the decline point, the average of all samples is used.
 
 On modern tmux versions, this background process is terminated when tmux
 exits, see Tmux Compatibility for more details about versions and
@@ -58,9 +49,10 @@ limitations when it comes to shutting down this background process.
 As the plugin is initialized, it will terminate any already running
 background process, and start a new one.
 
-Each time check_packet_loss.sh is run, if the monitor background process
-is not running it is started, so should in all normal cases be self
-healing.
+Each time packet_loss.sh is run, if the DB is missing or 
+the monitor background process hasn't been updated for a minute, 
+the monitor is restarted, So an accidental stop of the monitor 
+should in all normal cases be  self-healing.
 
 If the monitor experiences errors, packet loss of 101% or higher are
 reported.
@@ -134,15 +126,15 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 |-|-|-|
 | @packet-loss-ping_host        | 8.8.4.4       | What host to ping |
 | @packet-loss-ping_count       | 6             | This many pings per statistics update. |
-| @packet-loss-history_size     | 6             | How many results should be kept when calculating average loss  I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average. For a longer-term historical overview, it is probably better to use @packet-loss-hist_avg_display. 6 pings per check takes 5 seconds so 6 here means 5 * 6 thus 30 seconds of loss history |
+| @packet-loss-history_size     | 6             | How many results should be kept when calculating average loss<br> 6 pings per check take 5 seconds so 6 here means 5 * 6 thus 30 seconds of loss history<br> I would recommend keeping it low since it will in most cases be more interesting to see current status over the long-term average.<br> For a longer-term historical overview, it is probably better to use `@packet-loss-hist_avg_display` |
 ||||
-| @packet-loss-weighted_average | 1             | 1 = Use weighted average focusing on the latest data points  0 = Average over all data points |
-| @packet-loss-display_trend    | 0             | 1 = Display trend with + prefix if the level is higher than last displayed and - prefix if lower  0 = Do not display trend |
+| @packet-loss-weighted_average | yes             | yes = Use weighted average focusing on the latest data points<br> no = Average over all data points |
+| @packet-loss-display_trend    | no            | yes = Display trend with + prefix if the level is higher than last displayed and - prefix if lower<br> no = Do not display trend |
 | @packet-loss-level_disp       | 1             | Display loss if this or higher level |
-| @packet-loss-level_alert      | 18            | Color loss with color_alert if at or above this level. Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers an alert, even initially. |
+| @packet-loss-level_alert      | 18            | Color loss with color_alert if at or above this level.<br> Suggestion: set this to one higher than the % that is one loss in one update, this way, a single packet loss never triggers an alert, even initially. |
 | @packet-loss-level_crit       | 40            | Color loss with color_crit if at or above this level |
 ||||
-| @packet-loss-hist_avg_display | 0             | 1 = Also show historical average when current losses are displayed |
+| @packet-loss-hist_avg_display | no            | yes = Also show historical average when current losses are displayed<br> no - No historical average is displayed |
 | @packet-loss-hist_avg_minutes | 30            | Minutes to keep historical average |
 | @packet-loss-hist_separator   | '\~'           | Separator current/historical losses. |
 ||||
@@ -158,13 +150,11 @@ Reload TMUX environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 ## My config
 
 ```tmux
-set -g @packet-loss-ping_count    4
-set -g @packet-loss-history_size 10
-set -g @packet-loss-display_trend     1
-set -g @packet-loss-level_alert      26
-set -g @packet-loss-hist_avg_display  1
+set -g @packet-loss-display_trend     yes
+
 set -g @packet-loss-color_alert colour21
 set -g @packet-loss-color_bg    colour226
+
 set -g @packet-loss-prefix '|'
 set -g @packet-loss-suffix '|'
 ```
@@ -173,26 +163,25 @@ set -g @packet-loss-suffix '|'
 
 If missing this folder will be re-created and the database will be created in this location
 
-- db_restarted.log - timestamps for each time check_packet_loss.sh decided to restart packet_loss_monitor.sh
-- monitor.pid - pid for currently running packet_loss_monitor.sh
+- db_restarted.log - timestamps for each time `scripts/packet_loss.sh` decided to restart `scripts/monitor_packet_loss.sh`
+- monitor.pid - pid for currently running `scripts/monitor_packet_loss.sh`
 - packet_loss.sqlite - sqlite3 db for loss statistics
 
 ## Balancing it
 
-By using a higher ping count you get a clearer picture of the situation.
+By using a higher ping count you get a clearer picture of the current situation.
 If you only check 2 packets per round, the only results would be 0%, 50%
-or 100%. The higher the ping count, the more nuanced the result will be.
+or 100%. The higher the ping count, the more nuanced the result will be per check.
 But over a certain limit, the time taken for each test will delay reporting
 until it's not representative of the current link status, assuming you
 are focusing on that.
 
-You are recommended to also consider changing status-interval to keep
-the update rate for this plugin relevant to your reporting needs.
-If you do 6 samples, the recommended interview would be 5
+You are recommended to also consider changing status-interval to ensure that
+the update rate for this plugin in the status bar is relevant to your reporting needs.
 
-Since ping is instantaneous it can be set to one higher than
-status-interval. Then sampling and reporting would be more or less in
-sync.
+Since ping is instantaneous it can be set to one lower than
+`@packet-loss-ping_count`. 
+Then sampling and reporting would be more or less in sync.
 
 ```tmux
 set -g status-interval 5
@@ -204,7 +193,7 @@ All timestamps in the DB use generic time i.e. in most cases UTC.
 Not having to bother with timezones simplifies the code, since DB times
 are not displayed.
 
-If @packet-loss-weighted_average is set to 1 (the default) losses
+If @packet-loss-weighted_average is set to yes (the default) losses
 are displayed as the largest of:
 
 - last value
@@ -216,7 +205,7 @@ are displayed as the largest of:
 - avg of last 7
 - avg of all
 
-If set to 0, the average of all samples is always displayed.
+If set to no, the average of all samples is always displayed.
 
 There are three tables in the DB
 | table | Description |
@@ -225,14 +214,7 @@ There are three tables in the DB
 | t_1_min   | Keeps all samples from the last minute, to feed one-minute averages to the t_stats table |
 | t_stats  | Keeps one-minute averages for the last @packet-loss-hist_avg_minutes minutes |
 
-You can inspect the DB to get current losses by running:
-
-```bash
-sqlite3 ~/.tmux/plugins/tmux-packet-loss/data/packet_loss.sqlite 'SELECT * FROM t_loss'
-```
-
-As stated above, don't care too much about the exact timestamps, they will
-likely not match your local time!
+Each table contains two fields, time_stamp, and value. The time_stamp field is only used to purge old data.
 
 ## Contributing
 

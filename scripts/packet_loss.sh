@@ -77,8 +77,9 @@ $cache_db_polls && {
     # make it slightly less likely to return cached data
     age_last_check=$((age_last_check + 1))
     [[ "$age_last_check" -lt "$interval" ]] && {
-        script_exit "$(get_tmux_option "$opt_last_result" "")" \
-            "cache age ${age_last_check} - "
+        #script_exit "$(get_tmux_option "$opt_last_result" "")" \
+            #    "cache age ${age_last_check} - "
+        exit 0
     }
 }
 
@@ -193,10 +194,10 @@ if [[ "$current_loss" -gt 0 ]]; then
         fi
     fi
     #  typically comment out the next 3 lines unless you are debugging stuff
-#     log_it "loss: $current_loss  avg: $avg_loss"
+     log_it "loss: $current_loss  avg: $avg_loss"
 # else
 #     log_it "no packet losses"
 fi
 
 $cache_db_polls && set_tmux_option "$opt_last_result" "$result"
-script_exit "$result"
+#script_exit "$result"

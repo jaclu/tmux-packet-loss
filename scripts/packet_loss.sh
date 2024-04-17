@@ -15,6 +15,24 @@ restart_monitor() {
     $scr_controler
 }
 
+script_exit() {
+    #
+    #  wrap status in prefix/suffix and exit gracefully
+    #
+    local status="$1"
+
+    # local log_msg="$2"
+    # if [[ -n "$log_msg" ]]; then
+    #     log_it "$log_msg"
+    # fi
+
+    if [[ -n "$status" ]]; then
+        # log_it "should not have pre/suf  $status"
+        echo "${cfg_prefix}${status}${cfg_suffix}"
+    fi
+    exit 0
+}
+
 verify_db_status() {
     #
     #  Some sanity check, ensuring the monitor is running
@@ -132,24 +150,6 @@ colorize_high_numbers() {
         item="#[fg=$cfg_color_alert,bg=$cfg_color_bg]${item}#[default]"
     fi
     echo "$item"
-}
-
-script_exit() {
-    #
-    #  wrap status in prefix/suffix and exit gracefully
-    #
-    local status="$1"
-
-    # local log_msg="$2"
-    # if [[ -n "$log_msg" ]]; then
-    #     log_it "$log_msg"
-    # fi
-
-    if [[ -n "$status" ]]; then
-        # log_it "should not have pre/suf  $status"
-        echo "${cfg_prefix}${status}${cfg_suffix}"
-    fi
-    exit 0
 }
 
 #===============================================================

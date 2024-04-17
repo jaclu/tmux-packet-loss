@@ -25,7 +25,7 @@ log_it() {
     local socket
 
     if [[ -t 0 ]]; then
-        printf "%s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
+        printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
         return
     elif [[ -z "$log_file" ]]; then
         return

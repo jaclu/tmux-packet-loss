@@ -123,7 +123,7 @@ while :; do
         #  zero % loss is displayed somewhat differently depending on platform
         #  this standardizes no losses into 0
         #
-        [[ "$percent_loss" = "0.0" ]] && percent_loss=0  # macos
+        [[ "$percent_loss" = "0.0" ]] && percent_loss=0 # macos
     else
         #
         #  No output, usually no connection to the host

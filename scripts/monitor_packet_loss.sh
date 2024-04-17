@@ -141,10 +141,11 @@ while :; do
 
     sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
 
-    #  Add one line in statistics each minute
+    # check if t_atats has any items less than a minute old
     sql="SELECT COUNT(*) FROM t_stats WHERE time_stamp >= datetime(strftime('%Y-%m-%d %H:%M'))"
     items_this_minute="$(sqlite3 "$sqlite_db" "$sql")"
     if [[ "$items_this_minute" -eq 0 ]]; then
+        #  Add one line in statistics each minute
         sqlite3 "$sqlite_db" \
             'INSERT INTO t_stats (loss) SELECT avg(loss) FROM t_1_min'
     fi

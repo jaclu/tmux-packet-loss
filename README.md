@@ -57,7 +57,7 @@ Ensure you have the following dependencies installed:
 - `tmux 1.9`
 - `sqlite3`
 - `bash`
-
+\
 ## Tmux Compatibility
 
 | Version    | Notice                                                                                               |
@@ -179,11 +179,18 @@ If set to no, the average of all samples is always displayed.
 
 ### Suggested Alert Levels
 
-Depending on the ping count, it is suggested to have alert one higher, so that a single lost packet wont show up as an alert
+Depending on the ping count, it is suggested to set alert,
+so that a single lost packet wont show up as an alert.
 
-| pings | one higher than a single loss |
-|-|-|
-| 6 | 17 |
+| pings | one higher than a single loss % | history size for aprox 30s |
+|-|-|-|
+| 10 | 11 |  3=27 4=36 |
+|  9 | 12 |  4=32 |
+|  8 | 13 |  5=35 |
+|  7 | 15 |  5=30 |
+|  6 | 17 |  6=30 |
+|  5 | 21 |  8=32 |
+|  3 | 34 | 15=30 |
 
 ### Database
 

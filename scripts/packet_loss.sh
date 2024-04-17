@@ -186,7 +186,7 @@ if [[ "$current_loss" -gt 0 ]]; then
             elif awk -v val="$avg_loss_raw" -v trig_lvl="$level_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
                 avg_loss="#[fg=$color_alert,bg=$color_bg]$avg_loss_raw#[default]"
             fi
-            result="${result}${hist_separator}${avg_loss_raw}"
+            result="${result}${hist_separator}${avg_loss}"
         fi
     fi
     echo "${prefix}${result}${suffix}"

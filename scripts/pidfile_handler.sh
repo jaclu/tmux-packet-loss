@@ -127,7 +127,7 @@ pidfile_release() {
     D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
     log_prefix="pid"
 
-    #  shellcheck source=utils.sh
+    #  shellcheck source=scripts/utils.sh disable=SC1093
     . "$D_TPL_BASE_PATH/scripts/utils.sh"
 }
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#  shellcheck disable=SC2034
 #
 #   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -216,7 +217,7 @@ d_data="$D_TPL_BASE_PATH/data" # location for all runtime data
     mkdir -p "$d_data" # ensure it exists
 }
 
-# shellcheck source=pidfile_handler.sh
+# shellcheck source=scripts/pidfile_handler.sh
 . "$D_TPL_BASE_PATH"/scripts/pidfile_handler.sh
 
 #  shellcheck disable=SC2034

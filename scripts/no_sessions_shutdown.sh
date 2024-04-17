@@ -13,7 +13,7 @@
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 log_prefix="hok"
 
-#  shellcheck source=utils.sh
+#  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 ses_count="$($TMUX_BIN ls | wc -l)"

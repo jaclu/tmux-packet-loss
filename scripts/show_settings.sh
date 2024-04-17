@@ -11,7 +11,7 @@
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 log_prefix="shw"
 
-#  shellcheck source=utils.sh
+#  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 show_item() {

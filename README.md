@@ -57,7 +57,7 @@ Ensure you have the following dependencies installed:
 - `tmux 1.9`
 - `sqlite3`
 - `bash`
-\
+
 ## Tmux Compatibility
 
 | Version    | Notice                                                                                               |

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 #  Part of https://github.com/jaclu/tmux-packet-loss
 #
@@ -38,13 +38,13 @@ EOF
     _is_true="" #  Initial non 0 / 1 value makes it simple to see when it is set
 
     vers_check_do_compare "$_v1_1" "$_v2_1" || return 1
-    [ -n "$_is_true" ] && return 0
+    [[ -n "$_is_true" ]] && return 0
 
     vers_check_do_compare "$_v1_2" "$_v2_2" || return 1
-    [ -n "$_is_true" ] && return 0
+    [[ -n "$_is_true" ]] && return 0
 
     vers_check_do_compare "$_v1_3" "$_v2_3" || return 1
-    [ -n "$_is_true" ] && return 0
+    [[ -n "$_is_true" ]] && return 0
 
     vers_check_do_compare "$_v1_4" "$_v2_4" || return 1
     return 0
@@ -63,19 +63,19 @@ vers_check_do_compare() {
     _v1=$(printf '%d' "'${1:-0}")
     _v2=$(printf '%d' "'${2:-0}")
 
-    [ "$1" = "" ] || [ "$_v1" = "0" ] && {
+    [[ "$1" = "" ]] || [[ "$_v1" = "0" ]] && {
         _is_true=0
         return 0
     }
 
-    [ "$_v1" -lt "$_v2" ] && {
+    [[ "$_v1" -lt "$_v2" ]] && {
         _is_true=0
         return 0
     }
-    [ "$_v1" = "$_v2" ] && {
+    [[ "$_v1" = "$_v2" ]] && {
         return 0
     }
-    [ "$_v1" -gt "$_v2" ] && {
+    [[ "$_v1" -gt "$_v2" ]] && {
         return 1
     }
     exit 1
@@ -87,7 +87,7 @@ vers_check_verify() {
     rslt_exp="$3"
 
     min_version "$v_ref" "$v_comp" && rslt_actual=0 || rslt_actual=1
-    [ "$rslt_actual" = "$rslt_exp" ] || {
+    [[ "$rslt_actual" = "$rslt_exp" ]] || {
         echo "Failed: $v_ref <= $v_comp should be $rslt_exp - was $rslt_actual"
         exit 1
     }
@@ -140,4 +140,4 @@ vers_check_check_test() {
 #
 #  Run the tests by calling this directly
 #
-[ "$(basename "$0")" = "vers_check.sh" ] && vers_check_check_test
+[[ "$(basename "$0")" = "vers_check.sh" ]] && vers_check_check_test

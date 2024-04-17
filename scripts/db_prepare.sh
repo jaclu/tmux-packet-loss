@@ -60,6 +60,7 @@ update_triggers() {
         sqlite3 "$sqlite_db" "DROP TRIGGER new_data"
     fi
 
+    # t_stats is updated aprox once/minute at the end of monitor_packet_loss.sh
     sql="
     CREATE TRIGGER new_data AFTER INSERT ON t_loss
     BEGIN
@@ -74,7 +75,8 @@ update_triggers() {
         DELETE FROM t_1_min WHERE time_stamp <= datetime('now', '-1 minutes');
 
         -- keep statistics table within specified size
-        DELETE FROM t_stats WHERE time_stamp <= datetime('now', '-$hist_avg_minutes minutes');
+        DELETE FROM t_stats WHERE time_stamp <=
+               datetime('now', '-$hist_avg_minutes minutes');
     END;
     "
     sqlite3 "$sqlite_db" "$sql"

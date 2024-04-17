@@ -18,18 +18,15 @@ restart_monitor() {
 script_exit() {
     # report status and exit gracefully
     local status="$1"
-    local log_prefix="$2"
-
-    if [[ -n "$log_prefix" ]]; then
-        log_it "${log_prefix}result [$status]"
+    local log_msg="$2"
+    
+    if [[ -n "$log_msg" ]]; then
+        log_it "$log_msg"
     else
-        log_it "result [$status]"
-        # log_it "PPID [$PPID]  result [$status]"
+        log_it "$status"
     fi
     if [[ -n "$status" ]]; then
         echo "${prefix}${status}${suffix}"
-    else
-        echo
     fi
     exit 0
 }
@@ -77,9 +74,8 @@ $cache_db_polls && {
     # make it slightly less likely to return cached data
     age_last_check=$((age_last_check + 1))
     [[ "$age_last_check" -lt "$interval" ]] && {
-        #script_exit "$(get_tmux_option "$opt_last_result" "")" \
-        #    "cache age ${age_last_check} - "
-        exit 0
+        script_exit "$(get_tmux_option "$opt_last_result" "")" \
+            "cache age ${age_last_check}"
     }
 }
 
@@ -182,22 +178,22 @@ if [[ "$current_loss" -gt 0 ]]; then
     #  If history is requested, include it in display
     #
     if param_as_bool "$hist_avg_display"; then
-        sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER);"
-        avg_loss="$(sqlite3 "$sqlite_db" "$sql")"
-        if [[ ! "$avg_loss" = "0" ]]; then
-            if awk -v val="$avg_loss" -v trig_lvl="$level_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
-                avg_loss="#[fg=$color_crit,bg=$color_bg]$avg_loss#[default]"
-            elif awk -v val="$avg_loss" -v trig_lvl="$level_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
-                avg_loss="#[fg=$color_alert,bg=$color_bg]$avg_loss#[default]"
+        sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
+        avg_loss_raw="$(sqlite3 "$sqlite_db" "$sql")"
+        if [[ "$avg_loss_raw" != "0" ]]; then
+            if awk -v val="$avg_loss_raw" -v trig_lvl="$level_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
+                avg_loss="#[fg=$color_crit,bg=$color_bg]$avg_loss_raw#[default]"
+            elif awk -v val="$avg_loss_raw" -v trig_lvl="$level_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
+                avg_loss="#[fg=$color_alert,bg=$color_bg]$avg_loss_raw#[default]"
             fi
-            result="${result}${hist_separator}${avg_loss}"
+            result="${result}${hist_separator}${avg_loss_raw}"
         fi
     fi
+    echo "${prefix}${result}${suffix}"
     #  typically comment out the next 3 lines unless you are debugging stuff
-    log_it "loss: $current_loss  avg: $avg_loss"
+    log_it "loss: $current_loss  avg: $avg_loss_raw"
 # else
 #     log_it "no packet losses"
 fi
 
 $cache_db_polls && set_tmux_option "$opt_last_result" "$result"
-#script_exit "$result"

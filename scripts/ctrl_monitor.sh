@@ -15,8 +15,8 @@ hook_handler() {
     local tmux_vers
     local hook_name
 
-    [[ "$hook_idx" = "-1" ]] && {
-        log_it "session-closed hook not used, due to hook_idx=-1"
+    [[ "$cfg_hook_idx" = "-1" ]] && {
+        log_it "session-closed hook not used, due to cfg_hook_idx=-1"
         return
     }
 
@@ -24,7 +24,7 @@ hook_handler() {
 
     log_it "hook_handler($action) - current tmux vers: $tmux_vers"
     if min_version 3.0a "$tmux_vers"; then
-        hook_name="session-closed[$hook_idx]"
+        hook_name="session-closed[$cfg_hook_idx]"
     elif min_version 2.4 "$tmux_vers"; then
         hook_name="session-closed"
     else

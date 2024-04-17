@@ -34,16 +34,16 @@ define_ping_cmd() {
     fi
 
     if [[ -n "$timeout_parameter" ]]; then
-        ping_cmd="ping -$timeout_parameter $ping_count"
+        ping_cmd="ping -$timeout_parameter $cfg_ping_count"
     else
         #
         #  Without a timeout flag and no response, ping might end up taking
-        #  2 * ping_count seconds to complete...
+        #  2 * cfg_ping_count seconds to complete...
         #
         ping_cmd="ping"
     fi
 
-    ping_cmd="$ping_cmd -c $ping_count $ping_host"
+    ping_cmd="$ping_cmd -c $cfg_ping_count $cfg_ping_host"
     log_it "ping cmd used: [$ping_cmd]"
 }
 
@@ -135,8 +135,8 @@ while :; do
         #  with bad data. Worst case, this will delay monitoring a bit
         #  during an outage.
         #
-        log_it "No ping output, will sleep $ping_count seconds"
-        sleep "$ping_count"
+        log_it "No ping output, will sleep $cfg_ping_count seconds"
+        sleep "$cfg_ping_count"
     fi
 
     sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"

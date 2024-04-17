@@ -32,30 +32,30 @@ show_item() {
 }
 
 echo "=====   All variables session: $(get_tmux_socket)  ====="
-show_item ping_host "$ping_host" "$default_ping_host"
-show_item ping_count "$ping_count" "$default_ping_count"
-show_item history_size "$history_size" "$default_history_size"
+show_item cfg_ping_host "$cfg_ping_host" "$default_ping_host"
+show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count"
+show_item cfg_history_size "$cfg_history_size" "$default_history_size"
 
-show_item weighted_average "$weighted_average" "$default_weighted_average"
-show_item display_trend "$display_trend" "$default_display_trend"
+show_item cfg_weighted_average "$cfg_weighted_average" "$default_weighted_average"
+show_item cfg_display_trend "$cfg_display_trend" "$default_display_trend"
 
-show_item level_disp "$level_disp" "$default_level_disp"
-show_item level_alert "$level_alert" "$default_level_alert"
-show_item level_crit "$level_crit" "$default_level_crit"
+show_item cfg_level_disp "$cfg_level_disp" "$default_level_disp"
+show_item cfg_level_alert "$cfg_level_alert" "$default_level_alert"
+show_item cfg_level_crit "$cfg_level_crit" "$default_level_crit"
 
-show_item hist_avg_display "$hist_avg_display" "$default_hist_avg_display"
+show_item cfg_hist_avg_display "$cfg_hist_avg_display" "$default_hist_avg_display"
 
-show_item hist_avg_minutes "$hist_avg_minutes" "$default_hist_avg_minutes"
-show_item hist_separator "$hist_separator" "$default_hist_separator"
+show_item cfg_hist_avg_minutes "$cfg_hist_avg_minutes" "$default_hist_avg_minutes"
+show_item cfg_hist_separator "$cfg_hist_separator" "$default_hist_separator"
 
-show_item color_alert "$color_alert" "$default_color_alert"
-show_item color_crit "$color_crit" "$default_color_crit"
-show_item color_bg "$color_bg" "$default_color_bg"
+show_item cfg_color_alert "$cfg_color_alert" "$default_color_alert"
+show_item cfg_color_crit "$cfg_color_crit" "$default_color_crit"
+show_item cfg_color_bg "$cfg_color_bg" "$default_color_bg"
 
-show_item prefix "$prefix" "$default_prefix"
-show_item suffix "$suffix" "$default_suffix"
+show_item cfg_prefix "$cfg_prefix" "$default_prefix"
+show_item cfg_suffix "$cfg_suffix" "$default_suffix"
 
-show_item hook_idx "$hook_idx" "$default_hook_idx"
+show_item cfg_hook_idx "$cfg_hook_idx" "$default_hook_idx"
 
 # The rest depends on a tmux session
 [[ -z "$TMUX" ]] && exit 0

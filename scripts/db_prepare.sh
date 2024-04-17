@@ -18,7 +18,7 @@ create_db() {
         log_it "old_db removed"
     }
     #
-    #  t_loss is limited to $history_size rows, in order to make statistics consistent
+    #  t_loss is limited to $cfg_history_size rows, in order to make statistics consistent
     #
     local sql="
     CREATE TABLE t_loss (
@@ -69,14 +69,14 @@ update_triggers() {
         -- keep loss table within max length
         DELETE FROM t_loss
         WHERE ROWID <
-            NEW.ROWID - $history_size + 1;
+            NEW.ROWID - $cfg_history_size + 1;
 
         -- only keep one min of loss checks
         DELETE FROM t_1_min WHERE time_stamp <= datetime('now', '-1 minutes');
 
         -- keep statistics table within specified size
         DELETE FROM t_stats WHERE time_stamp <=
-               datetime('now', '-$hist_avg_minutes minutes');
+               datetime('now', '-$cfg_hist_avg_minutes minutes');
     END;
     "
     sqlite3 "$sqlite_db" "$sql"

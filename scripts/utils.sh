@@ -142,44 +142,44 @@ get_tmux_option() {
 }
 
 get_settings() {
-    ping_host="$(get_tmux_option "@packet-loss-ping_host" \
+    cfg_ping_host="$(get_tmux_option "@packet-loss-ping_host" \
         "$default_ping_host")"
-    ping_count="$(get_tmux_option "@packet-loss-ping_count" \
+    cfg_ping_count="$(get_tmux_option "@packet-loss-ping_count" \
         "$default_ping_count")"
-    history_size="$(get_tmux_option "@packet-loss-history_size" \
+    cfg_history_size="$(get_tmux_option "@packet-loss-history_size" \
         "$default_history_size")"
 
     # in order to assign a boolean to a variable this two line aproach is needed
 
-    weighted_average="$(normalize_bool_param "$(get_tmux_option \
+    cfg_weighted_average="$(normalize_bool_param "$(get_tmux_option \
         "@packet-loss-weighted_average" "$default_weighted_average")")"
-    display_trend="$(normalize_bool_param "$(get_tmux_option \
+    cfg_display_trend="$(normalize_bool_param "$(get_tmux_option \
         "@packet-loss-display_trend" "$default_display_trend")")"
 
-    level_disp="$(get_tmux_option "@packet-loss-level_disp" \
+    cfg_level_disp="$(get_tmux_option "@packet-loss-level_disp" \
         "$default_level_disp")"
-    level_alert="$(get_tmux_option "@packet-loss-level_alert" \
+    cfg_level_alert="$(get_tmux_option "@packet-loss-level_alert" \
         "$default_level_alert")"
-    level_crit="$(get_tmux_option "@packet-loss-level_crit" \
+    cfg_level_crit="$(get_tmux_option "@packet-loss-level_crit" \
         "$default_level_crit")"
 
-    hist_avg_display="$(normalize_bool_param "$(get_tmux_option \
+    cfg_hist_avg_display="$(normalize_bool_param "$(get_tmux_option \
         "@packet-loss-hist_avg_display" "$default_hist_avg_display")")"
-    hist_avg_minutes="$(get_tmux_option "@packet-loss-hist_avg_minutes" \
+    cfg_hist_avg_minutes="$(get_tmux_option "@packet-loss-hist_avg_minutes" \
         "$default_hist_avg_minutes")"
-    hist_separator="$(get_tmux_option "@packet-loss-hist_separator" \
+    cfg_hist_separator="$(get_tmux_option "@packet-loss-hist_separator" \
         "$default_hist_separator")"
 
-    color_alert="$(get_tmux_option "@packet-loss-color_alert" \
+    cfg_color_alert="$(get_tmux_option "@packet-loss-color_alert" \
         "$default_color_alert")"
-    color_crit="$(get_tmux_option "@packet-loss-color_crit" \
+    cfg_color_crit="$(get_tmux_option "@packet-loss-color_crit" \
         "$default_color_crit")"
-    color_bg="$(get_tmux_option "@packet-loss-color_bg" "$default_color_bg")"
+    cfg_color_bg="$(get_tmux_option "@packet-loss-color_bg" "$default_color_bg")"
 
-    prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
-    suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
+    cfg_prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
+    cfg_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
 
-    hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_hook_idx")"
+    cfg_hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_hook_idx")"
 }
 
 #===============================================================
@@ -226,8 +226,8 @@ scr_monitor="$D_TPL_BASE_PATH/scripts/monitor_packet_loss.sh"
 
 #
 #  These files are assumed to be in the directory data, so depending
-#  on location for the script using this, use the correct location prefix!
-#  Since this is sourced, the prefix can not be determined here.
+#  on location for the script using this, use the correct location cfg_prefix!
+#  Since this is sourced, the cfg_prefix can not be determined here.
 #
 #  shellcheck disable=SC2034
 sqlite_db="$d_data/packet_loss.sqlite"

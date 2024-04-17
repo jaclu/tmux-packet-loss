@@ -18,15 +18,14 @@ restart_monitor() {
 script_exit() {
     # report status and exit gracefully
     local status="$1"
-    local log_msg="$2"
-    
-    if [[ -n "$log_msg" ]]; then
-        log_it "$log_msg"
-    else
-        log_it "$status"
-    fi
+    # local log_msg="$2"
+    # if [[ -n "$log_msg" ]]; then
+    #     log_it "$log_msg"
+    # fi
+
     if [[ -n "$status" ]]; then
-        echo "${prefix}${status}${suffix}"
+        log_it "should not have pre/suf  $status"
+        echo "${cfg_prefix}${status}${cfg_suffix}"
     fi
     exit 0
 }
@@ -67,9 +66,8 @@ opt_last_value="@packet-loss_tmp_last_value"
 #
 $cache_db_polls && {
     prev_check_time="$(get_tmux_option "$opt_last_check" 0)"
-    t_now="$(date +%s)"
     interval="$($TMUX_BIN display -p "#{status-interval}")"
-    age_last_check="$((t_now - prev_check_time))"
+    age_last_check="$(($(date +%s) - prev_check_time))"
 
     # make it slightly less likely to return cached data
     age_last_check=$((age_last_check + 1))
@@ -106,7 +104,7 @@ elif [[ -n "$(find "$sqlite_db" -mmin +1)" ]]; then
     script_exit "DB old"
 fi
 
-if param_as_bool "$weighted_average"; then
+if param_as_bool "$cfg_weighted_average"; then
     #
     #  To give loss a declining history weighting, it is displayed as the largest of:
     #    last value
@@ -136,10 +134,10 @@ current_loss="$(sqlite3 "$sqlite_db" "$sql")"
 $cache_db_polls && set_tmux_option "$opt_last_check" "$(date +%s)"
 
 result="" # indicating no losses
-[[ "$current_loss" -lt "$level_disp" ]] && current_loss=0
+[[ "$current_loss" -lt "$cfg_level_disp" ]] && current_loss=0
 
 if [[ "$current_loss" -gt 0 ]]; then
-    if param_as_bool "$display_trend"; then
+    if param_as_bool "$cfg_display_trend"; then
         #
         #  Calculate trend, ie change since last update
         #
@@ -162,14 +160,14 @@ if [[ "$current_loss" -gt 0 ]]; then
     #
     #  If loss is over trigger levels, display in appropriate color
     #
-    if awk -v val="$current_loss" -v trig_lvl="$level_crit" \
+    if awk -v val="$current_loss" -v trig_lvl="$cfg_level_crit" \
         'BEGIN{exit !(val >= trig_lvl)}'; then
 
-        result="#[fg=$color_crit,bg=$color_bg]$loss_trend$current_loss#[default]"
-    elif awk -v val="$current_loss" -v trig_lvl="$level_alert" \
+        result="#[fg=$cfg_color_crit,bg=$cfg_color_bg]$loss_trend$current_loss#[default]"
+    elif awk -v val="$current_loss" -v trig_lvl="$cfg_level_alert" \
         'BEGIN{exit !(val >= trig_lvl)}'; then
 
-        result="#[fg=$color_alert,bg=$color_bg]$loss_trend$current_loss#[default]"
+        result="#[fg=$cfg_color_alert,bg=$cfg_color_bg]$loss_trend$current_loss#[default]"
     else
         result="$loss_trend$current_loss"
     fi
@@ -177,23 +175,27 @@ if [[ "$current_loss" -gt 0 ]]; then
     #
     #  If history is requested, include it in display
     #
-    if param_as_bool "$hist_avg_display"; then
+    if param_as_bool "$cfg_hist_avg_display"; then
         sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
         avg_loss_raw="$(sqlite3 "$sqlite_db" "$sql")"
         if [[ "$avg_loss_raw" != "0" ]]; then
-            if awk -v val="$avg_loss_raw" -v trig_lvl="$level_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
-                avg_loss="#[fg=$color_crit,bg=$color_bg]$avg_loss_raw#[default]"
-            elif awk -v val="$avg_loss_raw" -v trig_lvl="$level_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
-                avg_loss="#[fg=$color_alert,bg=$color_bg]$avg_loss_raw#[default]"
+            if awk -v val="$avg_loss_raw" -v trig_lvl="$cfg_level_crit" 'BEGIN{exit !(val >= trig_lvl)}'; then
+                avg_loss="#[fg=$cfg_color_crit,bg=$cfg_color_bg]$avg_loss_raw#[default]"
+            elif awk -v val="$avg_loss_raw" -v trig_lvl="$cfg_level_alert" 'BEGIN{exit !(val >= trig_lvl)}'; then
+                avg_loss="#[fg=$cfg_color_alert,bg=$cfg_color_bg]$avg_loss_raw#[default]"
+            else
+                avg_loss="$avg_loss_raw"
             fi
-            result="${result}${hist_separator}${avg_loss}"
+            result="${result}${cfg_hist_separator}${avg_loss}"
         fi
     fi
-    echo "${prefix}${result}${suffix}"
+    echo "${cfg_prefix}${result}${cfg_suffix}"
     #  typically comment out the next 3 lines unless you are debugging stuff
+
     log_it "loss: $current_loss  avg: $avg_loss_raw"
 # else
 #     log_it "no packet losses"
+
 fi
 
 $cache_db_polls && set_tmux_option "$opt_last_result" "$result"

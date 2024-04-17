@@ -119,7 +119,7 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 | @packet-loss-weighted_average | yes           | Whether to use weighted average focusing on the latest data points (`yes`) or average over all data points (`no`). |
 | @packet-loss-display_trend    | no            | Display trend with `+` prefix for higher levels and `-` prefix for lower levels (`yes`). |
 | @packet-loss-level_disp       | 1             | Display loss if at or higher than this level. |
-| @packet-loss-level_alert      | 18            | Color loss with `color_alert` if at or above this level.<br>Suggestion: set it one higher than the percentage representing one loss in one update to avoid single packet loss triggering an alert initially. |
+| @packet-loss-level_alert      | 17            | Color loss with `color_alert` if at or above this level.<br>Suggestion: set it one higher than the percentage representing one loss in one update to avoid single packet loss triggering an alert initially. |
 | @packet-loss-level_crit       | 40            | Color loss with `color_crit` if at or above this level. |
 |                               |               | |
 | @packet-loss-hist_avg_display | no            | Show historical average when displaying current losses (`yes`). |
@@ -175,6 +175,14 @@ are displayed as the largest of:
 - avg of all
 
 If set to no, the average of all samples is always displayed.
+
+### Suggested Alert Levels
+
+Depending on the ping count, it is suggested to have alert one higher, so that a single lost packet wont show up as an alert
+
+| pings | one higher than a single loss |
+|-|-|
+| 6 | 17 |
 
 ### Database
 

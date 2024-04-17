@@ -272,7 +272,7 @@ default_weighted_average="$(normalize_bool_param "true")"
 default_display_trend="$(normalize_bool_param "false")"
 
 default_level_disp=1   #  display loss if this or higher
-default_level_alert=18 #  this or higher triggers alert color
+default_level_alert=17 #  this or higher triggers alert color
 default_level_crit=40  #  this or higher triggers critical color
 
 #  Display long term average

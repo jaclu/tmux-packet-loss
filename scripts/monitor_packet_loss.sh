@@ -119,6 +119,11 @@ while :; do
             error_msg "Failed to parse ping output, unlikely to self correct!" 0
             percent_loss="$error_unable_to_detect_loss"
         fi
+        #
+        #  zero % loss is displayed somewhat differently depending on platform
+        #  this standardizes no losses into 0
+        #
+        [[ "$percent_loss" = "0.0" ]] && percent_loss=0  # macos
     else
         #
         #  No output, usually no connection to the host
@@ -145,5 +150,6 @@ while :; do
     fi
 
     #  A bit exessive in normal conditions
-    [[ "$percent_loss" != "0.0" ]] && log_it "stored in DB: $percent_loss"
+    [[ "$percent_loss" != "0" ]] && log_it "stored in DB: $percent_loss"
+    # log_it "stored in DB: $percent_loss"
 done

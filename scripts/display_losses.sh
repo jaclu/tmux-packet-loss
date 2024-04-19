@@ -8,29 +8,24 @@
 #   Reports current packet loss status for the plugin
 #
 
-restart_monitor() {
-    log_it "restarting monitor"
-    date >>"$db_restart_log" # log current time
-
-    $scr_controler
-}
-
 script_exit() {
     #
     #  wrap status in prefix/suffix and exit gracefully
     #
     local status="$1"
 
-    # local log_msg="$2"
-    # if [[ -n "$log_msg" ]]; then
-    #     log_it "$log_msg"
-    # fi
-
-    if [[ -n "$status" ]]; then
+    [[ -n "$status" ]] && {
         # log_it "should not have pre/suf  $status"
         echo "${cfg_prefix}${status}${cfg_suffix}"
-    fi
+    }
     exit 0
+}
+
+restart_monitor() {
+    log_it "restarting monitor"
+    date >>"$db_restart_log" # log current time
+
+    $scr_controler
 }
 
 verify_db_status() {
@@ -80,7 +75,7 @@ check_cache_age() {
     # make it slightly less likely to return cached data
     age_last_check=$((age_last_check + 1))
     [[ "$age_last_check" -lt "$interval" ]] && {
-        log_it "cache age ${age_last_check}"
+        log_it "cache age: ${age_last_check}"
         get_tmux_option "$opt_last_result" ""
         exit 0
     }
@@ -152,6 +147,29 @@ colorize_high_numbers() {
     echo "$item"
 }
 
+display_history() {
+    #
+    #  Display history
+    #
+    #  Exposed variables:
+    #    s_log_msg - will be used by main to display current losses
+    #
+    local sql
+    local avg_loss_raw
+    local avg_loss
+
+    sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
+    avg_loss_raw="$(sqlite3 "$sqlite_db" "$sql")"
+    if [[ "$avg_loss_raw" != "0" ]]; then
+        #
+        #  If stats is over trigger levels, display in appropriate color
+        #
+        avg_loss="$(colorize_high_numbers "$avg_loss_raw" "$avg_loss_raw")"
+        echo "${cfg_hist_separator}${avg_loss}"
+        s_log_msg="$s_log_msg   avg: $avg_loss_raw"
+    fi
+}
+
 #===============================================================
 #
 #   Main
@@ -169,6 +187,8 @@ log_prefix="chk"
 
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
+
+log_ppid="true"
 
 #  for caching
 opt_last_check="@packet-loss_tmp_last_check"
@@ -204,21 +224,7 @@ if [[ "$current_loss" -gt 0 ]]; then
 
     result="$(colorize_high_numbers "$current_loss" "$result")"
 
-    #
-    #  If history is requested, include it in display
-    #
-    if param_as_bool "$cfg_hist_avg_display"; then
-        sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
-        avg_loss_raw="$(sqlite3 "$sqlite_db" "$sql")"
-        if [[ "$avg_loss_raw" != "0" ]]; then
-            #
-            #  If stats is over trigger levels, display in appropriate color
-            #
-            avg_loss="$(colorize_high_numbers "$avg_loss_raw" "$avg_loss_raw")"
-            result="${result}${cfg_hist_separator}${avg_loss}"
-        fi
-        s_log_msg="$s_log_msg   avg: $avg_loss_raw"
-    fi
+    param_as_bool "$cfg_hist_avg_display" && result="${result}$(display_history)"
 
     #
     #  Set prefix & suffix to result and report to status bar
@@ -226,9 +232,11 @@ if [[ "$current_loss" -gt 0 ]]; then
     result="${cfg_prefix}${result}${cfg_suffix}"
     echo "$result"
 
+    #
     #  comment out the next 3 lines unless you are debugging stuff
+    #
 
-    log_it "$s_log_msg"
+#    log_it "$s_log_msg"
 # else
 #     log_it "no packet losses"
 

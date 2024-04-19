@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
-#  Directives for shellcheck directly after bang path are global
 #
-#   Copyright (c) 2022: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
-#
-#   Version: 0.2.1 2022-09-15
 #
 #   This is the coordination script
 #    - ensures the database is present and up to date
 #    - sets parameters in the database
 #    - ensures packet_loss_monitor is running
-#    - binds  #{packet_loss} to check_packet_loss.sh
+#    - binds  #{packet_loss} to display_losses.sh
 #
 
 #
@@ -44,6 +41,7 @@ update_tmux_option() {
 #===============================================================
 
 D_TPL_BASE_PATH=$(dirname -- "$(realpath -- "$0")")
+log_prefix="chk"
 
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
@@ -51,9 +49,9 @@ D_TPL_BASE_PATH=$(dirname -- "$(realpath -- "$0")")
 #
 #  Dependency check
 #
-if ! command -v sqlite3 >/dev/null 2>&1; then
+command -v sqlite3 >/dev/null 2>&1 || {
     error_msg "Missing dependency sqlite3"
-fi
+}
 
 #
 #  stop any running monitor instances
@@ -61,16 +59,18 @@ fi
 #  update triggers baesd on tmux plgin config
 #  start monitoring
 #
+log_it "starting monitor"
 $scr_controler
 
 #
 #  Match tag with polling script
 #
 pkt_loss_interpolation="\#{packet_loss}"
-pkt_loss_command="#($D_TPL_BASE_PATH/scripts/packet_loss.sh)"
+pkt_loss_command="#($scr_display_losses)"
 
 #
 #  Activate #{packet_loss} tag if used
 #
 update_tmux_option "status-left"
 update_tmux_option "status-right"
+log_it "packet-loss.tmux completed"

@@ -18,9 +18,7 @@ show_item() {
     local label="$1"
     local value="$2"
     local default="$3"
-    local bool="$4"
 
-    [[ "$bool" = "b" ]] && value="$(bool_printable "$value")"
     msg="$label [$value]"
     if [[ "$value" = "$default" ]]; then
         msg="$(printf "%-17s      (default) [%s]" "$label" "$value")"
@@ -31,9 +29,20 @@ show_item() {
     echo "$msg"
 }
 
-echo "=====   All variables session: $(get_tmux_socket)  ====="
+echo "=====   Config for  session: $(get_tmux_socket)   ====="
+ping_count="$(show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count")"
+echo "$ping_count"
+
+status_interval="$($TMUX_BIN display -p "#{status-interval}")"
+msg_interval="status bar update frequency = $status_interval"
+req_interval="$(echo "$cfg_ping_count - 1" | bc)"
+if [[ "$req_interval" != "$status_interval" ]]; then
+    msg_interval="$msg_interval  - tmux status-interval is recomended to be arround: $req_interval"
+fi
+echo "$msg_interval"
+echo
+
 show_item cfg_ping_host "$cfg_ping_host" "$default_ping_host"
-show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count"
 show_item cfg_history_size "$cfg_history_size" "$default_history_size"
 
 show_item cfg_weighted_average "$cfg_weighted_average" "$default_weighted_average"
@@ -61,7 +70,7 @@ show_item cfg_hook_idx "$cfg_hook_idx" "$default_hook_idx"
 [[ -z "$TMUX" ]] && exit 0
 
 echo
-echo "===   temp variables stored in tmux by scripts/packet_loss.sh   ==="
+echo "===   temp variables stored in tmux by scripts/display_losses.sh   ==="
 
 # used to indicate trends
 opt_last_value="@packet-loss_tmp_last_value"

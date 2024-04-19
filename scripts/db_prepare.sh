@@ -55,10 +55,7 @@ update_triggers() {
 
     triggers="$(sqlite3 "$sqlite_db" \
         "SELECT * FROM sqlite_master where type = 'trigger'")"
-
-    if [[ -n "$triggers" ]]; then
-        sqlite3 "$sqlite_db" "DROP TRIGGER new_data"
-    fi
+    [[ -n "$triggers" ]] && sqlite3 "$sqlite_db" "DROP TRIGGER new_data"
 
     # t_stats is updated aprox once/minute at the end of monitor_packet_loss.sh
     sql="

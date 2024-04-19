@@ -109,9 +109,12 @@ pidfile_release() {
     ((log_indent++)) # increase indent until this returns
 
     pidfile_is_mine "$pid_file" || {
-        error_msg "pidfile_release($pid_file) failed, was owned by [$pidfile_proc]"
+        pidfile_is_live "$pid_file" && {
+            error_msg "pidfile_release($pid_file) failed - still in use by [$pidfile_proc]"
+        }
+        _pf_log "pid_file was a left-over"
     }
-    rm -r "$pid_file"
+    rm -f "$pid_file"
     _pf_log "Release successful"
 }
 

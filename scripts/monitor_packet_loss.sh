@@ -5,10 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   This runs forever unless it is given the option stop, so waiting for
-#   it to complete might not be handy when called from other scripts.
-#   This is how I use it:
-#     nohup "$scr_monitor" >/dev/null 2>&1 &
+#   This runs forever.
 #
 
 define_ping_cmd() {
@@ -85,7 +82,7 @@ define_ping_cmd # we need the ping_cmd in kill_any_strays
 #
 #  Main loop
 #
-while :; do
+while true; do
     #
     #  Redirecting stderr is needed since on some platforms, like running
     #  Debian 10 on iSH, you get warning printouts, yet the ping still works:
@@ -136,7 +133,6 @@ while :; do
         #  during an outage.
         #
         log_it "No ping output, will sleep $cfg_ping_count seconds"
-        sleep "$cfg_ping_count"
     fi
 
     sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"

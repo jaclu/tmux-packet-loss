@@ -10,7 +10,6 @@
 #
 
 get_tmux_socket() {
-    #  shellcheck disable=SC2154
     if [[ -n "$TMUX" ]]; then
         echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
     else
@@ -24,18 +23,24 @@ get_tmux_socket() {
 log_it() {
     local socket
 
-    if [[ -t 0 ]]; then
-        printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
-        return
-    elif [[ -z "$log_file" ]]; then
-        return
+    # if [[ -t 0 ]]; then
+    #     printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
+    #     return
+    # elif [[ -z "$log_file" ]]; then
+    #     return
+    # fi
+
+    if [[ "$log_ppid" = "true" ]]; then
+        proc_id="$(tmux display -p "#{session_id}"):$PPID"
+    else
+        proc_id="$$"
     fi
 
     socket=" $(get_tmux_socket)"
     # only show socket name if not default
     [[ "$socket" = " default" ]] && socket=""
 
-    printf "%s%s $$ %s%*s%s\n" "$(date '+%H:%M:%S')" "$socket" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
+    printf "%s%s %s %s%*s%s\n" "$(date '+%H:%M:%S')" "$socket" "$proc_id" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
 }
 
 #
@@ -54,24 +59,15 @@ error_msg() {
         log_it
         $TMUX_BIN display-message -d 0 "$plugin_name $msg"
     fi
-    [[ "$exit_code" -ne 0 ]] && exit "$exit_code"
-
+    [[ "$exit_code" -gt -1 ]] && exit "$exit_code"
 }
 
-#
-#  Aargh in shell boolean true is 0, but to make the boolean parameters
-#  more relatable for users 1 is yes and 0 is no, so we need to switch
-#  them here in order for assignment to follow boolean logic in caller
-#
-
-# bool_printable() {
-#     case "$1" in
-#     0 | true) echo "true" ;;
-#     1 | false) echo "false" ;;
-#     "") echo "ERROR: bool_printable($1) - no param" ;;
-#     *) echo "ERROR: bool_printable($1) - unrecognized param" ;;
-#     esac
-# }
+is_integer() {
+    case $1 in
+    '' | *[!0-9]*) return 1 ;; # Contains non-numeric characters
+    *) return 0 ;;             # Contains only digits
+    esac
+}
 
 param_as_bool() {
     [[ "$1" = "true" ]] && return 0
@@ -200,10 +196,11 @@ plugin_name="tmux-packet-loss"
 #  no output will happen. This should be the case for normal operations.
 #  So unless you want logging, comment the next line out.
 #
-log_file="/tmp/$plugin_name.log"
+log_file="/tmp/tmux-devel-packet-loss.log"
 
 [[ -z "$log_prefix" ]] && log_prefix="???"
 log_indent=1
+log_ppid="false" # set to true if ppid should be displayed instead of pid"
 
 #
 #  Should have been set in the calling script, must be done after
@@ -220,20 +217,17 @@ d_data="$D_TPL_BASE_PATH/data" # location for all runtime data
 # shellcheck source=scripts/pidfile_handler.sh
 . "$D_TPL_BASE_PATH"/scripts/pidfile_handler.sh
 
-#  shellcheck disable=SC2034
 scr_controler="$D_TPL_BASE_PATH/scripts/ctrl_monitor.sh"
 scr_monitor="$D_TPL_BASE_PATH/scripts/monitor_packet_loss.sh"
+scr_display_losses="$D_TPL_BASE_PATH/scripts/display_losses.sh" # packet_loss.sh
 
 #
 #  These files are assumed to be in the directory data, so depending
 #  on location for the script using this, use the correct location cfg_prefix!
 #  Since this is sourced, the cfg_prefix can not be determined here.
 #
-#  shellcheck disable=SC2034
 sqlite_db="$d_data/packet_loss.sqlite"
-#  shellcheck disable=SC2034
 db_restart_log="$d_data/db_restarted.log"
-#  shellcheck disable=SC2034
 monitor_pidfile="$d_data/monitor.pid"
 
 #  check one of the path items to verify D_TPL_BASE_PATH
@@ -253,13 +247,11 @@ monitor_pidfile="$d_data/monitor.pid"
 # ensure socket is included, in case TMUX_BIN didn't set it
 # [[ -n "${TMUX_BIN##*-L*}" ]] && TMUX_BIN="$TMUX_BIN -L $(get_tmux_socket)"
 
-#  shellcheck disable=SC2034
 cache_db_polls=true
 
 #
 #  Sanity check that DB structure is current, if not it will be replaced
 #
-#  shellcheck disable=SC2034
 db_version=10
 
 default_ping_host="8.8.4.4" #  Default host to ping

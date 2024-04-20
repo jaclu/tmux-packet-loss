@@ -212,9 +212,7 @@ verify_db_status
 
 $cache_db_polls && check_cache_age
 
-t_now="$(date +%s)"
 current_loss="$(get_current_loss)"
-display_time_elapsed "$(($(date +%s) - t_now))" "get_current_loss"
 
 $cache_db_polls && set_tmux_option "$opt_last_check" "$t_start"
 

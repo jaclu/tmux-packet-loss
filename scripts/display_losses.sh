@@ -180,7 +180,7 @@ display_history() {
 #   Main
 #
 #===============================================================
-t_start=$(gdate +%s.%N)
+t_start=$(date +%s.%N)
 
 #
 #  Prevent tmux from running it every couple of seconds,

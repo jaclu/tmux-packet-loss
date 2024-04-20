@@ -23,12 +23,10 @@ get_tmux_socket() {
 log_it() {
     local socket
 
-    # if [[ -t 0 ]]; then
-    #     printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
-    #     return
-    # fi
-
-    if [[ -z "$log_file" ]]; then
+    if $log_interactive_to_stderr && [[ -t 0 ]]; then
+        printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
+        return
+    elif [[ -z "$log_file" ]]; then
         return
     fi
 
@@ -53,8 +51,8 @@ error_msg() {
     local msg="ERROR: $1"
     local exit_code="${2:-1}"
 
-    if [[ -t 0 ]]; then
-        echo "$msg"
+    if $log_interactive_to_stderr && [[ -t 0 ]]; then
+        echo "$msg" > /dev/stderr
     else
         log_it
         log_it "$msg"
@@ -163,13 +161,18 @@ param_cache_write() {
     cfg_prefix="$cfg_prefix"
     cfg_suffix="$cfg_suffix"
     cfg_hook_idx="$cfg_hook_idx"
+    #
+    # no point in saving use_param_cache here,
+    # since it is used before this is read
+    #
 EOF
 }
 
 get_settings() {
+    log_it "get_settings()"
     [[ -f "$f_param_cache" ]] && {
         log_it "using param cache"
-        #  shellcheck source=/dev/null
+	#  shellcheck source=/dev/null
         source "$f_param_cache"
         return
     }
@@ -213,32 +216,13 @@ get_settings() {
 
     cfg_hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_hook_idx")"
 
-    param_cache_write
-}
+    #
+    #  unofficial parameter, still in testing
+    #
+    #use_param_cache="$(normalize_bool_param "$(get_tmux_option \
+    #    "@packet-loss-use_param_cache" "false")")"
 
-get_quick_settings() {
-    cfg_ping_host="$default_ping_host"
-    cfg_ping_count="$default_ping_count"
-    cfg_history_size="$default_history_size"
-    cfg_weighted_average="$(normalize_bool_param "$default_weighted_average")"
-    cfg_display_trend="$(normalize_bool_param "$default_display_trend")"
-
-    cfg_level_disp="$default_level_disp"
-    cfg_level_alert="$default_level_alert"
-    cfg_level_crit="$default_level_crit"
-
-    cfg_hist_avg_display="$(normalize_bool_param "$default_hist_avg_display")"
-    cfg_hist_avg_minutes="$default_hist_avg_minutes"
-    cfg_hist_separator="$default_hist_separator"
-
-    cfg_color_alert="$default_color_alert"
-    cfg_color_crit="$default_color_crit"
-    cfg_color_bg="$default_color_bg"
-
-    cfg_prefix="$default_prefix"
-    cfg_suffix="$default_suffix"
-
-    cfg_hook_idx="$default_hook_idx"
+    param_as_bool "$use_param_cache" && param_cache_write
 }
 
 safe_now() {
@@ -291,6 +275,7 @@ plugin_name="tmux-packet-loss"
 log_file="/tmp/tmux-devel-packet-loss.log"
 
 [[ -z "$log_prefix" ]] && log_prefix="???"
+log_interactive_to_stderr=true
 log_indent=1
 log_ppid="false" # set to true if ppid should be displayed instead of pid"
 
@@ -375,5 +360,5 @@ default_suffix=' '
 
 default_hook_idx=41 #  array idx for session-closed hook
 
+use_param_cache=true
 get_settings
-# get_quick_settings

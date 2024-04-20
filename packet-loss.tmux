@@ -46,7 +46,12 @@ log_prefix="chk"
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
-rm -f "$f_param_cache" # remove old cache if present
+#
+#  Doing it this way, on startup cache might be generated twice
+#  but by removing the cache after sourcing, we can use the
+#  defined fname for the param cache
+#
+rm -f "$f_param_cache" # remove potentially old cache if present
 get_settings # make sure fresh settings are used
 
 #

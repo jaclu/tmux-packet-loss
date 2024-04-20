@@ -194,7 +194,7 @@ log_prefix="chk"
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
-log_ppid="true"
+# log_ppid="true"
 
 #  for caching
 opt_last_check="@packet-loss_tmp_last_check"

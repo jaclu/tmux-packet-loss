@@ -67,10 +67,12 @@ check_cache_age() {
     local prev_check_time
     local interval
     local age_last_check
+    local t_start
 
+    t_start="$(date +%s)"
     prev_check_time="$(get_tmux_option "$opt_last_check" 0)"
     interval="$($TMUX_BIN display -p "#{status-interval}")"
-    age_last_check="$((t_now - prev_check_time))"
+    age_last_check="$((t_start - prev_check_time))"
 
     # make it slightly less likely to return cached data
     age_last_check=$((age_last_check + 1))
@@ -79,11 +81,14 @@ check_cache_age() {
         get_tmux_option "$opt_last_result" ""
         exit 0
     }
+    display_time_elapsed "$(($(date +%s) - t_start))" "check_cache_age"
 }
 
 get_current_loss() {
     local sql
+    local t_start
 
+    t_start="$(date +%s)"
     if param_as_bool "$cfg_weighted_average"; then
         #
         #  To give loss a declining history weighting, it is displayed as the largest of:
@@ -110,10 +115,14 @@ get_current_loss() {
 
     sql="SELECT CAST(( $sql ) AS INTEGER)"
     sqlite3 "$sqlite_db" "$sql"
+    display_time_elapsed "$(($(date +%s) - t_start))" "get_current_loss"
 }
 
 show_trend() {
     local prev_loss
+    local t_start
+
+    t_start="$(date +%s)"
 
     prev_loss="$(get_tmux_option "$opt_last_value" 0)"
     if [[ "$prev_loss" -ne "$current_loss" ]]; then
@@ -126,6 +135,7 @@ show_trend() {
             result="-$current_loss"
         fi
     fi
+    display_time_elapsed "$(($(date +%s) - t_start))" "show_trend"
 }
 
 colorize_high_numbers() {
@@ -134,7 +144,9 @@ colorize_high_numbers() {
     #
     local number="$1" # numerical value to check
     local item="$2"   # string that might get color
+    local t_start
 
+    t_start="$(date +%s)"
     if awk -v val="$number" -v trig_lvl="$cfg_level_crit" \
         'BEGIN{exit !(val >= trig_lvl)}'; then
 
@@ -145,6 +157,7 @@ colorize_high_numbers() {
         item="#[fg=$cfg_color_alert,bg=$cfg_color_bg]${item}#[default]"
     fi
     echo "$item"
+    display_time_elapsed "$(($(date +%s) - t_start))" "colorize_high_numbers"
 }
 
 display_history() {
@@ -157,6 +170,9 @@ display_history() {
     local sql
     local avg_loss_raw
     local avg_loss
+    local t_start
+
+    t_start="$(date +%s)"
 
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
     avg_loss_raw="$(sqlite3 "$sqlite_db" "$sql")"
@@ -168,6 +184,7 @@ display_history() {
         echo "${cfg_hist_separator}${avg_loss}"
         s_log_msg="$s_log_msg   avg: $avg_loss_raw"
     fi
+    display_time_elapsed "$(($(date +%s) - t_start))" "display_history"
 }
 
 #===============================================================
@@ -200,15 +217,17 @@ opt_last_result="@packet-loss_tmp_last_result"
 #
 opt_last_value="@packet-loss_tmp_last_value"
 
-t_now="$(date +%s)"
+t_start="$(date +%s)"
 
 verify_db_status
 
 $cache_db_polls && check_cache_age
 
+t_now="$(date +%s)"
 current_loss="$(get_current_loss)"
+display_time_elapsed "$(($(date +%s) - t_now))" "get_current_loss"
 
-$cache_db_polls && set_tmux_option "$opt_last_check" "$t_now"
+$cache_db_polls && set_tmux_option "$opt_last_check" "$t_start"
 
 result="" # indicating no losses
 [[ "$current_loss" -lt "$cfg_level_disp" ]] && current_loss=0

@@ -23,12 +23,12 @@ get_tmux_socket() {
 log_it() {
     local socket
 
-    # if [[ -t 0 ]]; then
-    #     printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
-    #     return
-    # elif [[ -z "$log_file" ]]; then
-    #     return
-    # fi
+    if [[ -t 0 ]]; then
+        printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
+        return
+    elif [[ -z "$log_file" ]]; then
+        return
+    fi
 
     if [[ "$log_ppid" = "true" ]]; then
         proc_id="$(tmux display -p "#{session_id}"):$PPID"
@@ -176,6 +176,21 @@ get_settings() {
     cfg_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
 
     cfg_hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_hook_idx")"
+}
+
+display_time_elapsed() {
+    local duration="$1"
+    local label="$2"
+    local minutes
+
+    minutes="$((duration / 60))"
+    seconds="$((duration - minutes * 60))"
+
+    #  Add zero prefix when < 10
+    [[ "$minutes" -gt 0 ]] && [[ "$minutes" -lt 10 ]] && minutes="0$minutes"
+    [[ "$seconds" -lt 10 ]] && seconds="0$seconds"
+
+    log_it "Time elapsed: $minutes:$seconds - $label"
 }
 
 #===============================================================

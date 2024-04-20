@@ -140,6 +140,7 @@ get_tmux_option() {
 }
 
 param_cache_write() {
+    log_it "Generating param cache: $f_param_cache"
     cat <<EOF >"$f_param_cache"
     #
     # param cache, should always be removed on startup when

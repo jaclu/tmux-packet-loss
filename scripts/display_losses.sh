@@ -252,3 +252,4 @@ fi
 
 $cache_db_polls && set_tmux_option "$opt_last_result" "$result"
 display_time_elapsed "$(($(date +%s) - t_start))" "display_losses.sh"
+sleep 2

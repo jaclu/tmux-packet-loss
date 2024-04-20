@@ -141,23 +141,27 @@ get_tmux_option() {
 
 param_cache_write() {
     cat <<EOF >"$f_param_cache"
-    echo "cfg_ping_host='$cfg_ping_host'"
-    echo "cfg_ping_count='$cfg_ping_count'"
-    echo "cfg_history_size='$cfg_history_size'"
-    echo "cfg_weighted_average='$cfg_weighted_average'"
-    echo "cfg_display_trend='$cfg_display_trend'"
-    echo "cfg_level_disp='$cfg_level_disp'"
-    echo "cfg_level_alert='$cfg_level_alert'"
-    echo "cfg_level_crit='$cfg_level_crit'"
-    echo "cfg_hist_avg_display='$cfg_hist_avg_display'"
-    echo "cfg_hist_avg_minutes='$cfg_hist_avg_minutes'"
-    echo "cfg_hist_separator='$cfg_hist_separator'"
-    echo "cfg_color_alert='$cfg_color_alert'"
-    echo "cfg_color_crit='$cfg_color_crit'"
-    echo "cfg_color_bg='$cfg_color_bg'"
-    echo "cfg_prefix='$cfg_prefix'"
-    echo "cfg_suffix='$cfg_suffix'"
-    echo "cfg_hook_idx='$cfg_hook_idx'"
+    #
+    # param cache, should always be removed on startup when
+    # packet-loss.tmux is run
+    #
+    cfg_ping_host="$cfg_ping_host"
+    cfg_ping_count="$cfg_ping_count"
+    cfg_history_size="$cfg_history_size"
+    cfg_weighted_average="$cfg_weighted_average"
+    cfg_display_trend="$cfg_display_trend"
+    cfg_level_disp="$cfg_level_disp"
+    cfg_level_alert="$cfg_level_alert"
+    cfg_level_crit="$cfg_level_crit"
+    cfg_hist_avg_display="$cfg_hist_avg_display"
+    cfg_hist_avg_minutes="$cfg_hist_avg_minutes"
+    cfg_hist_separator="$cfg_hist_separator"
+    cfg_color_alert="$cfg_color_alert"
+    cfg_color_crit="$cfg_color_crit"
+    cfg_color_bg="$cfg_color_bg"
+    cfg_prefix="$cfg_prefix"
+    cfg_suffix="$cfg_suffix"
+    cfg_hook_idx="$cfg_hook_idx"
 EOF
 }
 

@@ -70,7 +70,7 @@ check_cache_age() {
 
     prev_check_time="$(get_tmux_option "$opt_last_check" 0)"
     interval="$($TMUX_BIN display -p "#{status-interval}")"
-    age_last_check="$((t_start - prev_check_time))"
+    age_last_check="$(printf "%.0f" "$(echo "$t_start - $prev_check_time" | bc)")"
 
     # make it slightly less likely to return cached data
     age_last_check=$((age_last_check + 1))
@@ -79,7 +79,7 @@ check_cache_age() {
         get_tmux_option "$opt_last_result" ""
         exit 0
     }
-    display_time_elapsed "$(($(date +%s) - t_start))" "check_cache_age"
+    display_time_elapsed "$t_start" "check_cache_age"
 }
 
 get_current_loss() {
@@ -111,7 +111,7 @@ get_current_loss() {
 
     sql="SELECT CAST(( $sql ) AS INTEGER)"
     sqlite3 "$sqlite_db" "$sql"
-    display_time_elapsed "$(($(date +%s) - t_start))" "get_current_loss"
+    display_time_elapsed "$t_start" "get_current_loss"
 }
 
 show_trend() {
@@ -128,7 +128,7 @@ show_trend() {
             result="-$current_loss"
         fi
     fi
-    display_time_elapsed "$(($(date +%s) - t_start))" "show_trend"
+    display_time_elapsed "$t_start" "show_trend"
 }
 
 colorize_high_numbers() {
@@ -148,7 +148,7 @@ colorize_high_numbers() {
         item="#[fg=$cfg_color_alert,bg=$cfg_color_bg]${item}#[default]"
     fi
     echo "$item"
-    display_time_elapsed "$(($(date +%s) - t_start))" "colorize_high_numbers"
+    display_time_elapsed "$t_start" "colorize_high_numbers"
 }
 
 display_history() {
@@ -172,7 +172,7 @@ display_history() {
         echo "${cfg_hist_separator}${avg_loss}"
         s_log_msg="$s_log_msg   avg: $avg_loss_raw"
     fi
-    display_time_elapsed "$(($(date +%s) - t_start))" "display_history"
+    display_time_elapsed "$t_start" "display_history"
 }
 
 #===============================================================
@@ -180,7 +180,7 @@ display_history() {
 #   Main
 #
 #===============================================================
-t_start="$(date +%s)"
+t_start=$(gdate +%s.%N)
 
 #
 #  Prevent tmux from running it every couple of seconds,
@@ -193,6 +193,7 @@ log_prefix="chk"
 
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
+display_time_elapsed "$t_start" "sourced utils"
 
 # log_ppid="true"
 
@@ -206,7 +207,7 @@ opt_last_result="@packet-loss_tmp_last_result"
 #
 opt_last_value="@packet-loss_tmp_last_value"
 
-display_time_elapsed "$(($(date +%s) - t_start))" "script setup"
+display_time_elapsed "$t_start" "script initialized"
 
 verify_db_status
 
@@ -249,6 +250,6 @@ if [[ "$current_loss" -gt 0 ]]; then
 fi
 
 $cache_db_polls && set_tmux_option "$opt_last_result" "$result"
-display_time_elapsed "$(($(date +%s) - t_start))" "display_losses.sh"
+display_time_elapsed "$t_start" "display_losses.sh"
 sleep 2
 log_it "$$ exiting"

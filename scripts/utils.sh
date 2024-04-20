@@ -178,19 +178,29 @@ get_settings() {
     cfg_hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_hook_idx")"
 }
 
+safe_now() {
+    #
+    # MacOS date only counts whole seconds, if gdate is installed it can
+    # display times with more precission
+    #
+    if [[ -n "$(command -v gdate)" ]]; then
+        gdate +%s.%N
+    else
+        date +%s
+    fi
+}
+
 display_time_elapsed() {
-    local duration="$1"
+    local t_start="$1"
     local label="$2"
+    local duration
     local minutes
+    local seconds
 
-    minutes="$((duration / 60))"
-    seconds="$((duration - minutes * 60))"
-
-    #  Add zero prefix when < 10
-    [[ "$minutes" -gt 0 ]] && [[ "$minutes" -lt 10 ]] && minutes="0$minutes"
-    [[ "$seconds" -lt 10 ]] && seconds="0$seconds"
-
-    log_it "Time elapsed: $minutes:$seconds - $label"
+    # log_it "safe now:[$(safe_now)]"
+    duration="$(echo "$(safe_now) - $t_start" | bc)"
+    # log_it "duration [$duration]"
+    log_it "Time elapsed: $(printf "%.2f" "$duration") $label"
 }
 
 #===============================================================
@@ -199,6 +209,7 @@ display_time_elapsed() {
 #
 #===============================================================
 
+[[ "$1" = "hepp" ]] || exit 0
 #
 #  Shorthand, to avoid manually typing package name on multiple
 #  locations, easily getting out of sync.

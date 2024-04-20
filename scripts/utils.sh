@@ -169,7 +169,7 @@ EOF
 }
 
 get_settings() {
-    log_it "get_settings()"
+    # log_it "get_settings()"
     [[ -f "$f_param_cache" ]] && {
         log_it "using param cache"
 	#  shellcheck source=/dev/null
@@ -227,8 +227,8 @@ get_settings() {
 
 safe_now() {
     #
-    # MacOS date only counts whole seconds, if gdate is installed it can
-    # display times with more precission
+    #  MacOS date only counts whole seconds, if gdate (GNU-date) is installed
+    #  it can  display times with more precission
     #
     if [[ "$(uname)" = "Darwin" ]]; then
         if [[ -n "$(command -v gdate)" ]]; then
@@ -248,6 +248,8 @@ display_time_elapsed() {
     local minutes
     local seconds
 
+    $skip_time_elapsed && return
+    
     # log_it "safe now:[$(safe_now)]"
     duration="$(echo "$(safe_now) - $t_start" | bc)"
     # log_it "duration [$duration]"
@@ -275,7 +277,7 @@ plugin_name="tmux-packet-loss"
 log_file="/tmp/tmux-devel-packet-loss.log"
 
 [[ -z "$log_prefix" ]] && log_prefix="???"
-log_interactive_to_stderr=true
+log_interactive_to_stderr=false
 log_indent=1
 log_ppid="false" # set to true if ppid should be displayed instead of pid"
 
@@ -360,5 +362,15 @@ default_suffix=' '
 
 default_hook_idx=41 #  array idx for session-closed hook
 
+skip_time_elapsed=false
 use_param_cache=true
+
+
+# override settings for easy debugging
+log_file=""
+#log_interactive_to_stderr=true
+cache_db_polls=false
+#use_param_cache=false
+skip_time_elapsed=true
+
 get_settings

@@ -77,7 +77,7 @@ check_cache_age() {
     [[ "$age_last_check" -lt "$interval" ]] && {
         log_it "cache age: ${age_last_check}"
         get_tmux_option "$opt_last_result" ""
-        exit 0
+        exit 1
     }
     display_time_elapsed "$t_start" "check_cache_age"
 }
@@ -243,12 +243,13 @@ if [[ "$current_loss" -gt 0 ]]; then
     #  comment out the next 3 lines unless you are debugging stuff
     #
 
-#    log_it "$s_log_msg"
-# else
-#     log_it "no packet losses"
+    log_it "$s_log_msg"
+ else
+     log_it "no packet losses"
 
 fi
 
 $cache_db_polls && set_tmux_option "$opt_last_result" "$result"
+display_time_elapsed "$t_start" "display_losses.sh"
 display_time_elapsed "$t_start" "display_losses.sh"
 log_it

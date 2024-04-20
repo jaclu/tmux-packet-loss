@@ -67,9 +67,7 @@ check_cache_age() {
     local prev_check_time
     local interval
     local age_last_check
-    local t_start
 
-    t_start="$(date +%s)"
     prev_check_time="$(get_tmux_option "$opt_last_check" 0)"
     interval="$($TMUX_BIN display -p "#{status-interval}")"
     age_last_check="$((t_start - prev_check_time))"
@@ -86,9 +84,7 @@ check_cache_age() {
 
 get_current_loss() {
     local sql
-    local t_start
 
-    t_start="$(date +%s)"
     if param_as_bool "$cfg_weighted_average"; then
         #
         #  To give loss a declining history weighting, it is displayed as the largest of:
@@ -120,9 +116,6 @@ get_current_loss() {
 
 show_trend() {
     local prev_loss
-    local t_start
-
-    t_start="$(date +%s)"
 
     prev_loss="$(get_tmux_option "$opt_last_value" 0)"
     if [[ "$prev_loss" -ne "$current_loss" ]]; then
@@ -144,9 +137,7 @@ colorize_high_numbers() {
     #
     local number="$1" # numerical value to check
     local item="$2"   # string that might get color
-    local t_start
 
-    t_start="$(date +%s)"
     if awk -v val="$number" -v trig_lvl="$cfg_level_crit" \
         'BEGIN{exit !(val >= trig_lvl)}'; then
 
@@ -170,9 +161,6 @@ display_history() {
     local sql
     local avg_loss_raw
     local avg_loss
-    local t_start
-
-    t_start="$(date +%s)"
 
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
     avg_loss_raw="$(sqlite3 "$sqlite_db" "$sql")"
@@ -218,7 +206,7 @@ opt_last_result="@packet-loss_tmp_last_result"
 #
 opt_last_value="@packet-loss_tmp_last_value"
 
-t_start="$(date +%s)"
+display_time_elapsed "$(($(date +%s) - t_start))" "script setup"
 
 verify_db_status
 

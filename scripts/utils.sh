@@ -215,7 +215,6 @@ display_time_elapsed() {
 #
 #===============================================================
 
-[[ "$1" = "hepp" ]] || exit 0
 #
 #  Shorthand, to avoid manually typing package name on multiple
 #  locations, easily getting out of sync.

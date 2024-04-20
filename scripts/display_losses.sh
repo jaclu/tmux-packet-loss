@@ -186,7 +186,7 @@ t_start=$(date +%s.%N)
 #  Prevent tmux from running it every couple of seconds,
 #  convenient during debugging
 #
-# [[ "$1" != "hepp" ]] && exit 0
+[[ "$1" != "hepp" ]] && exit 0
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
 log_prefix="chk"

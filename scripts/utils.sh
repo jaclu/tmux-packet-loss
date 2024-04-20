@@ -180,6 +180,31 @@ get_settings() {
     cfg_hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_hook_idx")"
 }
 
+get_quick_settings() {
+    cfg_ping_host="$default_ping_host"
+    cfg_ping_count="$default_ping_count"
+    cfg_history_size="$default_history_size"
+    cfg_weighted_average="$(normalize_bool_param "$default_weighted_average")"
+    cfg_display_trend="$(normalize_bool_param "$default_display_trend")"
+
+    cfg_level_disp="$default_level_disp"
+    cfg_level_alert="$default_level_alert"
+    cfg_level_crit="$default_level_crit"
+
+    cfg_hist_avg_display="$(normalize_bool_param "$default_hist_avg_display")"
+    cfg_hist_avg_minutes="$default_hist_avg_minutes"
+    cfg_hist_separator="$default_hist_separator"
+
+    cfg_color_alert="$default_color_alert"
+    cfg_color_crit="$default_color_crit"
+    cfg_color_bg="$default_color_bg"
+
+    cfg_prefix="$default_prefix"
+    cfg_suffix="$default_suffix"
+
+    cfg_hook_idx="$default_hook_idx"
+}
+
 safe_now() {
     #
     # MacOS date only counts whole seconds, if gdate is installed it can
@@ -313,4 +338,5 @@ default_suffix=' '
 
 default_hook_idx=41 #  array idx for session-closed hook
 
-get_settings
+# get_settings
+get_quick_settings

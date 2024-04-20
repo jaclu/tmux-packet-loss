@@ -43,6 +43,9 @@ update_tmux_option() {
 D_TPL_BASE_PATH=$(dirname -- "$(realpath -- "$0")")
 log_prefix="chk"
 
+# Ensure that tmux params are read on upstart
+rm -f "$D_TPL_BASE_PATH"/data/param_cache
+
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 

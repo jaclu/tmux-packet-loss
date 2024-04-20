@@ -139,7 +139,36 @@ get_tmux_option() {
     fi
 }
 
+param_cache_write() {
+    cat <<EOF >"$f_param_cache"
+    echo "cfg_ping_host='$cfg_ping_host'"
+    echo "cfg_ping_count='$cfg_ping_count'"
+    echo "cfg_history_size='$cfg_history_size'"
+    echo "cfg_weighted_average='$cfg_weighted_average'"
+    echo "cfg_display_trend='$cfg_display_trend'"
+    echo "cfg_level_disp='$cfg_level_disp'"
+    echo "cfg_level_alert='$cfg_level_alert'"
+    echo "cfg_level_crit='$cfg_level_crit'"
+    echo "cfg_hist_avg_display='$cfg_hist_avg_display'"
+    echo "cfg_hist_avg_minutes='$cfg_hist_avg_minutes'"
+    echo "cfg_hist_separator='$cfg_hist_separator'"
+    echo "cfg_color_alert='$cfg_color_alert'"
+    echo "cfg_color_crit='$cfg_color_crit'"
+    echo "cfg_color_bg='$cfg_color_bg'"
+    echo "cfg_prefix='$cfg_prefix'"
+    echo "cfg_suffix='$cfg_suffix'"
+    echo "cfg_hook_idx='$cfg_hook_idx'"
+EOF
+}
+
 get_settings() {
+    [[ -f "$f_param_cache" ]] && {
+        log_it "using param cache"
+        #  shellcheck source=/dev/null
+        source "$f_param_cache"
+        return
+    }
+
     cfg_ping_host="$(get_tmux_option "@packet-loss-ping_host" \
         "$default_ping_host")"
     cfg_ping_count="$(get_tmux_option "@packet-loss-ping_count" \
@@ -178,6 +207,8 @@ get_settings() {
     cfg_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
 
     cfg_hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_hook_idx")"
+
+    param_cache_write
 }
 
 get_quick_settings() {
@@ -282,9 +313,10 @@ scr_display_losses="$D_TPL_BASE_PATH/scripts/display_losses.sh" # packet_loss.sh
 #  on location for the script using this, use the correct location cfg_prefix!
 #  Since this is sourced, the cfg_prefix can not be determined here.
 #
-sqlite_db="$d_data/packet_loss.sqlite"
-db_restart_log="$d_data/db_restarted.log"
-monitor_pidfile="$d_data/monitor.pid"
+f_param_cache="$d_data"/param_cache
+sqlite_db="$d_data"/packet_loss.sqlite
+db_restart_log="$d_data"/db_restarted.log
+monitor_pidfile="$d_data"/monitor.pid
 
 #  check one of the path items to verify D_TPL_BASE_PATH
 [[ -f "$scr_monitor" ]] || {

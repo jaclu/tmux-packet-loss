@@ -251,3 +251,4 @@ fi
 
 $cache_db_polls && set_tmux_option "$opt_last_result" "$result"
 display_time_elapsed "$t_start" "display_losses.sh"
+log_it

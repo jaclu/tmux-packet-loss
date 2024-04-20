@@ -23,10 +23,11 @@ get_tmux_socket() {
 log_it() {
     local socket
 
-    # if [[ -t 0 ]]; then
-    #     printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
-    #     return
-    # fi
+    if [[ -t 0 ]]; then
+        printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
+        return
+    fi
+
     if [[ -z "$log_file" ]]; then
         return
     fi
@@ -184,10 +185,14 @@ safe_now() {
     # MacOS date only counts whole seconds, if gdate is installed it can
     # display times with more precission
     #
-    if [[ -n "$(command -v gdate)" ]]; then
-        gdate +%s.%N
+    if [[ "$(uname)" = "Darwin" ]]; then
+        if [[ -n "$(command -v gdate)" ]]; then
+            gdate +%s.%N
+        else
+            date +%s
+        fi
     else
-        date +%s
+        date +%s.%N
     fi
 }
 

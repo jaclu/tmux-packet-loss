@@ -86,7 +86,7 @@ get_current_loss() {
 
     sql="SELECT CAST(( $sql ) AS INTEGER)"
     sqlite3 "$sqlite_db" "$sql"
-    display_time_elapsed "$t_start" "get_current_loss"
+    # display_time_elapsed "$t_start" "get_current_loss"
 }
 
 show_trend() {
@@ -103,7 +103,7 @@ show_trend() {
             result="-$current_loss"
         fi
     fi
-    display_time_elapsed "$t_start" "show_trend"
+    # display_time_elapsed "$t_start" "show_trend"
 }
 
 colorize_high_numbers() {
@@ -123,7 +123,7 @@ colorize_high_numbers() {
         item="#[fg=$cfg_color_alert,bg=$cfg_color_bg]${item}#[default]"
     fi
     echo "$item"
-    display_time_elapsed "$t_start" "colorize_high_numbers"
+    # display_time_elapsed "$t_start" "colorize_high_numbers"
 }
 
 display_history() {
@@ -147,31 +147,31 @@ display_history() {
         echo "${cfg_hist_separator}${avg_loss}"
         s_log_msg="$s_log_msg   avg: $avg_loss_raw"
     fi
-    display_time_elapsed "$t_start" "display_history"
+    # display_time_elapsed "$t_start" "display_history"
 }
 
-safe_now() {
-    #
-    #  MacOS date only counts whole seconds, if gdate (GNU-date) is installed
-    #  it can  display times with more precission
-    #
-    if [[ "$(uname)" = "Darwin" ]]; then
-        if [[ -n "$(command -v gdate)" ]]; then
-            gdate +%s.%N
-        else
-            date +%s
-        fi
-    else
-        date +%s.%N
-    fi
-}
+# safe_now() {
+#     #
+#     #  MacOS date only counts whole seconds, if gdate (GNU-date) is installed
+#     #  it can  display times with more precission
+#     #
+#     if [[ "$(uname)" = "Darwin" ]]; then
+#         if [[ -n "$(command -v gdate)" ]]; then
+#             gdate +%s.%N
+#         else
+#             date +%s
+#         fi
+#     else
+#         date +%s.%N
+#     fi
+# }
 
 #===============================================================
 #
 #   Main
 #
 #===============================================================
-t_start=$(safe_now)
+# t_start=$(safe_now)
 
 #
 #  Prevent tmux from running it every couple of seconds,
@@ -185,9 +185,9 @@ log_prefix="chk"
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
-display_time_elapsed "$t_start" "sourced utils"
+# display_time_elapsed "$t_start" "sourced utils"
 
-# log_ppid="true"
+log_ppid="true"
 
 #
 #  Used to indicate trends, unlike opt_last_result above,
@@ -195,7 +195,7 @@ display_time_elapsed "$t_start" "sourced utils"
 #
 opt_last_value="@packet-loss_tmp_last_value"
 
-display_time_elapsed "$t_start" "script initialized"
+# display_time_elapsed "$t_start" "script initialized"
 
 verify_db_status
 
@@ -233,5 +233,5 @@ else
 
 fi
 
-display_time_elapsed "$t_start" "display_losses.sh"
-log_it
+# display_time_elapsed "$t_start" "display_losses.sh"
+# log_it

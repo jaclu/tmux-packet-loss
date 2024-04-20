@@ -245,8 +245,6 @@ display_time_elapsed() {
     local t_start="$1"
     local label="$2"
     local duration
-    local minutes
-    local seconds
 
     $skip_time_elapsed && return
 
@@ -360,10 +358,12 @@ default_suffix=' '
 
 default_hook_idx=41 #  array idx for session-closed hook
 
-skip_time_elapsed=false
 use_param_cache=true
+skip_time_elapsed=false
 
+#
 # override settings for easy debugging
+#
 # log_file=""
 log_interactive_to_stderr=true
 #use_param_cache=false

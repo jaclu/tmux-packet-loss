@@ -57,31 +57,6 @@ verify_db_status() {
     fi
 }
 
-check_cache_age() {
-    #
-    #  This is called once per active tmux session, so if multiple sessions
-    #  are used, this will be called multiple times in a row.
-    #  Using the cache feature makes generating a new result only happen
-    #  once per status bar update.
-    #
-    local prev_check_time
-    local interval
-    local age_last_check
-
-    prev_check_time="$(get_tmux_option "$opt_last_check" 0)"
-    interval="$($TMUX_BIN display -p "#{status-interval}")"
-    age_last_check="$(printf "%.0f" "$(echo "$t_start - $prev_check_time" | bc)")"
-
-    # make it slightly less likely to return cached data
-    age_last_check=$((age_last_check + 1))
-    [[ "$age_last_check" -lt "$interval" ]] && {
-        log_it "cache age: ${age_last_check}"
-        get_tmux_option "$opt_last_result" ""
-        exit 1
-    }
-    display_time_elapsed "$t_start" "check_cache_age"
-}
-
 get_current_loss() {
     local sql
 
@@ -175,12 +150,28 @@ display_history() {
     display_time_elapsed "$t_start" "display_history"
 }
 
+safe_now() {
+    #
+    #  MacOS date only counts whole seconds, if gdate (GNU-date) is installed
+    #  it can  display times with more precission
+    #
+    if [[ "$(uname)" = "Darwin" ]]; then
+        if [[ -n "$(command -v gdate)" ]]; then
+            gdate +%s.%N
+        else
+            date +%s
+        fi
+    else
+        date +%s.%N
+    fi
+}
+
 #===============================================================
 #
 #   Main
 #
 #===============================================================
-t_start=$(date +%s.%N)
+t_start=$(safe_now)
 
 #
 #  Prevent tmux from running it every couple of seconds,
@@ -193,13 +184,10 @@ log_prefix="chk"
 
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
+
 display_time_elapsed "$t_start" "sourced utils"
 
 # log_ppid="true"
-
-#  for caching
-opt_last_check="@packet-loss_tmp_last_check"
-opt_last_result="@packet-loss_tmp_last_result"
 
 #
 #  Used to indicate trends, unlike opt_last_result above,
@@ -211,11 +199,7 @@ display_time_elapsed "$t_start" "script initialized"
 
 verify_db_status
 
-$cache_db_polls && check_cache_age
-
 current_loss="$(get_current_loss)"
-
-$cache_db_polls && set_tmux_option "$opt_last_check" "$t_start"
 
 result="" # indicating no losses
 [[ "$current_loss" -lt "$cfg_level_disp" ]] && current_loss=0
@@ -244,12 +228,10 @@ if [[ "$current_loss" -gt 0 ]]; then
     #
 
     log_it "$s_log_msg"
- else
-     log_it "no packet losses"
+else
+    log_it "no packet losses"
 
 fi
 
-$cache_db_polls && set_tmux_option "$opt_last_result" "$result"
-display_time_elapsed "$t_start" "display_losses.sh"
 display_time_elapsed "$t_start" "display_losses.sh"
 log_it

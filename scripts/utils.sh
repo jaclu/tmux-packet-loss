@@ -52,7 +52,7 @@ error_msg() {
     local exit_code="${2:-1}"
 
     if $log_interactive_to_stderr && [[ -t 0 ]]; then
-        echo "$msg" > /dev/stderr
+        echo "$msg" >/dev/stderr
     else
         log_it
         log_it "$msg"
@@ -172,7 +172,7 @@ get_settings() {
     # log_it "get_settings()"
     [[ -f "$f_param_cache" ]] && {
         log_it "using param cache"
-	#  shellcheck source=/dev/null
+        #  shellcheck source=/dev/null
         source "$f_param_cache"
         return
     }
@@ -249,7 +249,7 @@ display_time_elapsed() {
     local seconds
 
     $skip_time_elapsed && return
-    
+
     # log_it "safe now:[$(safe_now)]"
     duration="$(echo "$(safe_now) - $t_start" | bc)"
     # log_it "duration [$duration]"
@@ -327,8 +327,6 @@ monitor_pidfile="$d_data"/monitor.pid
 # ensure socket is included, in case TMUX_BIN didn't set it
 # [[ -n "${TMUX_BIN##*-L*}" ]] && TMUX_BIN="$TMUX_BIN -L $(get_tmux_socket)"
 
-cache_db_polls=true
-
 #
 #  Sanity check that DB structure is current, if not it will be replaced
 #
@@ -365,12 +363,10 @@ default_hook_idx=41 #  array idx for session-closed hook
 skip_time_elapsed=false
 use_param_cache=true
 
-
 # override settings for easy debugging
-log_file=""
-#log_interactive_to_stderr=true
-cache_db_polls=false
+# log_file=""
+log_interactive_to_stderr=true
 #use_param_cache=false
-skip_time_elapsed=true
+#skip_time_elapsed=true
 
 get_settings

@@ -103,7 +103,7 @@ log_prefix="mon"
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
 # If true, output of pings with issues will be saved
-store_ping_issues=true
+store_ping_issues=false
 
 d_ping_history="$d_data"/ping_issues
 
@@ -136,8 +136,12 @@ error_unable_to_detect_loss="201"
 
 define_ping_cmd # we need the ping_cmd in kill_any_strays
 
+#
+#  Check if special handling of output is needed
+#
 if [[ -d /proc/ish ]] && grep -q '10.' /etc/debian_version; then
     log_it "Checking losses using: calculate_loss_ish_deb10"
+    store_ping_issues=true
     loss_check=calculate_loss_ish_deb10
 else
     loss_check=calculate_loss_default

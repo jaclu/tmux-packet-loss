@@ -21,6 +21,10 @@ ses_count="$($TMUX_BIN ls | wc -l)"
 if [[ "$ses_count" -eq 0 ]]; then
     log_it "No remaining sessions, shutting down monitor process"
     $scr_controler stop
+    #
+    #  Ensure (potentially) outdated settings are not used on next run
+    #
+    rm -f "$f_param_cache"
 else
     log_it "Sessions remaining on this server"
 fi

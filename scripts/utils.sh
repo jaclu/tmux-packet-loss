@@ -161,10 +161,6 @@ param_cache_write() {
     cfg_prefix="$cfg_prefix"
     cfg_suffix="$cfg_suffix"
     cfg_hook_idx="$cfg_hook_idx"
-    #
-    # no point in saving use_param_cache here,
-    # since it is used before this is read
-    #
 EOF
 }
 

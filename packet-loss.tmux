@@ -43,16 +43,13 @@ update_tmux_option() {
 D_TPL_BASE_PATH=$(dirname -- "$0")
 log_prefix="chk"
 
-#  shellcheck source=scripts/utils.sh
-. "$D_TPL_BASE_PATH/scripts/utils.sh"
+#
+#  Ensure (potentially) outdated settings are not used
+#
+rm -f "$D_TPL_BASE_PATH"/data/param_cache
 
-#
-#  Doing it this way, on startup cache might be generated twice
-#  but by removing the cache after sourcing, we can use the
-#  defined fname for the param cache
-#
-rm -f "$f_param_cache" # remove potentially old cache if present
-get_settings # make sure fresh settings are used
+#  shellcheck source=scripts/utils.sh
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 #
 #  Dependency check

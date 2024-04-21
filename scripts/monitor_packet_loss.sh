@@ -75,7 +75,10 @@ calculate_loss_default() {
 calculate_loss_ish_deb10() {
     #
     #  This is a weird one, gives all kinds of weird output
-    #  and sometimes gives replies for other hosts - (def gw?)
+    #  often negative loss numbers and sometimes gives replies
+    #  for other hosts - (def gw?)
+    #  Here we instead count the number of correct replies and do the
+    #  math ourself
     #
     local recieved_packets
 
@@ -83,7 +86,8 @@ calculate_loss_ish_deb10() {
     recieved_packets="$(echo "$raw_output" | grep -v DUP |
         grep "icmp_seq=" | grep "$cfg_ping_host" | wc -l)"
 
-    percent_loss="$(echo "scale=2; 100 - 100*$recieved_packets/6" | bc)"
+    percent_loss="$(echo "scale=2;
+        100 - 100 * $recieved_packets / $cfg_ping_count" | bc)"
 }
 
 #===============================================================
@@ -144,8 +148,9 @@ fi
 #
 while true; do
     #
-    #  Redirecting stderr is needed since on some platforms, like running
-    #  Debian 10 on iSH, you get warning printouts, yet the ping still works:
+    #  Redirecting stderr is needed since on some platforms, like
+    #  running Debian 10 on iSH, you get warning printouts,
+    #  yet the ping still works:
     #
     #    WARNING: your kernel is veeery old. No problems.
     #    WARNING: setsockopt(IP_RETOPTS): Protocol not available
@@ -160,12 +165,14 @@ while true; do
         $loss_check
 
         if [[ -z "$percent_loss" ]]; then
-            error_msg "Failed to parse ping output, unlikely to self correct!" 0
+            error_msg "Failed to parse ping output," \
+                " unlikely to self correct!" \
+                0
             percent_loss="$error_unable_to_detect_loss"
         fi
         #
-        #  zero % loss is displayed somewhat differently depending on platform
-        #  this standardizes no losses into 0
+        #  zero % loss is displayed somewhat differently depending on
+        #  platform this standardizes no losses into 0
         #
         [[ "$percent_loss" = "0.0" ]] && percent_loss=0 # macos
     else
@@ -186,9 +193,8 @@ while true; do
         mkdir -p "$d_ping_history"
         iso_datetime=$(date +'%Y-%m-%d_%H-%M-%S')
         f_ping_issue="$d_ping_history/$iso_datetime"
-        log_it "Saved ping issue at: $f_ping_issue"
+        log_it "Saving ping issue at: $f_ping_issue"
         echo "$raw_output" >"$f_ping_issue"
-        log_it "><> percent_loss [$percent_loss]"
     }
     sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
 

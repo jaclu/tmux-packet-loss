@@ -68,7 +68,8 @@ calculate_loss_default() {
     #                   as a float, I.E. sans "%" suffix
     #
     percent_loss="$(echo "$output" | sed 's/packet loss/~/ ; s/%//' |
-        cut -d~ -f 1 | awk 'NF>1{print $NF}')"
+        cut -d~ -f 1 | awk 'NF>1{print $NF}' |
+        awk '{printf "%.1f", $0}' )"
 
 }
 

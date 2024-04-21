@@ -102,8 +102,6 @@ log_prefix="mon"
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
-log_it "><> D_TPL_BASE_PATH [$D_TPL_BASE_PATH]"
-
 # If true, output of pings with issues will be saved
 store_ping_issues=false
 

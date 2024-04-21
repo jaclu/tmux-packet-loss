@@ -96,11 +96,13 @@ calculate_loss_ish_deb10() {
 #
 #===============================================================
 
-D_TPL_BASE_PATH=$(dirname "$(dirname -- "$0")")
+D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="mon"
 
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
+
+log_it "><> D_TPL_BASE_PATH [$D_TPL_BASE_PATH]"
 
 # If true, output of pings with issues will be saved
 store_ping_issues=false

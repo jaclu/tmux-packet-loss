@@ -40,7 +40,8 @@ update_tmux_option() {
 #
 #===============================================================
 
-D_TPL_BASE_PATH=$(dirname -- "$0")
+D_TPL_BASE_PATH=$(dirname -- "$(realpath "$0")")
+
 log_prefix="chk"
 
 #

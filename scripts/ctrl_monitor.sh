@@ -114,7 +114,7 @@ exit_script() {
 #
 #===============================================================
 
-D_TPL_BASE_PATH=$(dirname "$(dirname -- "$0")")
+D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="ctr"
 
 #  shellcheck source=scripts/utils.sh

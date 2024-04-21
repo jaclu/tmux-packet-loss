@@ -104,7 +104,8 @@ update_triggers() {
 #
 #===============================================================
 
-D_TPL_BASE_PATH=$(dirname "$(dirname -- "$0")")
+D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
+
 log_prefix="prp"
 
 # shellcheck source=scripts/utils.sh

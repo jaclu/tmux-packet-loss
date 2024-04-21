@@ -44,7 +44,7 @@ define_ping_cmd() {
     log_it "ping cmd used: [$ping_cmd]"
 }
 
-calculate_loss_default() {
+not_calculate_loss_default() {
     #
     #  Default loss calculation
     #
@@ -73,7 +73,7 @@ calculate_loss_default() {
 
 }
 
-calculate_loss_ish_deb10() {
+not_calculate_loss_ish_deb10() {
     #
     #  This is a weird one, gives all kinds of weird output
     #  often negative loss numbers and sometimes gives replies
@@ -114,6 +114,9 @@ log_prefix="mon"
 # If true, output of pings with issues will be saved
 store_ping_issues=false
 
+scr_loss_default="$D_TPL_BASE_PATH"/scripts/loss_calc_default.sh
+scr_loss_ish_deb10="$D_TPL_BASE_PATH"/scripts/loss_calc_ish_deb10.sh
+
 d_ping_history="$d_data"/ping_issues
 
 #
@@ -151,9 +154,9 @@ define_ping_cmd # we need the ping_cmd in kill_any_strays
 if [[ -d /proc/ish ]] && grep -q '10.' /etc/debian_version; then
     log_it "Checking losses using: calculate_loss_ish_deb10"
     store_ping_issues=true
-    loss_check=calculate_loss_ish_deb10
+    loss_check="$scr_loss_ish_deb10"
 else
-    loss_check=calculate_loss_default
+    loss_check="$scr_loss_default"
 fi
 
 $store_ping_issues && log_it "Will save ping issues in $d_ping_history"
@@ -173,11 +176,11 @@ while true; do
     #  If the output gets garbled or no output, it is handled
     #  so in that sense such error msgs can be ignored.
     #
-    raw_output="$($ping_cmd 2>/dev/null)"
-    output="$(echo "$raw_output" | grep loss)"
+    output="$($ping_cmd 2>/dev/null)"
+    #output="$(echo "$raw_output" | grep loss)"
 
     if [[ -n "$output" ]]; then
-        $loss_check
+        percent_loss="$(echo "$output" |$loss_check)"
 
         if [[ -z "$percent_loss" ]]; then
             error_msg "Failed to parse ping output," \
@@ -209,14 +212,14 @@ while true; do
     [[ "$percent_loss" != "0" ]] && log_it "stored in DB: $percent_loss"
 
     $store_ping_issues && [[ "$percent_loss" != "0" ]] && {
-        [[ "$loss_check" != "calculate_loss_default" ]] && {
+        [[ "$loss_check" != "$scr_loss_default" ]] && {
             #
             #  an alternete check detected a loss
             #  compare result with what default check gives
             #  and log the raw_output if they differ
             #
             alt_percentage_loss="$percent_loss"
-            calculate_loss_default
+            percent_loss="$(echo "$output" | $scr_loss_default)"
             [[ "$percent_loss" != "$alt_percentage_loss" ]] && {
                 msg="This alternate[$alt_percentage_loss] and "
                 msg+="default[$percent_loss] loss check differ"

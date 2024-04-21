@@ -56,6 +56,12 @@ log_prefix="mon"
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
+#
+#  Include pidfile handling
+#
+# shellcheck source=scripts/pidfile_handler.sh
+. "$D_TPL_BASE_PATH"/scripts/pidfile_handler.sh
+
 pidfile_acquire "$monitor_pidfile" || {
     error_msg "$monitor_pidfile - is owned by process [$pidfile_proc]"
 }

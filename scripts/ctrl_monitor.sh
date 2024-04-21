@@ -35,7 +35,8 @@ hook_handler() {
 
     [[ -n "$hook_name" ]] && {
         if [[ "$action" = "set" ]]; then
-            $TMUX_BIN set-hook -g "$hook_name" "run $D_TPL_BASE_PATH/scripts/no_sessions_shutdown.sh"
+            $TMUX_BIN set-hook -g "$hook_name" \
+                "run $D_TPL_BASE_PATH/scripts/no_sessions_shutdown.sh"
             log_it "binding $db_monitor shutdown to: $hook_name"
         elif [[ "$action" = "clear" ]]; then
             $TMUX_BIN set-hook -ug "$hook_name" >/dev/null
@@ -122,13 +123,18 @@ log_prefix="ctr"
 #  shellcheck source=scripts/vers_check.sh
 . "$D_TPL_BASE_PATH/scripts/vers_check.sh"
 
-killed_monitor=false
+#
+#  Include pidfile handling
+#
+# shellcheck source=scripts/pidfile_handler.sh
+. "$D_TPL_BASE_PATH"/scripts/pidfile_handler.sh
 
 pidfile_acquire "" || {
     error_msg "pid_file - is owned by process [$pidfile_proc]"
 }
 
 db_monitor="$(basename "$scr_monitor")"
+killed_monitor=false
 
 monitor_terminate
 

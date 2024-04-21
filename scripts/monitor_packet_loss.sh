@@ -147,6 +147,8 @@ else
     loss_check=calculate_loss_default
 fi
 
+$store_ping_issues && log_it "Will save ping issues in $d_ping_history"
+
 #
 #  Main loop
 #

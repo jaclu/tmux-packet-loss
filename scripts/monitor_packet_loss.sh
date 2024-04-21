@@ -202,9 +202,8 @@ while true; do
         log_it "Saving ping issue at: $f_ping_issue"
         echo "$raw_output" >"$f_ping_issue"
     }
-    sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
 
+    sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
     #  A bit exessive in normal conditions
     [[ "$percent_loss" != "0" ]] && log_it "stored in DB: $percent_loss"
-    # log_it "stored in DB: $percent_loss"
 done

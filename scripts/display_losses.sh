@@ -224,14 +224,10 @@ if [[ "$current_loss" -gt 0 ]]; then
     #
     echo "${cfg_prefix}${result}${cfg_suffix}"
 
-    #
-    #  comment out the next 3 lines unless you are debugging stuff
-    #
-
-#     log_it "$s_log_msg"
-# else
-#     log_it "no packet losses"
-
+    # log_it "$s_log_msg"
+else
+    # log_it "no packet losses"
+    echo 0 >"$f_previous_loss"
 fi
 
 display_time_elapsed "$t_start" "display_losses.sh"

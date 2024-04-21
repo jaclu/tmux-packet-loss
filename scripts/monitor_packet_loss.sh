@@ -90,9 +90,9 @@ calculate_loss_ish_deb10() {
     #  bc rounds 33.3 to 33.4  to solve this let
     #  bc use two digits and then round it to one with printf
     #
-    percent_loss="$(printf "%.1f" \
-        "$(echo "scale=2; 100 - \
-            100 * $recieved_packets / $cfg_ping_count" | bc)")"
+    percent_loss="$(echo "scale=2; 100 - \
+        100 * $recieved_packets / $cfg_ping_count" | bc | \
+        awk '{printf "%.1f", $0}')"
 
     # normalize to default check notation
     [[ "$percent_loss" = "100" ]] && percent_loss="100.0"

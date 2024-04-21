@@ -86,8 +86,16 @@ calculate_loss_ish_deb10() {
     recieved_packets="$(echo "$raw_output" | grep -v DUP |
         grep "icmp_seq=" | grep "$cfg_ping_host" | wc -l)"
 
-    percent_loss="$(echo "scale=2;
-        100 - 100 * $recieved_packets / $cfg_ping_count" | bc)"
+    #
+    #  bc rounds 33.3 to 33.4  to solve this let
+    #  bc use two digits and then round it to one with printf
+    #
+    percent_loss="$(printf "%.1f" \
+        "$(echo "scale=2; 100 - \
+            100 * $recieved_packets / $cfg_ping_count" | bc)")"
+
+    # normalize to default check notation
+    [[ "$percent_loss" = "100" ]] && percent_loss="100.0"
 }
 
 #===============================================================
@@ -195,15 +203,29 @@ while true; do
         log_it "No ping output, will sleep $cfg_ping_count seconds"
     fi
 
-    $store_ping_issues && [[ "$percent_loss" != "0" ]] && {
-        mkdir -p "$d_ping_history"
-        iso_datetime=$(date +'%Y-%m-%d_%H-%M-%S')
-        f_ping_issue="$d_ping_history/$iso_datetime"
-        log_it "Saving ping issue at: $f_ping_issue"
-        echo "$raw_output" >"$f_ping_issue"
-    }
-
     sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
     #  A bit exessive in normal conditions
     [[ "$percent_loss" != "0" ]] && log_it "stored in DB: $percent_loss"
+
+    $store_ping_issues && [[ "$percent_loss" != "0" ]] && {
+        [[ "$loss_check" != "calculate_loss_default" ]] && {
+            #
+            #  an alternete check detected a loss
+            #  compare result with what default check gives
+            #  and log the raw_output if they differ
+            #
+            alt_percentage_loss="$percent_loss"
+            calculate_loss_default
+            [[ "$percent_loss" != "$alt_percentage_loss" ]] && {
+                log_it "This alternate[$alt_percentage_loss] and \
+                        default[$percent_loss] loss check differ"
+                mkdir -p "$d_ping_history"
+                iso_datetime=$(date +'%Y-%m-%d_%H-%M-%S')
+                f_ping_issue="$d_ping_history/$iso_datetime"
+                log_it "Saving ping issue at: $f_ping_issue"
+                echo "$raw_output" >"$f_ping_issue"
+            }
+        }
+    }
+
 done

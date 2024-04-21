@@ -271,7 +271,7 @@ plugin_name="tmux-packet-loss"
 #  If $log_file is unset no output will happen.
 #  So unless you want logging, comment the next line out.
 #
-# log_file="/tmp/tmux-packet-loss.log"
+# log_file="/tmp/${plugin_name}.log"
 
 #  used in logfile to indicate what tool that generated output
 [[ -z "$log_prefix" ]] && log_prefix="???"
@@ -367,7 +367,7 @@ default_hook_idx=41 #  array idx for session-closed hook
 # override settings for easy debugging
 #
 # log_file=""
-# log_interactive_to_stderr=true
+# log_interactive_to_stderr=true # doesnt seem to work on iSH Alpine
 # use_param_cache=false
 # skip_time_elapsed=false
 

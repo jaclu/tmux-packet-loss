@@ -60,7 +60,6 @@ log_prefix="mon"
 store_ping_issues=true
 
 d_ping_history="$d_data"/ping_issues
-$store_ping_issues && mkdir -p "$d_ping_history"
 
 #
 #  Include pidfile handling
@@ -149,8 +148,11 @@ while true; do
     fi
 
     $store_ping_issues && [[ "$percent_loss" != "0" ]] && {
+        mkdir -p "$d_ping_history"
         iso_datetime=$(date +'%Y-%m-%d_%H-%M-%S')
-        echo "$raw_output" >"$d_ping_history/$iso_datetime"
+        f_ping_issue="$d_ping_history/$iso_datetime"
+        log_it "Saved ping issue at: $f_ping_issue"
+        echo "$raw_output" >"$f_ping_issue"
     }
     sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
 

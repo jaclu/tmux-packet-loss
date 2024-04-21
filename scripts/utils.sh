@@ -38,7 +38,7 @@ log_it() {
 
     socket=" $(get_tmux_socket)"
     # only show socket name if not default
-    [[ "$socket" = " default" ]] && socket=""
+    # [[ "$socket" = " default" ]] && socket=""
 
     printf "%s%s %s %s%*s%s\n" "$(date '+%H:%M:%S')" "$socket" "$proc_id" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
 }

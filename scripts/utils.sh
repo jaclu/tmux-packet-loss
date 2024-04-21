@@ -262,7 +262,7 @@ display_time_elapsed() {
 #  Shorthand, to avoid manually typing package name on multiple
 #  locations, easily getting out of sync.
 #
-plugin_name="tmux-packet-loss"
+plugin_name="tmux-devel-packet-loss"
 
 #
 #  log_it is used to display status to $log_file if it is defined.
@@ -271,7 +271,7 @@ plugin_name="tmux-packet-loss"
 #  If $log_file is unset no output will happen.
 #  So unless you want logging, comment the next line out.
 #
-# log_file="/tmp/${plugin_name}.log"
+log_file="/tmp/${plugin_name}.log"
 
 #  used in logfile to indicate what tool that generated output
 [[ -z "$log_prefix" ]] && log_prefix="???"
@@ -367,7 +367,7 @@ default_hook_idx=41 #  array idx for session-closed hook
 # override settings for easy debugging
 #
 # log_file=""
-# log_interactive_to_stderr=true # doesnt seem to work on iSH Alpine
+# log_interactive_to_stderr=true # doesnt seem to work on iSH
 # use_param_cache=false
 # skip_time_elapsed=false
 

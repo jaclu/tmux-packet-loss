@@ -218,8 +218,9 @@ while true; do
             alt_percentage_loss="$percent_loss"
             calculate_loss_default
             [[ "$percent_loss" != "$alt_percentage_loss" ]] && {
-                log_it "This alternate[$alt_percentage_loss] and \
-                        default[$percent_loss] loss check differ"
+                msg="This alternate[$alt_percentage_loss] and "
+                msg+="default[$percent_loss] loss check differ"
+                log_it "$msg"
                 mkdir -p "$d_ping_history"
                 iso_datetime=$(date +'%Y-%m-%d_%H-%M-%S')
                 f_ping_issue="$d_ping_history/$iso_datetime"

@@ -171,7 +171,8 @@ EOF
 get_settings() {
     # log_it "get_settings()"
     [[ -f "$f_param_cache" ]] && {
-        log_it "using param cache"
+        # log_it "using param cache"
+
         #  shellcheck source=/dev/null
         source "$f_param_cache"
         return
@@ -242,16 +243,16 @@ safe_now() {
 }
 
 display_time_elapsed() {
+    $skip_time_elapsed && return
+
     local t_start="$1"
     local label="$2"
     local duration
 
-    $skip_time_elapsed && return
-
     # log_it "safe now:[$(safe_now)]"
     duration="$(echo "$(safe_now) - $t_start" | bc)"
     # log_it "duration [$duration]"
-    log_it "Time elapsed: $(printf "%.2f" "$duration") $label"
+    log_it "Since start: $(printf "%.2f" "$duration") $label"
 }
 
 #===============================================================
@@ -277,7 +278,8 @@ log_file="/tmp/tmux-devel-packet-loss.log"
 [[ -z "$log_prefix" ]] && log_prefix="???"
 log_interactive_to_stderr=false
 log_indent=1
-log_ppid="false" # set to true if ppid should be displayed instead of pid"
+# set to true if ppid should be displayed instead of pid
+[[ -z "$log_ppid" ]] && log_ppid="false"
 
 #
 #  Should have been set in the calling script, must be done after
@@ -304,6 +306,7 @@ scr_display_losses="$D_TPL_BASE_PATH/scripts/display_losses.sh" # packet_loss.sh
 #  Since this is sourced, the cfg_prefix can not be determined here.
 #
 f_param_cache="$d_data"/param_cache
+f_previous_loss="$d_data"/previous_loss
 sqlite_db="$d_data"/packet_loss.sqlite
 db_restart_log="$d_data"/db_restarted.log
 monitor_pidfile="$d_data"/monitor.pid
@@ -328,7 +331,7 @@ monitor_pidfile="$d_data"/monitor.pid
 #
 #  Sanity check that DB structure is current, if not it will be replaced
 #
-db_version=10
+db_version=11
 
 default_ping_host="8.8.4.4" #  Default host to ping
 default_ping_count=6        #  how often to report packet loss statistics
@@ -359,14 +362,14 @@ default_suffix=' '
 default_hook_idx=41 #  array idx for session-closed hook
 
 use_param_cache=true
-skip_time_elapsed=false
+skip_time_elapsed=true
 
 #
 # override settings for easy debugging
 #
 # log_file=""
-log_interactive_to_stderr=true
-#use_param_cache=false
-#skip_time_elapsed=true
+# log_interactive_to_stderr=true
+# use_param_cache=false
+# skip_time_elapsed=false
 
 get_settings

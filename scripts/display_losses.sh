@@ -32,7 +32,10 @@ verify_db_status() {
     #
     #  Some sanity check, ensuring the monitor is running
     #
+    local db_was_ok=true
+
     if [[ ! -e "$sqlite_db" ]]; then
+        db_was_ok=false
         log_it "DB missing"
 
         #
@@ -46,6 +49,7 @@ verify_db_status() {
             #error_msg "DB not found, and monitor failed to restart!"
         }
     elif [[ -n "$(find "$sqlite_db" -mmin +1)" ]]; then
+        db_was_ok=false
         log_it "DB is over one minute old"
         #
         #  If DB is over a minute old,
@@ -55,6 +59,7 @@ verify_db_status() {
         log_it "no db updates restart is done"
         script_exit "DB old"
     fi
+    display_time_elapsed "$t_start" "verify_db_status($db_was_ok)"
 }
 
 get_current_loss() {
@@ -86,24 +91,30 @@ get_current_loss() {
 
     sql="SELECT CAST(( $sql ) AS INTEGER)"
     sqlite3 "$sqlite_db" "$sql"
-    # display_time_elapsed "$t_start" "get_current_loss"
+    display_time_elapsed "$t_start" "get_current_loss()"
 }
 
 show_trend() {
+    #
+    #  Indicate if losses are increasing / decreasing setting +/- prefix
+    #
     local prev_loss
 
-    prev_loss="$(get_tmux_option "$opt_last_value" 0)"
+    if [[ -f "$f_previous_loss" ]]; then
+        read -r prev_loss <"$f_previous_loss"
+    else
+        prev_loss=0
+    fi
+
     if [[ "$prev_loss" -ne "$current_loss" ]]; then
-        set_tmux_option "$opt_last_value" "$current_loss"
+        echo "$current_loss" >"$f_previous_loss"
         if [[ "$current_loss" -gt "$prev_loss" ]]; then
-            # loss_trend="+"
             result="+$current_loss"
         elif [[ "$current_loss" -lt "$prev_loss" ]]; then
-            # loss_trend="-"
             result="-$current_loss"
         fi
     fi
-    # display_time_elapsed "$t_start" "show_trend"
+    display_time_elapsed "$t_start" "show_trend($result)"
 }
 
 colorize_high_numbers() {
@@ -123,14 +134,14 @@ colorize_high_numbers() {
         item="#[fg=$cfg_color_alert,bg=$cfg_color_bg]${item}#[default]"
     fi
     echo "$item"
-    # display_time_elapsed "$t_start" "colorize_high_numbers"
+    display_time_elapsed "$t_start" "colorize_high_numbers()"
 }
 
 display_history() {
     #
     #  Display history
     #
-    #  Exposed variables:
+    #  Outside variables modified:
     #    s_log_msg - will be used by main to display current losses
     #
     local sql
@@ -144,34 +155,18 @@ display_history() {
         #  If stats is over trigger levels, display in appropriate color
         #
         avg_loss="$(colorize_high_numbers "$avg_loss_raw" "$avg_loss_raw")"
-        echo "${cfg_hist_separator}${avg_loss}"
+        result="${result}${cfg_hist_separator}${avg_loss}"
         s_log_msg="$s_log_msg   avg: $avg_loss_raw"
     fi
-    # display_time_elapsed "$t_start" "display_history"
+    display_time_elapsed "$t_start" "display_history($avg_loss_raw)"
 }
-
-# safe_now() {
-#     #
-#     #  MacOS date only counts whole seconds, if gdate (GNU-date) is installed
-#     #  it can  display times with more precission
-#     #
-#     if [[ "$(uname)" = "Darwin" ]]; then
-#         if [[ -n "$(command -v gdate)" ]]; then
-#             gdate +%s.%N
-#         else
-#             date +%s
-#         fi
-#     else
-#         date +%s.%N
-#     fi
-# }
 
 #===============================================================
 #
 #   Main
 #
 #===============================================================
-# t_start=$(safe_now)
+t_start=$(gdate +%s.%N)
 
 #
 #  Prevent tmux from running it every couple of seconds,
@@ -181,32 +176,23 @@ display_history() {
 
 D_TPL_BASE_PATH=$(dirname "$(dirname "$0")")
 log_prefix="chk"
+log_ppid="true"
 
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
-# display_time_elapsed "$t_start" "sourced utils"
-
-log_ppid="true"
-
-#
-#  Used to indicate trends, unlike opt_last_result above,
-#  this only uses the numerical loss value.
-#
-opt_last_value="@packet-loss_tmp_last_value"
-
-# display_time_elapsed "$t_start" "script initialized"
+display_time_elapsed "$t_start" "script initialized"
 
 verify_db_status
 
 current_loss="$(get_current_loss)"
+s_log_msg="loss: $current_loss" # might get altered by display_history
 
 result="" # indicating no losses
 [[ "$current_loss" -lt "$cfg_level_disp" ]] && current_loss=0
 
 if [[ "$current_loss" -gt 0 ]]; then
     result="$current_loss"
-    s_log_msg="loss: $current_loss"
 
     #
     #  Check trend, ie change since last update
@@ -215,23 +201,21 @@ if [[ "$current_loss" -gt 0 ]]; then
 
     result="$(colorize_high_numbers "$current_loss" "$result")"
 
-    param_as_bool "$cfg_hist_avg_display" && result="${result}$(display_history)"
+    param_as_bool "$cfg_hist_avg_display" && display_history
 
     #
-    #  Set prefix & suffix to result and report to status bar
+    #  Set prefix & suffix for result and report to status bar
     #
-    result="${cfg_prefix}${result}${cfg_suffix}"
-    echo "$result"
+    echo "${cfg_prefix}${result}${cfg_suffix}"
 
     #
     #  comment out the next 3 lines unless you are debugging stuff
     #
 
-    log_it "$s_log_msg"
-else
-    log_it "no packet losses"
+#     log_it "$s_log_msg"
+# else
+#     log_it "no packet losses"
 
 fi
 
-# display_time_elapsed "$t_start" "display_losses.sh"
-# log_it
+display_time_elapsed "$t_start" "display_losses.sh"

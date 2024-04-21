@@ -83,7 +83,7 @@ calculate_loss_ish_deb10() {
     recieved_packets="$(echo "$raw_output" | grep -v DUP |
         grep "icmp_seq=" | grep "$cfg_ping_host" | wc -l)"
 
-    percent_loss="$(echo "100 * $recieved_packets / 6" | bc)"
+    percent_loss="$(echo "100 - 100 * $recieved_packets / 6" | bc)"
 }
 
 #===============================================================

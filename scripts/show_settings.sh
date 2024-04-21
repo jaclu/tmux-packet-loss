@@ -81,3 +81,8 @@ show_item cfg_prefix "$cfg_prefix" "$default_prefix"
 show_item cfg_suffix "$cfg_suffix" "$default_suffix"
 
 show_item cfg_hook_idx "$cfg_hook_idx" "$default_hook_idx"
+
+[[ -n "$log_file" ]] && {
+    echo
+    echo "log_file in use: $log_file"
+}

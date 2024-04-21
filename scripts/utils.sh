@@ -161,12 +161,13 @@ param_cache_write() {
     cfg_prefix="$cfg_prefix"
     cfg_suffix="$cfg_suffix"
     cfg_hook_idx="$cfg_hook_idx"
+
 EOF
 }
 
 get_settings() {
     # log_it "get_settings()"
-    [[ -f "$f_param_cache" ]] && {
+    $use_param_cache && [[ -f "$f_param_cache" ]] && {
         # log_it "using param cache"
 
         #  shellcheck source=/dev/null
@@ -217,7 +218,7 @@ get_settings() {
     #  unofficial parameter, still in testing
     #
     #use_param_cache="$(normalize_bool_param "$(get_tmux_option \
-    #    "@packet-loss-use_param_cache" "false")")"
+    #    "@packet-loss-use_param_cache" "true")")"
 
     param_as_bool "$use_param_cache" && param_cache_write
 }
@@ -265,17 +266,31 @@ plugin_name="tmux-packet-loss"
 
 #
 #  log_it is used to display status to $log_file if it is defined.
-#  Good for testing and monitoring actions. If $log_file is unset
-#  no output will happen. This should be the case for normal operations.
+#  Good for testing and monitoring actions.
+#  Logging should normally be disabled, since it causes some overhead.
+#  If $log_file is unset no output will happen.
 #  So unless you want logging, comment the next line out.
 #
 # log_file="/tmp/tmux-packet-loss.log"
 
+#  used in logfile to indicate what tool that generated output
 [[ -z "$log_prefix" ]] && log_prefix="???"
-log_interactive_to_stderr=false
+
 log_indent=1
-# set to true if ppid should be displayed instead of pid
+# if set tools run from commandline will print log entries to screen
+log_interactive_to_stderr=false
+# set to true if session-id & ppid should be displayed instead of pid
 [[ -z "$log_ppid" ]] && log_ppid="false"
+
+#
+#  I use an env var TMUX_BIN to point at the current tmux, defined in my
+#  tmux.conf, in order to pick the version matching the server running.
+#  This is needed when checking backwards compatability with various versions.
+#  If not found, it is set to whatever is in path, so should have no negative
+#  impact. In all calls to tmux I use $TMUX_BIN instead in the rest of this
+#  plugin.
+#
+[[ -z "$TMUX_BIN" ]] && TMUX_BIN="tmux"
 
 #
 #  Should have been set in the calling script, must be done after
@@ -289,46 +304,37 @@ d_data="$D_TPL_BASE_PATH/data" # location for all runtime data
     mkdir -p "$d_data" # ensure it exists
 }
 
-# shellcheck source=scripts/pidfile_handler.sh
-. "$D_TPL_BASE_PATH"/scripts/pidfile_handler.sh
-
+#
+#  Shortands for some scripts that are called in various places
+#
 scr_controler="$D_TPL_BASE_PATH/scripts/ctrl_monitor.sh"
 scr_monitor="$D_TPL_BASE_PATH/scripts/monitor_packet_loss.sh"
-scr_display_losses="$D_TPL_BASE_PATH/scripts/display_losses.sh" # packet_loss.sh
+scr_display_losses="$D_TPL_BASE_PATH/scripts/display_losses.sh"
 
 #
-#  These files are assumed to be in the directory data, so depending
-#  on location for the script using this, use the correct location cfg_prefix!
-#  Since this is sourced, the cfg_prefix can not be determined here.
+#  These files are assumed to be in the directory data
 #
 f_param_cache="$d_data"/param_cache
 f_previous_loss="$d_data"/previous_loss
 sqlite_db="$d_data"/packet_loss.sqlite
 db_restart_log="$d_data"/db_restarted.log
 monitor_pidfile="$d_data"/monitor.pid
-
 #  check one of the path items to verify D_TPL_BASE_PATH
 [[ -f "$scr_monitor" ]] || {
     error_msg "D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"
 }
 
 #
-#  I use an env var TMUX_BIN to point at the current tmux, defined in my
-#  tmux.conf, in order to pick the version matching the server running.
-#  This is needed when checking backwards compatability with various versions.
-#  If not found, it is set to whatever is in path, so should have no negative
-#  impact. In all calls to tmux I use $TMUX_BIN instead in the rest of this
-#  plugin.
-#
-[[ -z "$TMUX_BIN" ]] && TMUX_BIN="tmux" # -L $(get_socket)"
-# ensure socket is included, in case TMUX_BIN didn't set it
-# [[ -n "${TMUX_BIN##*-L*}" ]] && TMUX_BIN="$TMUX_BIN -L $(get_tmux_socket)"
-
-#
 #  Sanity check that DB structure is current, if not it will be replaced
 #
 db_version=11
 
+skip_time_elapsed=true # creates a lot of overhead so should normally be on
+use_param_cache=true   # makes gathering the params a lot faster!
+
+#
+#  Defaults for config variables
+#
 default_ping_host="8.8.4.4" #  Default host to ping
 default_ping_count=6        #  how often to report packet loss statistics
 default_history_size=6      #  how many ping results to keep in the primary table
@@ -356,9 +362,6 @@ default_prefix=' pkt loss: '
 default_suffix=' '
 
 default_hook_idx=41 #  array idx for session-closed hook
-
-use_param_cache=true
-skip_time_elapsed=true
 
 #
 # override settings for easy debugging

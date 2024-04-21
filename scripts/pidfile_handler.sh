@@ -135,6 +135,6 @@ pidfile_release() {
 }
 
 #
-# set to true to enable logging
+# set to true to enable logging of pidfile tasks
 #
 do_pidfile_handler_logging=false

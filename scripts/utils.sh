@@ -273,7 +273,7 @@ plugin_name="tmux-packet-loss"
 #  no output will happen. This should be the case for normal operations.
 #  So unless you want logging, comment the next line out.
 #
-log_file="/tmp/tmux-devel-packet-loss.log"
+# log_file="/tmp/tmux-packet-loss.log"
 
 [[ -z "$log_prefix" ]] && log_prefix="???"
 log_interactive_to_stderr=false

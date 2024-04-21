@@ -161,12 +161,28 @@ display_history() {
     display_time_elapsed "$t_start" "display_history($avg_loss_raw)"
 }
 
+safe_now() {
+    #
+    #  MacOS date only counts whole seconds, if gdate (GNU-date) is installed
+    #  it can  display times with more precission
+    #
+    if [[ "$(uname)" = "Darwin" ]]; then
+        if [[ -n "$(command -v gdate)" ]]; then
+            gdate +%s.%N
+        else
+            date +%s
+        fi
+    else
+        date +%s.%N
+    fi
+}
+
 #===============================================================
 #
 #   Main
 #
 #===============================================================
-t_start=$(gdate +%s.%N)
+t_start="$(safe_now)"
 
 #
 #  Prevent tmux from running it every couple of seconds,

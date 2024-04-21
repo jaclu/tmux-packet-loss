@@ -50,7 +50,7 @@ define_ping_cmd() {
 #
 #===============================================================
 
-D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
+D_TPL_BASE_PATH=$(dirname "$(dirname -- "$0")")
 log_prefix="mon"
 
 #  shellcheck source=scripts/utils.sh

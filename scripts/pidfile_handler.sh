@@ -127,7 +127,7 @@ pidfile_release() {
 [[ -z "$D_TPL_BASE_PATH" ]] && {
     # If this was sourced this variable would already have been set
 
-    D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
+    D_TPL_BASE_PATH=$(dirname "$(dirname -- "$0")")
     log_prefix="pid"
 
     #  shellcheck source=scripts/utils.sh disable=SC1093

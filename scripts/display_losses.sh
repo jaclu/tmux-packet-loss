@@ -179,7 +179,7 @@ display_history() {
 #
 # [[ "$1" != "hepp" ]] && exit 0
 
-D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
+D_TPL_BASE_PATH=$(dirname "$(dirname "$0")")
 log_prefix="chk"
 
 #  shellcheck source=scripts/utils.sh

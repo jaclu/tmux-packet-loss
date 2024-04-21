@@ -10,7 +10,7 @@
 #  If no more sessions are running, terminate background packet loss processes
 #
 
-D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath -- "$0")")")
+D_TPL_BASE_PATH=$(dirname "$(dirname -- "$0")")
 log_prefix="hok"
 
 #  shellcheck source=scripts/utils.sh

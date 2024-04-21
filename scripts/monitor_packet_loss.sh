@@ -133,6 +133,7 @@ error_unable_to_detect_loss="201"
 define_ping_cmd # we need the ping_cmd in kill_any_strays
 
 if [[ -d /proc/ish ]] && grep -q '10.' /etc/debian_version; then
+    log_it "Checking losses using: calculate_loss_ish_deb10"
     loss_check=calculate_loss_ish_deb10
 else
     loss_check=calculate_loss_default

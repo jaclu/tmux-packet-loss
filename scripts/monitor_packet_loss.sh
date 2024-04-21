@@ -188,17 +188,9 @@ while true; do
         f_ping_issue="$d_ping_history/$iso_datetime"
         log_it "Saved ping issue at: $f_ping_issue"
         echo "$raw_output" >"$f_ping_issue"
+        echo "><> percent_loss [$percent_loss]"
     }
     sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
-
-    # check if t_stats has any items less than a minute old
-    sql="SELECT COUNT(*) FROM t_stats WHERE time_stamp >= datetime(strftime('%Y-%m-%d %H:%M'))"
-    items_this_minute="$(sqlite3 "$sqlite_db" "$sql")"
-    if [[ "$items_this_minute" -eq 0 ]]; then
-        #  Add one line in statistics each minute
-        sqlite3 "$sqlite_db" \
-            'INSERT INTO t_stats (loss) SELECT avg(loss) FROM t_1_min'
-    fi
 
     #  A bit exessive in normal conditions
     [[ "$percent_loss" != "0" ]] && log_it "stored in DB: $percent_loss"

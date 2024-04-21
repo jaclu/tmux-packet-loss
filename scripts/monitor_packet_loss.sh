@@ -56,6 +56,12 @@ log_prefix="mon"
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
+# If true, output of pings with issues will be saved
+store_ping_issues=true
+
+d_ping_history="$d_data"/ping_issues
+$store_ping_issues && mkdir -p "$d_ping_history"
+
 #
 #  Include pidfile handling
 #
@@ -99,7 +105,8 @@ while true; do
     #  If the output gets garbled or no output, it is handled
     #  so in that sense such error msgs can be ignored.
     #
-    output="$($ping_cmd 2>/dev/null | grep loss)"
+    raw_output="$($ping_cmd 2>/dev/null)"
+    output="$(echo "$raw_output" | grep loss)"
 
     if [[ -n "$output" ]]; then
         #
@@ -141,6 +148,10 @@ while true; do
         log_it "No ping output, will sleep $cfg_ping_count seconds"
     fi
 
+    $store_ping_issues && [[ "$percent_loss" != "0" ]] && {
+        iso_datetime=$(date +'%Y-%m-%d_%H-%M-%S')
+        echo "$raw_output" >"$d_ping_history/$iso_datetime"
+    }
     sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
 
     # check if t_stats has any items less than a minute old

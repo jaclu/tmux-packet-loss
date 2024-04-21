@@ -271,7 +271,7 @@ plugin_name="tmux-packet-loss"
 #  If $log_file is unset no output will happen.
 #  So unless you want logging, comment the next line out.
 #
-# log_file="/tmp/${plugin_name}.log"
+log_file="/tmp/${plugin_name}.log"
 
 #  used in logfile to indicate what tool that generated output
 [[ -z "$log_prefix" ]] && log_prefix="???"

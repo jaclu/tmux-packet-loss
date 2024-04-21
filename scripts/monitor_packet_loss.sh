@@ -188,7 +188,7 @@ while true; do
         f_ping_issue="$d_ping_history/$iso_datetime"
         log_it "Saved ping issue at: $f_ping_issue"
         echo "$raw_output" >"$f_ping_issue"
-        echo "><> percent_loss [$percent_loss]"
+        log_it "><> percent_loss [$percent_loss]"
     }
     sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
 

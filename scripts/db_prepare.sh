@@ -8,10 +8,12 @@
 #   This can be called any number of times, if db exist and is of the
 #   current $db_version, db itself is not touched.
 #
-#   The triggers are replaced on each run, to ensure they use current
-#   tmux settings.
+#   The new_data trigger is replaced on each run, to ensure they use
+#   current tmux settings.
 #
-
+#   ---  DB history  ---
+#   11 - Added minute_trigger
+#
 create_db() {
     [[ -f "$sqlite_db" ]] && {
         rm -f "$sqlite_db"
@@ -46,20 +48,25 @@ create_db() {
 
 update_triggers() {
     #
-    #  Always first drop the triggers if present, since they use
+    #  Always first drop the new_data trigger if present, since they use
     #  a user defined setting, that might have changed since the DB
     #  was created
     #
-    local triggers
+    local new_data_trigger_exists
     local sql
 
-    triggers="$(sqlite3 "$sqlite_db" \
-        "SELECT * FROM sqlite_master where type = 'trigger'")"
-    [[ -n "$triggers" ]] && sqlite3 "$sqlite_db" "DROP TRIGGER new_data"
+    new_data_trigger_exists=$(
+        sqlite3 "$sqlite_db" \
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'trigger' AND name = 'new_data';"
+    )
+
+    [[ "$new_data_trigger_exists" != "0" ]] && sqlite3 "$sqlite_db" \
+        "DROP TRIGGER new_data"
 
     # t_stats is updated aprox once/minute at the end of monitor_packet_loss.sh
     sql="
-    CREATE TRIGGER new_data AFTER INSERT ON t_loss
+    CREATE TRIGGER IF NOT EXISTS new_data
+    AFTER INSERT ON t_loss
     BEGIN
         INSERT INTO t_1_min (loss) VALUES (NEW.loss);
 
@@ -74,6 +81,17 @@ update_triggers() {
         -- keep statistics table within specified size
         DELETE FROM t_stats WHERE time_stamp <=
                datetime('now', '-$cfg_hist_avg_minutes minutes');
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS minute_trigger
+    AFTER INSERT ON t_1_min
+    WHEN (
+            SELECT COUNT(*)
+            FROM t_stats
+            WHERE time_stamp >= datetime(strftime('%Y-%m-%d %H:%M'))
+        ) = 0
+    BEGIN
+        INSERT INTO t_stats (loss) SELECT avg(loss) FROM t_1_min;
     END;
     "
     sqlite3 "$sqlite_db" "$sql"

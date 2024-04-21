@@ -33,14 +33,17 @@ echo "=====   Config for  session: $(get_tmux_socket)   ====="
 ping_count="$(show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count")"
 echo "$ping_count"
 
-status_interval="$($TMUX_BIN display -p "#{status-interval}")"
-msg_interval="status bar update frequency = $status_interval"
-req_interval="$(echo "$cfg_ping_count - 1" | bc)"
-if [[ "$req_interval" != "$status_interval" ]]; then
-    msg_interval="$msg_interval  - tmux status-interval is recomended to be arround: $req_interval"
+status_interval="$($TMUX_BIN display -p "#{status-interval}" 2>/dev/null)"
+
+if [[ -n "$status_interval" ]]; then
+    msg_interval="status bar update frequency = [$status_interval]"
+    req_interval="$(echo "$cfg_ping_count - 1" | bc)"
+    if [[ "$req_interval" != "$status_interval" ]]; then
+        msg_interval="$msg_interval  - tmux status-interval is recomended to be arround: $req_interval"
+    fi
+    echo "$msg_interval"
+    echo
 fi
-echo "$msg_interval"
-echo
 
 show_item cfg_ping_host "$cfg_ping_host" "$default_ping_host"
 show_item cfg_history_size "$cfg_history_size" "$default_history_size"

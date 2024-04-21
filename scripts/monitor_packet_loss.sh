@@ -44,6 +44,48 @@ define_ping_cmd() {
     log_it "ping cmd used: [$ping_cmd]"
 }
 
+calculate_loss_default() {
+    #
+    #  Default loss calculation
+    #
+    #  We cant rely on the absolute position of the %loss,
+    #  since sometimes it is prepended with stuff like:
+    #  "+1 duplicates,"
+    #  To handle this we search for "packet loss" and use the word
+    #  just before it.
+    #  1 Only bother with the line containing the word loss
+    #  2 replace "packet loss" with ~, since cut needs a single char
+    #    delimiter
+    #  3 remove any % chars, we want loss as a float
+    #  4 only keep line up to not including ~ (packet loss)
+    #  5 display last remaining word - packet loss as a float with
+    #    no % sign!
+    #
+    #
+    #  External variables:
+    #    output - result of ping cmd
+    #    percent_loss - the number in the summary preceeding "packet loss"
+    #                   as a float, I.E. sans "%" suffix
+    #
+    percent_loss="$(echo "$output" | sed 's/packet loss/~/ ; s/%//' |
+        cut -d~ -f 1 | awk 'NF>1{print $NF}')"
+
+}
+
+calculate_loss_ish_deb10() {
+    #
+    #  This is a weird one, gives all kinds of weird output
+    #  and sometimes gives replies for other hosts - (def gw?)
+    #
+    local recieved_packets
+
+    #  shellcheck disable=SC2126
+    recieved_packets="$(echo "$raw_output" | grep -v DUP |
+        grep "icmp_seq=" | grep "$cfg_ping_host" | wc -l)"
+
+    percent_loss="$(echo "100 * $recieved_packets / 6" | bc)"
+}
+
 #===============================================================
 #
 #   Main
@@ -90,6 +132,12 @@ error_unable_to_detect_loss="201"
 
 define_ping_cmd # we need the ping_cmd in kill_any_strays
 
+if [[ -d /proc/ish ]] && grep -q '10.' /etc/debian_version; then
+    loss_check=calculate_loss_ish_deb10
+else
+    loss_check=calculate_loss_default
+fi
+
 #
 #  Main loop
 #
@@ -108,22 +156,8 @@ while true; do
     output="$(echo "$raw_output" | grep loss)"
 
     if [[ -n "$output" ]]; then
-        #
-        #  We cant rely on the absolute position of the %loss,
-        #  since sometimes it is prepended with stuff like:
-        #  "+1 duplicates,"
-        #  To handle this we search for "packet loss" and use the word
-        #  just before it.
-        #  1 Only bother with the line containing the word loss
-        #  2 replace "packet loss" with ~, since cut needs a single char
-        #    delimiter
-        #  3 remove any % chars, we want loss as a float
-        #  4 only keep line up to not including ~ (packet loss)
-        #  5 display last remaining word - packet loss as a float with
-        #    no % sign!
-        #
-        percent_loss="$(echo "$output" | sed 's/packet loss/~/ ; s/%//' |
-            cut -d~ -f 1 | awk 'NF>1{print $NF}')"
+        $loss_check
+
         if [[ -z "$percent_loss" ]]; then
             error_msg "Failed to parse ping output, unlikely to self correct!" 0
             percent_loss="$error_unable_to_detect_loss"

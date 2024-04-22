@@ -77,7 +77,7 @@ ping_parse_error() {
     local err_code="$1"
     local err_msg="$2"
 
-    log_it "** ping parsing error - $err_msg [$percent_loss]"
+    log_it "*** ping parsing error - $err_msg [$percent_loss]"
     percent_loss="$err_code"
 }
 
@@ -220,6 +220,27 @@ while true; do
                 echo "$output" >"$f_ping_issue"
             }
         }
+    }
+
+    #
+    #  Some checks to reduce the risk of having old instances that
+    #  keep running in the background.
+    #
+    [[ -f "$monitor_pidfile" ]] || {
+        log_it "*** pidfile has dissapeard - exiting this process"
+        exit 1
+    }
+    pidfile_is_mine "$monitor_pidfile" || {
+        #
+        #  A new monitor has started and taken ownership of the pidfile.
+        #
+        #  Shouldn't normally happen, ctrl_monitor.sh would normally
+        #  shut down previous monitors before starting a new one.
+        #  One reason could be if somebody accidentally manually
+        #  removed the pidfile
+        #
+        log_it "*** pidfile is no longer mine - exiting this process"
+        exit 1
     }
 
 done

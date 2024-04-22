@@ -52,24 +52,17 @@ update_triggers() {
     #  a user defined setting, that might have changed since the DB
     #  was created
     #
-    local new_data_trigger_exists
     local sql
 
-    new_data_trigger_exists=$(
-        sqlite3 "$sqlite_db" \
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'trigger' AND name = 'new_data';"
-    )
-
-    [[ "$new_data_trigger_exists" != "0" ]] && sqlite3 "$sqlite_db" \
-        "DROP TRIGGER new_data"
+    sql="DROP TRIGGER IF EXISTS new_loss; DROP TRIGGER IF EXISTS new_minute"
+    sqlite3 "$sqlite_db" "$sql"
 
     # t_stats is updated aprox once/minute at the end of monitor_packet_loss.sh
     sql="
-    CREATE TRIGGER IF NOT EXISTS new_data
+    CREATE TRIGGER IF NOT EXISTS new_loss
     AFTER INSERT ON t_loss
+    -- WHEN (SELECT COUNT(*) FROM t_1_min) >= 2
     BEGIN
-        INSERT INTO t_1_min (loss) VALUES (NEW.loss);
-
         -- keep loss table within max length
         DELETE FROM t_loss
         WHERE ROWID <
@@ -81,9 +74,16 @@ update_triggers() {
         -- keep statistics table within specified size
         DELETE FROM t_stats WHERE time_stamp <=
                datetime('now', '-$cfg_hist_avg_minutes minutes');
+
+        -- Insert into t_1_min based on condition
+        INSERT INTO t_1_min (loss)
+        SELECT CASE
+            WHEN (SELECT COUNT(*) FROM t_1_min) < 2 THEN 0
+            ELSE NEW.loss
+        END;
     END;
 
-    CREATE TRIGGER IF NOT EXISTS minute_trigger
+    CREATE TRIGGER IF NOT EXISTS new_minute
     AFTER INSERT ON t_1_min
     WHEN (
             SELECT COUNT(*)

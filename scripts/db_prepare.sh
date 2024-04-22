@@ -73,21 +73,13 @@ update_triggers() {
     sql="
     CREATE TRIGGER IF NOT EXISTS new_loss
     AFTER INSERT ON t_loss
-    -- WHEN (SELECT COUNT(*) FROM t_1_min) >= 2
     BEGIN
         -- keep loss table within max length
         DELETE FROM t_loss
         WHERE ROWID <
             NEW.ROWID - $cfg_history_size + 1;
 
-        -- only keep one min of records in t_1_min
-        DELETE FROM t_1_min WHERE time_stamp <= datetime('now', '-1 minutes');
-
-        -- keep statistics table within specified age
-        DELETE FROM t_stats WHERE time_stamp <=
-               datetime('now', '-$cfg_hist_avg_minutes minutes');
-
-        -- Insert into t_1_min based on condition
+        -- Insert new loss into t_1_min unless this is startup
         INSERT INTO t_1_min (loss)
         SELECT CASE
             -- if machine was just resuming, and network isnt up yet
@@ -95,6 +87,9 @@ update_triggers() {
             WHEN (SELECT COUNT(*) FROM t_1_min) < $ignore_first_items THEN 0
             ELSE NEW.loss
         END;
+
+        -- only keep one min of records in t_1_min
+        DELETE FROM t_1_min WHERE time_stamp <= datetime('now', '-1 minutes');
     END;
 
     CREATE TRIGGER IF NOT EXISTS new_minute
@@ -106,6 +101,10 @@ update_triggers() {
         ) = 0
     BEGIN
         INSERT INTO t_stats (loss) SELECT avg(loss) FROM t_1_min;
+
+        -- keep statistics table within specified age
+        DELETE FROM t_stats WHERE time_stamp <=
+        datetime('now', '-$cfg_hist_avg_minutes minutes');
     END;
     "
     sqlite3 "$sqlite_db" "$sql"

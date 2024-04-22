@@ -169,9 +169,9 @@ EOF
 }
 
 get_settings() {
-    log_it "get_settings()"
+    # log_it "get_settings()"
     $use_param_cache && [[ -f "$f_param_cache" ]] && {
-        log_it "using param cache"
+        # log_it "using param cache"
 
         #  shellcheck source=/dev/null
         source "$f_param_cache"

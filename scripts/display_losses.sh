@@ -90,7 +90,9 @@ get_current_loss() {
     fi
 
     sql="SELECT CAST(( $sql ) AS INTEGER)"
-    sqlite3 "$sqlite_db" "$sql"
+    sqlite3 "$sqlite_db" "$sql" || {
+        error_msg "sqlite3 reported error:[$?] when retrieving current losses"
+    }
     display_time_elapsed "$t_start" "get_current_loss()"
 }
 
@@ -149,7 +151,9 @@ display_history() {
     local avg_loss
 
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
-    avg_loss_raw="$(sqlite3 "$sqlite_db" "$sql")"
+    avg_loss_raw="$(sqlite3 "$sqlite_db" "$sql")" || {
+        error_msg "sqlite3 reported error:[$?] when retrieving history"
+    }
     if [[ "$avg_loss_raw" != "0" ]]; then
         #
         #  If stats is over trigger levels, display in appropriate color

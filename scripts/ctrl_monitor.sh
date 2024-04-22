@@ -50,7 +50,9 @@ hook_handler() {
 clear_losses_in_t_loss() {
     [[ -n "$($scr_display_losses)" ]] && {
         log_it "Clearing losses - to ensure plugin isnt stuck alerting"
-        sqlite3 data/packet_loss.sqlite "DELETE FROM t_loss WHERE loss != 0"
+        sqlite3 data/packet_loss.sqlite "DELETE FROM t_loss WHERE loss != 0" || {
+            error_msg "sqlite3 reported error:[$?] in clear_losses_in_t_loss()"
+        }
     }
 }
 

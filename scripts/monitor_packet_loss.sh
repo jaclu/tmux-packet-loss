@@ -196,7 +196,9 @@ while true; do
         sleep "$cfg_ping_count"
     fi
 
-    sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
+    sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)" || {
+        error_msg "sqlite3 reported error:[$?] when adding a loss"
+    }
     #  A bit exessive in normal conditions
     [[ "$percent_loss" != "0.0" ]] && log_it "stored in DB: $percent_loss"
 

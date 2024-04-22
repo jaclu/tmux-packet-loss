@@ -68,16 +68,18 @@ update_triggers() {
         WHERE ROWID <
             NEW.ROWID - $cfg_history_size + 1;
 
-        -- only keep one min of loss checks
+        -- only keep one min of records in t_1_min
         DELETE FROM t_1_min WHERE time_stamp <= datetime('now', '-1 minutes');
 
-        -- keep statistics table within specified size
+        -- keep statistics table within specified age
         DELETE FROM t_stats WHERE time_stamp <=
                datetime('now', '-$cfg_hist_avg_minutes minutes');
 
         -- Insert into t_1_min based on condition
         INSERT INTO t_1_min (loss)
         SELECT CASE
+            -- if machine was just resuming, and network isnt up yet
+            -- this prevents early losses to skew the stats
             WHEN (SELECT COUNT(*) FROM t_1_min) < 2 THEN 0
             ELSE NEW.loss
         END;

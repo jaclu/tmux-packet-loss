@@ -34,7 +34,4 @@ percent_loss="$(echo "scale=2;
     100 - 100 * $recieved_packets / $cfg_ping_count" | bc | 
     awk '{printf "%.1f", $0}')"
 
-# normalize to default check notation
-[[ "$percent_loss" = "100" ]] && percent_loss="100.0"
-
 echo "$percent_loss"

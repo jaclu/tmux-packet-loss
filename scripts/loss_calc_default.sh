@@ -24,11 +24,8 @@
 # Read input from stdin
 ping_output=$(cat)
 
-percent_loss="$(echo "$ping_output" |
-     grep "packet loss" |
-     sed 's/packet loss/~/ ; s/%//' |
-     cut -d~ -f 1 | awk 'NF>1{print $NF}' |
-     awk '{printf "%.1f", $0}' )"
+percent_loss="$(echo "$ping_output" | grep "packet loss" |
+     sed 's/packet loss/~/ ; s/%//' | cut -d~ -f 1 | awk 'NF>1{print $NF}' |
+     awk '{printf "%.1f", $0}' )" # last line ensures it's correctly rounded
 
 echo "$percent_loss"
-

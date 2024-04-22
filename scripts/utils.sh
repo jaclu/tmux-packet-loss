@@ -299,10 +299,6 @@ log_interactive_to_stderr=false
 [[ -z "$D_TPL_BASE_PATH" ]] && error_msg "D_TPL_BASE_PATH is not defined!"
 
 d_data="$D_TPL_BASE_PATH/data" # location for all runtime data
-[[ -d "$d_data" ]] || {
-    log_it "Creating $d_data"
-    mkdir -p "$d_data" # ensure it exists
-}
 
 #
 #  Shortands for some scripts that are called in various places
@@ -322,6 +318,21 @@ monitor_pidfile="$d_data"/monitor.pid
 #  check one of the path items to verify D_TPL_BASE_PATH
 [[ -f "$scr_monitor" ]] || {
     error_msg "D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"
+}
+
+[[ -d "$d_data" ]] || {
+    stray_monitors="$(pgrep -f "$scr_monitor")"
+    [[ -n "$stray_monitors" ]] && {
+        #
+        #  If data dir was removed as monitor was running.
+        #  The running monitor cant be killed via pidfile,
+        #  do it manually.
+        #
+        log_it "strays [$stray_monitors]"
+        log_it "Mannually killed stray monitor"
+    }
+    log_it "Creating $d_data"
+    mkdir -p "$d_data" # ensure it exists
 }
 
 #

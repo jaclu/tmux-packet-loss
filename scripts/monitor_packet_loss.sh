@@ -126,12 +126,12 @@ define_ping_cmd # we need the ping_cmd in kill_any_strays
 #  Check if special handling of output is needed
 #
 if [[ -d /proc/ish ]] && grep -q '10.' /etc/debian_version; then
-    log_it "Checking losses using: calculate_loss_ish_deb10"
     store_ping_issues=true
     loss_check="$scr_loss_ish_deb10"
 else
     loss_check="$scr_loss_default"
 fi
+log_it "Checking losses using: $loss_check"
 
 $store_ping_issues && log_it "Will save ping issues in $d_ping_history"
 
@@ -150,15 +150,17 @@ while true; do
     #  If the output gets garbled or no output, it is handled
     #  so in that sense such error msgs can be ignored.
     #
+    #  the ping output is saved to a variable, so that it can be
+    #  saved to a file in case the output gives issues
+    #
     output="$($ping_cmd 2>/dev/null)"
 
     if [[ -n "$output" ]]; then
-        percent_loss="$(echo "$output" |$loss_check)"
+        percent_loss="$(echo "$output" | $loss_check)"
 
         if [[ -z "$percent_loss" ]]; then
-            error_msg "Failed to parse ping output," \
-                " unlikely to self correct!" \
-                0
+            msg="Failed to parse ping output, unlikely to self correct!"
+            error_msg "$msg" 1
             percent_loss="$error_unable_to_detect_loss"
         fi
         #

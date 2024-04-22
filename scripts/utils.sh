@@ -57,7 +57,10 @@ error_msg() {
         log_it
         log_it "$msg"
         log_it
-        $TMUX_BIN display-message -d 0 "$plugin_name $msg"
+        [[ "$exit_code" -gt -1 ]] && {
+            # only display exit triggering errors on status bar
+            $TMUX_BIN display-message -d 0 "$plugin_name $msg"
+        }
     fi
     [[ "$exit_code" -gt -1 ]] && exit "$exit_code"
 }

@@ -1,0 +1,4 @@
+15:41:08 serv2 1652 mon *** ping parsing error - invalid loss rate [-16.7]
+15:41:09 serv2 1652 mon stored in DB: 102
+15:41:09 serv2 1652 mon This alternate[102] and default[-40.0] loss check differ
+15:41:09 serv2 1652 mon Saving ping issue at: /home/jaclu/t2/tmux/plugins/tmux-packet-loss/data/ping_issues/2024-04-22_15-41-09

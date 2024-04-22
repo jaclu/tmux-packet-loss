@@ -91,7 +91,7 @@ get_current_loss() {
 
     sql="SELECT CAST(( $sql ) AS INTEGER)"
     sqlite3 "$sqlite_db" "$sql" || {
-        error_msg "sqlite3 reported error:[$?] when retrieving current losses"
+        error_msg "sqlite3 reported error:[$?] when retrieving current losses" 0
     }
     display_time_elapsed "$t_start" "get_current_loss()"
 }

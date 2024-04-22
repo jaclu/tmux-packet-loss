@@ -169,9 +169,9 @@ EOF
 }
 
 get_settings() {
-    # log_it "get_settings()"
+    log_it "get_settings()"
     $use_param_cache && [[ -f "$f_param_cache" ]] && {
-        # log_it "using param cache"
+        log_it "using param cache"
 
         #  shellcheck source=/dev/null
         source "$f_param_cache"
@@ -345,7 +345,9 @@ monitor_pidfile="$d_data"/monitor.pid
 db_version=11
 
 skip_time_elapsed=true # creates a lot of overhead so should normally be on
-use_param_cache=true   # makes gathering the params a lot faster!
+[[ -z "$use_param_cache" ]] && {
+    use_param_cache=true # makes gathering the params a lot faster!
+}
 
 #
 #  Defaults for config variables

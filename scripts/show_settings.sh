@@ -11,6 +11,9 @@
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="shw"
 
+# ensures terminals from other sessions will read their own tmux config
+use_param_cache=false
+
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
@@ -21,9 +24,9 @@ show_item() {
 
     msg="$label [$value]"
     if [[ "$value" = "$default" ]]; then
-        msg="$(printf "%-17s      (default) [%s]" "$label" "$value")"
+        msg="$(printf "%20s               [%s]" "$label" "$value")"
     else
-        msg="$(printf "%-17s [%s] - default: [%s]" "$label" "$value" \
+        msg="$(printf "%20s %-12s  [%s]" "$label" "[$value]" \
             "$default")"
     fi
     echo "$msg"
@@ -42,8 +45,10 @@ echo "=====   Config for  session: $session   ====="
     get_settings
 }
 
-ping_count="$(show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count")"
-echo "$ping_count"
+echo "     config vairable user setting  default"
+echo "     --------------- ------------  -------"
+#ping_count="$(show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count")"
+show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count"
 
 [[ "$session" != "standalone" ]] && {
     status_interval="$($TMUX_BIN display -p "#{status-interval}" 2>/dev/null)"
@@ -56,6 +61,8 @@ echo "$ping_count"
         echo "$msg_interval"
         echo
     fi
+    echo "     config vairable user setting  default"
+    echo "     --------------- ------------  -------"
 }
 
 show_item cfg_ping_host "$cfg_ping_host" "$default_ping_host"

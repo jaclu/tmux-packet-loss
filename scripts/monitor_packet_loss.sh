@@ -69,7 +69,7 @@ not_calculate_loss_default() {
     #
     percent_loss="$(echo "$output" | sed 's/packet loss/~/ ; s/%//' |
         cut -d~ -f 1 | awk 'NF>1{print $NF}' |
-        awk '{printf "%.1f", $0}' )"
+        awk '{printf "%.1f", $0}')"
 
 }
 
@@ -145,7 +145,7 @@ if [[ -d /proc/ish ]] && grep -q '10.' /etc/debian_version; then
 else
     loss_check="$scr_loss_default"
 fi
-log_it "Checking losses using: $loss_check"
+log_it "Checking losses using: $(basename "$loss_check")"
 
 $store_ping_issues && log_it "Will save ping issues in $d_ping_history"
 
@@ -177,8 +177,9 @@ while true; do
             ping_parse_error "$error_unable_to_detect_loss" "$msg"
         elif [[ $(echo "$percent_loss" | wc -w) -gt 1 ]]; then
             ping_parse_error "$error_invalid_number" "multipple words"
-        elif (( $(echo "$percent_loss < 0.0 || $percent_loss > 100.0" |
-                    bc -l) )); then
+        elif (($(echo "$percent_loss < 0.0 || $percent_loss > 100.0" |
+            bc -l))); then
+
             ping_parse_error "$error_invalid_number" "invalid loss rate"
         fi
     else

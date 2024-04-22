@@ -321,16 +321,17 @@ monitor_pidfile="$d_data"/monitor.pid
 }
 
 [[ -d "$d_data" ]] || {
+    #
+    #  If data dir was removed whilst a monitor was running,
+    #  the running monitor cant be killed via pidfile.
+    #  Do it manually.
+    #
     stray_monitors="$(pgrep -f "$scr_monitor")"
     [[ -n "$stray_monitors" ]] && {
-        #
-        #  If data dir was removed as monitor was running.
-        #  The running monitor cant be killed via pidfile,
-        #  do it manually.
-        #
         echo "$stray_monitors" | xargs kill
         log_it "Mannually killed stray monitor(-s)"
     }
+
     log_it "Creating $d_data"
     mkdir -p "$d_data" # ensure it exists
 }

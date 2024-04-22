@@ -191,8 +191,7 @@ t_start="$(safe_now)"
 # [[ "$1" != "hepp" ]] && exit 0
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
-log_prefix="chk"
-log_ppid="true"
+log_prefix="dsp"
 
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"

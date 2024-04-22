@@ -73,32 +73,6 @@ not_calculate_loss_default() {
 
 }
 
-not_calculate_loss_ish_deb10() {
-    #
-    #  This is a weird one, gives all kinds of weird output
-    #  often negative loss numbers and sometimes gives replies
-    #  for other hosts - (def gw?)
-    #  Here we instead count the number of correct replies and do the
-    #  math ourself
-    #
-    local recieved_packets
-
-    #  shellcheck disable=SC2126
-    recieved_packets="$(echo "$raw_output" | grep -v DUP |
-        grep "icmp_seq=" | grep "$cfg_ping_host" | wc -l)"
-
-    #
-    #  bc rounds 33.3 to 33.4  to solve this let
-    #  bc use two digits and then round it to one with printf
-    #
-    percent_loss="$(echo "scale=2; 100 - \
-        100 * $recieved_packets / $cfg_ping_count" | bc | \
-        awk '{printf "%.1f", $0}')"
-
-    # normalize to default check notation
-    [[ "$percent_loss" = "100" ]] && percent_loss="100.0"
-}
-
 #===============================================================
 #
 #   Main
@@ -177,7 +151,6 @@ while true; do
     #  so in that sense such error msgs can be ignored.
     #
     output="$($ping_cmd 2>/dev/null)"
-    #output="$(echo "$raw_output" | grep loss)"
 
     if [[ -n "$output" ]]; then
         percent_loss="$(echo "$output" |$loss_check)"
@@ -216,7 +189,7 @@ while true; do
             #
             #  an alternete check detected a loss
             #  compare result with what default check gives
-            #  and log the raw_output if they differ
+            #  and log the output if they differ
             #
             alt_percentage_loss="$percent_loss"
             percent_loss="$(echo "$output" | $scr_loss_default)"
@@ -228,7 +201,7 @@ while true; do
                 iso_datetime=$(date +'%Y-%m-%d_%H-%M-%S')
                 f_ping_issue="$d_ping_history/$iso_datetime"
                 log_it "Saving ping issue at: $f_ping_issue"
-                echo "$raw_output" >"$f_ping_issue"
+                echo "$output" >"$f_ping_issue"
             }
         }
     }

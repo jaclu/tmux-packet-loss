@@ -4,6 +4,7 @@ Tmux-Packet-Loss is a plugin for Tmux that displays the percentage of packet los
 
 ## Recent changes
 
+- Losses are displayed, but no stats are saved for the first 30 seconds. This avoids getting errors saved during a laptop resume. 
 - Fixed boolean parameter handling to allow for yes/no or true/false options.
 - Renamed variables and defaults to match the Tmux option names.
 - Refactored code into more task-isolated modules.
@@ -43,11 +44,12 @@ On modern Tmux versions, the background process is terminated when Tmux exits. S
 
 ### ping issues
 
-If the monitor experiences errors, packet loss above 100% is reported.
+If the monitor experiences errors, packet loss above 100% is reported. So far I have created one special case ping parser, for iSH running Debian 10.
 
 | Result | Explanation                                                                                                     |
 | ------ | --------------------------------------------------------------------------------------------------------------- |
 | 101    | Failed to find % loss in ping output. Temporary issue. Some pings don't report loss % if there is no connection to the host. |
+| 102    | loss reported was < 0 or > 100, odd but hopefully temporary |
 | 201    | Could not parse output. This condition is unlikely to self-correct. If you file the output of `ping -c 5 8.8.4.4` as an Issue and also mention what Operating System this is and any other factors you think are relevant, I will try to fix it by including parsing of that output format. |
 
 ## Dependencies
@@ -107,15 +109,15 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 
 | Code           | Action                                             |
 | -------------- | -------------------------------------------------- |
-| \`#{packet_loss}\` | Displays average packet loss % if at or above \`@packet-loss-level_disp\` |
+| `#{packet_loss}` | Displays average packet loss % if at or above `@packet-loss-level_disp` |
 
 ## Configuration Variables
 
 | Variable                      | Default       | Purpose |
 |-------------------------------|---------------|---------|
-| @packet-loss-ping_host        | 8.8.4.4       | The host to ping. Choosing a well-connected host like 8.8.4.4 gives a good idea of your general link quality. |
+| @packet-loss-ping_host        | 8.8.4.4       | The host to ping. Choosing a well-connected & replicated host like 8.8.4.4 or 1.1.1.1 gives a good idea of your general link quality. |
 | @packet-loss-ping_count       | 6             | Number of pings per statistics update. |
-| @packet-loss-history_size     | 6             | Number of results to keep when calculating average loss.<br>Keeping this value low is recommended since it's more useful to see current status over long-term averages.<br>For a historical overview, use `@packet-loss-hist_avg_display`. |
+| @packet-loss-history_size     | 6             | Number of results to keep when displaying loss statistics.<br>Keeping this value low is recommended since it's more useful to see current status over long-term averages.<br>For a historical overview, use `@packet-loss-hist_avg_display`. |
 |                               |               | |
 | @packet-loss-weighted_average | yes           | Whether to use weighted average focusing on the latest data points (`yes`) or average over all data points (`no`). |
 | @packet-loss-display_trend    | no            | Display trend with `+` prefix for higher levels and `-` prefix for lower levels (`yes`). |
@@ -142,8 +144,9 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 set -g @packet-loss-display_trend     yes
 set -g @packet-loss-hist_avg_display  yes
 
-set -g @packet-loss-color_alert colour21
-set -g @packet-loss-color_bg    colour226
+set -g @packet-loss-level_disp   3 # makes a glitch disappear quicker
+set -g @packet-loss-color_alert  colour21
+set -g @packet-loss-color_bg     colour226
 
 set -g @packet-loss-prefix '|'
 set -g @packet-loss-suffix '|'
@@ -219,7 +222,7 @@ Then run this a suitable number of times, adjusting the loss level
 sqlite3 data/packet_loss.sqlite "INSERT INTO t_loss (loss) VALUES (50)"
 ```
 
-The monitor will be automatically restarted one minute after the last update
+The monitor will be automatically restarted one minute after the last update.
 
 ## Contributing
 

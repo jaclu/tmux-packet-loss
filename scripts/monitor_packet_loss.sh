@@ -73,6 +73,14 @@ not_calculate_loss_default() {
 
 }
 
+ping_parse_error() {
+    local err_code="$1"
+    local err_msg="$2"
+
+    log_it "** ping parsing error - $err_msg [$percent_loss]"
+    percent_loss="$err_code"
+}
+
 #===============================================================
 #
 #   Main
@@ -113,10 +121,16 @@ pidfile_acquire "$monitor_pidfile" || {
 #    ping: sendto: Host is unreachable
 #  if network is unreachable
 #
-error_no_ping_output="101"
+error_no_ping_output=101
 
-# ping_cmd | grep loss  gave empty result, unlikely to self correct
-error_unable_to_detect_loss="201"
+#
+#  If loss is < 0 or > 100 something went wrong, indicate error
+#  hopefully a temporary issue.
+#
+error_invalid_number=102
+
+#  parsing output gave empty result, unlikely to self correct
+error_unable_to_detect_loss=201
 
 "$D_TPL_BASE_PATH"/scripts/db_prepare.sh
 
@@ -139,6 +153,7 @@ $store_ping_issues && log_it "Will save ping issues in $d_ping_history"
 #  Main loop
 #
 while true; do
+    percent_loss=""
     #
     #  Redirecting stderr is needed since on some platforms, like
     #  running Debian 10 on iSH, you get warning printouts,
@@ -154,39 +169,37 @@ while true; do
     #  saved to a file in case the output gives issues
     #
     output="$($ping_cmd 2>/dev/null)"
-
     if [[ -n "$output" ]]; then
         percent_loss="$(echo "$output" | $loss_check)"
 
         if [[ -z "$percent_loss" ]]; then
             msg="Failed to parse ping output, unlikely to self correct!"
-            error_msg "$msg" 1
-            percent_loss="$error_unable_to_detect_loss"
+            ping_parse_error "$error_unable_to_detect_loss" "$msg"
+        elif [[ $(echo "$percent_loss" | wc -w) -gt 1 ]]; then
+            ping_parse_error "$error_invalid_number" "multipple words"
+        elif (( $(echo "$percent_loss < 0.0 || $percent_loss > 100.0" |
+                    bc -l) )); then
+            ping_parse_error "$error_invalid_number" "invalid loss rate"
         fi
-        #
-        #  zero % loss is displayed somewhat differently depending on
-        #  platform this standardizes no losses into 0
-        #
-        [[ "$percent_loss" = "0.0" ]] && percent_loss=0 # macos
     else
         #
         #  No output, usually no connection to the host
         #
-        percent_loss="$error_no_ping_output"
+        ping_parse_error "$error_no_ping_output" "no output"
         #
         #  Some pings instantly aborts on no connection, this will keep
         #  the poll rate kind of normal and avoid rapidly filling the DB
         #  with bad data. Worst case, this will delay monitoring a bit
         #  during an outage.
         #
-        log_it "No ping output, will sleep $cfg_ping_count seconds"
+        sleep "$cfg_ping_count"
     fi
 
     sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)"
     #  A bit exessive in normal conditions
-    [[ "$percent_loss" != "0" ]] && log_it "stored in DB: $percent_loss"
+    [[ "$percent_loss" != "0.0" ]] && log_it "stored in DB: $percent_loss"
 
-    $store_ping_issues && [[ "$percent_loss" != "0" ]] && {
+    $store_ping_issues && [[ "$percent_loss" != "0.0" ]] && {
         [[ "$loss_check" != "$scr_loss_default" ]] && {
             #
             #  an alternete check detected a loss

@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 #
-#   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2024: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#  This is a weird one, gives all kinds of weird output
+#  This is a weird one, sometimes gives all kinds of weird output
 #  often negative loss numbers and sometimes gives replies
 #  for other hosts - (def gw?)
+#  and often replies tagged with DUP
+#
 #  Here we instead count the number of correct replies and do the
 #  math ourself
 #

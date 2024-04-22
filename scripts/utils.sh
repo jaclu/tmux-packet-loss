@@ -328,8 +328,8 @@ monitor_pidfile="$d_data"/monitor.pid
         #  The running monitor cant be killed via pidfile,
         #  do it manually.
         #
-        log_it "strays [$stray_monitors]"
-        log_it "Mannually killed stray monitor"
+        echo "$stray_monitors" | xargs kill
+        log_it "Mannually killed stray monitor(-s)"
     }
     log_it "Creating $d_data"
     mkdir -p "$d_data" # ensure it exists

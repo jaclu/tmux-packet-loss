@@ -24,8 +24,13 @@ log_prefix="png"
 # Read input from stdin
 ping_output=$(cat)
 
+#
+#  with most pings ' icmp_seq=' can be used to identify a reply
+#  Obviously busybox uses ' seq=' ...
+#
+
 #  shellcheck disable=SC2126
-recieved_packets="$(echo "$ping_output" | grep -v DUP | grep "icmp_seq=" |
+recieved_packets="$(echo "$ping_output" | grep -v DUP | grep "seq=" |
     grep "$cfg_ping_host" | wc -l)"
 
 #

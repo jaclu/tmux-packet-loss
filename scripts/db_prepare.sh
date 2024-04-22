@@ -57,7 +57,19 @@ update_triggers() {
     sql="DROP TRIGGER IF EXISTS new_loss; DROP TRIGGER IF EXISTS new_minute"
     sqlite3 "$sqlite_db" "$sql"
 
-    # t_stats is updated aprox once/minute at the end of monitor_packet_loss.sh
+    #
+    #  If a device wakes up from sleep it might take a while unitl the
+    #  network connection is back online.
+    #  To minimize getting crap into the statistics the first 30 seconds
+    #  of data is not stored in t_1_min
+    #  Since all records older than one minute has just been erased from
+    #  t_1_min previously in the trigger, its enough to count the number
+    #  of records present in t_1_min to detect this condition.
+    #  Normally ping count would be low, but if it is over 30, no such
+    #  filtering will happen.
+    #
+    ignore_first_items=$(echo "30 / $cfg_ping_count" | bc)
+
     sql="
     CREATE TRIGGER IF NOT EXISTS new_loss
     AFTER INSERT ON t_loss
@@ -80,7 +92,7 @@ update_triggers() {
         SELECT CASE
             -- if machine was just resuming, and network isnt up yet
             -- this prevents early losses to skew the stats
-            WHEN (SELECT COUNT(*) FROM t_1_min) < 2 THEN 0
+            WHEN (SELECT COUNT(*) FROM t_1_min) < $ignore_first_items THEN 0
             ELSE NEW.loss
         END;
     END;

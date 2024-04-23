@@ -111,8 +111,13 @@ pidfile_acquire "$monitor_pidfile" || {
     error_msg "$monitor_pidfile - is owned by process [$pidfile_proc]"
 }
 
-tmux_socket=$(echo $TMUX | sed 's/,/ /' | cut -d' ' -f 1)
-log_it "monitoring executable flag on socket: $tmux_socket"
+tmux_socket=$(echo "$TMUX" | sed 's/,/ /' | cut -d' ' -f 1)
+if [[ -S "$tmux_socket" ]]; then
+    log_it "monitoring executable flag on socket: $tmux_socket"
+else
+    log_it "Cant find socket, extracted [$tmux_socket] from [$TMUX]"
+    tmux_socket=""
+fi
 
 #
 #  Since loss is <=100, indicate errors with results over 100
@@ -205,7 +210,7 @@ while true; do
             log_it "DB locked"
         else
             #  log the issue as an error, then continue
-            error_msg "sqlite3[$?] when adding a loss" 0 false
+            error_msg "sqlite3[$err_code] when adding a loss" 0 false
         fi
         continue
     }
@@ -255,7 +260,7 @@ while true; do
         exit 1
     }
 
-    [[ -x "$tmux_socket" ]] || {
+    [[ -n "$tmux_socket" ]] && [[ ! -x "$tmux_socket" ]] && {
         #
         #  If the socket isnt executable, the tmux starting this monitor
         #  has terminated, so monitor should shut down

@@ -96,8 +96,8 @@ log_prefix="mon"
 # If true, output of pings with issues will be saved
 store_ping_issues=false
 
-scr_loss_default="$D_TPL_BASE_PATH"/scripts/loss_calc_default.sh
-scr_loss_ish_deb10="$D_TPL_BASE_PATH"/scripts/loss_calc_ish_deb10.sh
+scr_loss_default="$D_TPL_BASE_PATH"/ping_parsers/loss_calc_default.sh
+scr_loss_ish_deb10="$D_TPL_BASE_PATH"/ping_parsers/loss_calc_ish_deb10.sh
 
 d_ping_history="$d_data"/ping_issues
 

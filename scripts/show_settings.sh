@@ -11,7 +11,10 @@
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="shw"
 
+#
 # ensures terminals from other sessions will read their own tmux config
+# if the cwd happens to be in another instance of this plugin
+#
 use_param_cache=false
 
 #  shellcheck source=scripts/utils.sh
@@ -21,15 +24,21 @@ show_item() {
     local label="$1"
     local value="$2"
     local default="$3"
+    if [[ "$label" = "headers" ]]; then
+        echo "     default  user setting config vairable"
+        echo "------------  ------------ ---------------"
 
-    msg="$label [$value]"
-    if [[ "$value" = "$default" ]]; then
-        msg="$(printf "%20s               [%s]" "$label" "$value")"
     else
-        msg="$(printf "%20s %-12s  [%s]" "$label" "[$value]" \
-            "$default")"
+        msg="$label [$value]"
+        if [[ "$value" = "$default" ]]; then
+            msg="$(printf "%13s              %-20s" \
+                "[$value]" "$label")"
+        else
+            msg="$(printf "%13s %12s %-20s" \
+                "[$default]" "[$value]" "$label")"
+        fi
+        echo "$msg"
     fi
-    echo "$msg"
 }
 
 session="$(get_tmux_socket)"
@@ -45,9 +54,7 @@ echo "=====   Config for  session: $session   ====="
     get_settings
 }
 
-echo "     config vairable user setting  default"
-echo "     --------------- ------------  -------"
-#ping_count="$(show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count")"
+show_item "headers"
 show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count"
 
 [[ "$session" != "standalone" ]] && {
@@ -61,8 +68,7 @@ show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count"
         echo "$msg_interval"
         echo
     fi
-    echo "     config vairable user setting  default"
-    echo "     --------------- ------------  -------"
+    show_item "headers"
 }
 
 show_item cfg_ping_host "$cfg_ping_host" "$default_ping_host"

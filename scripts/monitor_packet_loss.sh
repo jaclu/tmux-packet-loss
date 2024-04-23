@@ -44,10 +44,7 @@ define_ping_cmd() {
     log_it "ping cmd used: [$ping_cmd]"
 }
 
-not_calculate_loss_default() {
-    #
-    #  Default loss calculation
-    #
+calculate_loss_default() {
     #  We cant rely on the absolute position of the %loss,
     #  since sometimes it is prepended with stuff like:
     #  "+1 duplicates,"
@@ -60,17 +57,42 @@ not_calculate_loss_default() {
     #  4 only keep line up to not including ~ (packet loss)
     #  5 display last remaining word - packet loss as a float with
     #    no % sign!
-    #
-    #
-    #  External variables:
-    #    output - result of ping cmd
-    #    percent_loss - the number in the summary preceeding "packet loss"
-    #                   as a float, I.E. sans "%" suffix
-    #
-    percent_loss="$(echo "$output" | sed 's/packet loss/~/ ; s/%//' |
-        cut -d~ -f 1 | awk 'NF>1{print $NF}' |
-        awk '{printf "%.1f", $0}')"
+    #    
+    percent_loss="$(echo "$output" | grep "packet loss" |
+       sed 's/packet loss/~/ ; s/%//' | cut -d~ -f 1 | awk 'NF>1{print $NF}' |
+       awk '{printf "%.1f", $0}' )" # last line ensures it's correctly rounded
+}
 
+calculate_loss_ish_deb10() {
+    #
+    #  with most pings ' icmp_seq=' can be used to identify a reply
+    #  Obviously busybox uses ' seq=' ...
+    #
+    
+    #  shellcheck disable=SC2126
+    recieved_packets="$(echo "$output" | grep -v DUP | grep "seq=" |
+        grep "$cfg_ping_host" | wc -l)"
+
+    #
+    #  Sometimes this gets extra replies fom 8.8.8.8
+    #  If 8.8.4.4 is pinged filtering on $cfg_ping_host gets rid of them,
+    #  if 8.8.8.8 is the pinghost this will signal results over 100
+    #
+    #  Did a quick fix, but will leave it commented out for now to gather
+    #  some more stats on how often this happens.
+    #
+    # [[ "$recieved_packets" -gt "$cfg_ping_count" ]] && {
+    #     recieved_packets="$cfg_ping_count"
+    # }
+    
+    
+    #
+    #  bc rounds 33.3333 to 33.4 to work arround this, bc uses two digits
+    #  printf rounds it down to one
+    #
+    percent_loss="$(echo "scale=2;
+        100 - 100 * $recieved_packets / $cfg_ping_count" | bc | 
+        awk '{printf "%.1f", $0}')"
 }
 
 ping_parse_error() {
@@ -96,9 +118,6 @@ log_prefix="mon"
 # If true, output of pings with issues will be saved
 store_ping_issues=false
 
-scr_loss_default="$D_TPL_BASE_PATH"/ping_parsers/loss_calc_default.sh
-scr_loss_ish_deb10="$D_TPL_BASE_PATH"/ping_parsers/loss_calc_ish_deb10.sh
-
 d_ping_history="$d_data"/ping_issues
 
 #
@@ -116,7 +135,7 @@ if [[ -S "$tmux_socket" ]]; then
     log_it "monitoring executable flag on socket: $tmux_socket"
 else
     log_it "Cant find socket, extracted [$tmux_socket] from [$TMUX]"
-    tmux_socket=""
+    tmux_socket="" # Don't check socket to see if tmux is still running
 fi
 
 #
@@ -149,11 +168,11 @@ define_ping_cmd # we need the ping_cmd in kill_any_strays
 #
 if [[ -d /proc/ish ]] && grep -q '10.' /etc/debian_version; then
     store_ping_issues=true
-    loss_check="$scr_loss_ish_deb10"
+    loss_check=calculate_loss_ish_deb10
 else
-    loss_check="$scr_loss_default"
+    loss_check=calculate_loss_default
 fi
-log_it "Checking losses using: $(basename "$loss_check")"
+log_it "Checking losses using: $loss_check"
 
 $store_ping_issues && log_it "Will save ping issues in $d_ping_history"
 
@@ -178,7 +197,7 @@ while true; do
     #
     output="$($ping_cmd 2>/dev/null)"
     if [[ -n "$output" ]]; then
-        percent_loss="$(echo "$output" | $loss_check)"
+        $loss_check
 
         if [[ -z "$percent_loss" ]]; then
             msg="Failed to parse ping output, unlikely to self correct!"
@@ -218,14 +237,14 @@ while true; do
     [[ "$percent_loss" != "0.0" ]] && log_it "stored in DB: $percent_loss"
 
     $store_ping_issues && [[ "$percent_loss" != "0.0" ]] && {
-        [[ "$loss_check" != "$scr_loss_default" ]] && {
+        [[ "$loss_check" != "calculate_loss_default" ]] && {
             #
             #  an alternete check detected a loss
             #  compare result with what default check gives
             #  and log the output if they differ
             #
             alt_percentage_loss="$percent_loss"
-            percent_loss="$(echo "$output" | $scr_loss_default)"
+            calculate_loss_default
             [[ "$percent_loss" != "$alt_percentage_loss" ]] && {
                 msg="This alternate[$alt_percentage_loss] and "
                 msg+="default[$percent_loss] loss check differ"
@@ -243,10 +262,12 @@ while true; do
     #  Some checks to reduce the risk of having old instances that
     #  keep running in the background.
     #
+  
     [[ -f "$monitor_pidfile" ]] || {
         log_it "*** pidfile has dissapeard - exiting this process"
         exit 1
     }
+
     pidfile_is_mine "$monitor_pidfile" || {
         #
         #  A new monitor has started and taken ownership of the pidfile.
@@ -265,9 +286,11 @@ while true; do
         #  If the socket isnt executable, the tmux starting this monitor
         #  has terminated, so monitor should shut down
         #
-        log_it "*** tmux is gone $tmux_socket no longer writeable"
-        sleep 5
+        log_it "*** tmux is gone - $tmux_socket no longer writeable"
+
         # check how shutdown is handled on ish, dont exit right away
+        sleep 5
+
         log_it "exiting due to missing socket"
         break
     }

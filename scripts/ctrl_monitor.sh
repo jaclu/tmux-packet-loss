@@ -74,7 +74,6 @@ monitor_terminate() {
         }
         clear_losses_in_t_loss
         log_it "$db_monitor is shutdown"
-        log_it
         killed_monitor=true
     }
     pidfile_release "$monitor_pidfile"
@@ -107,6 +106,7 @@ exit_script() {
     local exit_code="${1:-0}"
 
     pidfile_release ""
+    log_it "$(basename "$0") - done!"
     exit "$exit_code"
 }
 
@@ -145,7 +145,7 @@ case "$1" in
     $killed_monitor || {
         log_it "Did not find any running instances of $scr_monitor"
     }
-    exit_script
+    exit_script 0
     ;;
 "start" | "") ;; # continue the startup
 *) error_msg "Valid params: None/start or stop - got [$1]" ;;
@@ -153,4 +153,4 @@ esac
 
 monitor_launch
 
-exit_script 0
+exit_script

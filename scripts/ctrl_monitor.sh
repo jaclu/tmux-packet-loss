@@ -28,9 +28,9 @@ hook_handler() {
     elif min_version 2.4 "$tmux_vers"; then
         hook_name="session-closed"
     else
-        error_msg "WARNING: previous to tmux 2.4 session-closed hook is " \
-            "not available, so can not shut down monitor process when " \
-            "tmux exits!" 0
+        error_msg "WARNING: previous to tmux 2.4 session-closed hook is \
+            not available, so can not shut down monitor process when \
+            tmux exits!" 0 false
     fi
 
     [[ -n "$hook_name" ]] && {
@@ -51,7 +51,7 @@ clear_losses_in_t_loss() {
     [[ -n "$($scr_display_losses)" ]] && {
         log_it "Clearing losses - to ensure plugin isnt stuck alerting"
         sqlite3 "$sqlite_db" "DELETE FROM t_loss WHERE loss != 0" || {
-            error_msg "sqlite3 reported error:[$?] in clear_losses_in_t_loss()"
+            error_msg "sqlite3[$?] in clear_losses_in_t_loss()"
         }
     }
 }
@@ -148,7 +148,7 @@ case "$1" in
     exit_script
     ;;
 "start" | "") ;; # continue the startup
-*) error_msg "Valid params: None or stop - got [$1]" ;;
+*) error_msg "Valid params: None/start or stop - got [$1]" ;;
 esac
 
 monitor_launch

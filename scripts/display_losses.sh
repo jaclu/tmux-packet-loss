@@ -18,6 +18,9 @@ script_exit() {
         # log_it "should not have pre/suf  $status"
         echo "${cfg_prefix}${status}${cfg_suffix}"
     }
+    [[ -n "$2" ]] && {
+        error_msg "script_exit() got 2nd unexpected param[$2]"
+    }
     exit 0
 }
 
@@ -46,7 +49,6 @@ verify_db_status() {
 
         [[ -e "$sqlite_db" ]] || {
             script_exit "DB missing"
-            #error_msg "DB not found, and monitor failed to restart!"
         }
     elif [[ -n "$(find "$sqlite_db" -mmin +1)" ]]; then
         db_was_ok=false
@@ -64,6 +66,8 @@ verify_db_status() {
 
 get_current_loss() {
     local sql
+    local err_code
+    local msg
 
     if param_as_bool "$cfg_weighted_average"; then
         #
@@ -91,7 +95,15 @@ get_current_loss() {
 
     sql="SELECT CAST(( $sql ) AS INTEGER)"
     sqlite3 "$sqlite_db" "$sql" || {
-        error_msg "sqlite3 reported error:[$?] when retrieving current losses" 0
+        err_code=$?
+        [[ "$err_code" = 5 ]] && {
+            msg="DB locked"
+            log_it "$msg"
+            script_exit "$msg"
+        }
+        error_msg \
+            "sqlite3[$err_code] when retrieving current losses" \
+            1 false
     }
     display_time_elapsed "$t_start" "get_current_loss()"
 }
@@ -152,7 +164,7 @@ display_history() {
 
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
     avg_loss_raw="$(sqlite3 "$sqlite_db" "$sql")" || {
-        error_msg "sqlite3 reported error:[$?] when retrieving history"
+        error_msg "sqlite3[$?] when retrieving history"
     }
     if [[ "$avg_loss_raw" != "0" ]]; then
         #

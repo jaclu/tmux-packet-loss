@@ -45,11 +45,12 @@ log_it() {
 
 #
 #  Display $1 as an error message in log and as a tmux display-message
-#  If no $2 or set to 0, process is not exited
+#  If $2 is set to 0, process is not exited
 #
 error_msg() {
     local msg="ERROR: $1"
     local exit_code="${2:-1}"
+    local display_message=${3:-true}
 
     if $log_interactive_to_stderr && [[ -t 0 ]]; then
         echo "$msg" >/dev/stderr
@@ -57,12 +58,12 @@ error_msg() {
         log_it
         log_it "$msg"
         log_it
-        [[ "$exit_code" -gt -1 ]] && {
+        $display_message && {
             # only display exit triggering errors on status bar
             $TMUX_BIN display-message -d 0 "$plugin_name $msg"
         }
     fi
-    [[ "$exit_code" -gt -1 ]] && exit "$exit_code"
+    [[ "$exit_code" -gt 0 ]] && exit "$exit_code"
 }
 
 is_integer() {

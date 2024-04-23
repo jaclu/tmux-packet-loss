@@ -197,7 +197,8 @@ while true; do
     fi
 
     sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)" || {
-        error_msg "sqlite3 reported error:[$?] when adding a loss" -1
+        #  log the issue as an error, then continue
+        error_msg "sqlite3[$?] when adding a loss" 0 false
         continue
     }
     #  A bit exessive in normal conditions

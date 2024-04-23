@@ -8,10 +8,10 @@
 #   This can be called any number of times, if db exist and is of the
 #   current $db_version, db itself is not touched.
 #
-#   The new_data trigger is replaced on each run, to ensure they use
+#   The data triggers are replaced on each run, to ensure they use
 #   current tmux settings.
 #
-#   ---  DB history  ---
+#   ---  DB revision history  ---
 #   11 - Added minute_trigger
 #
 create_db() {

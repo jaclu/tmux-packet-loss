@@ -57,10 +57,10 @@ calculate_loss_default() {
     #  4 only keep line up to not including ~ (packet loss)
     #  5 display last remaining word - packet loss as a float with
     #    no % sign!
-    #    
+    #
     percent_loss="$(echo "$output" | grep "packet loss" |
-       sed 's/packet loss/~/ ; s/%//' | cut -d~ -f 1 | awk 'NF>1{print $NF}' |
-       awk '{printf "%.1f", $0}' )" # last line ensures it's correctly rounded
+        sed 's/packet loss/~/ ; s/%//' | cut -d~ -f 1 | awk 'NF>1{print $NF}' |
+        awk '{printf "%.1f", $0}')" # last line ensures it's correctly rounded
 }
 
 calculate_loss_ish_deb10() {
@@ -68,7 +68,7 @@ calculate_loss_ish_deb10() {
     #  with most pings ' icmp_seq=' can be used to identify a reply
     #  Obviously busybox uses ' seq=' ...
     #
-    
+
     #  shellcheck disable=SC2126
     recieved_packets="$(echo "$output" | grep -v DUP | grep "seq=" |
         grep "$cfg_ping_host" | wc -l)"
@@ -84,14 +84,13 @@ calculate_loss_ish_deb10() {
     # [[ "$recieved_packets" -gt "$cfg_ping_count" ]] && {
     #     recieved_packets="$cfg_ping_count"
     # }
-    
-    
+
     #
     #  bc rounds 33.3333 to 33.4 to work arround this, bc uses two digits
     #  printf rounds it down to one
     #
     percent_loss="$(echo "scale=2;
-        100 - 100 * $recieved_packets / $cfg_ping_count" | bc | 
+        100 - 100 * $recieved_packets / $cfg_ping_count" | bc |
         awk '{printf "%.1f", $0}')"
 }
 
@@ -159,7 +158,7 @@ error_invalid_number=102
 #  parsing output gave empty result, unlikely to self correct
 error_unable_to_detect_loss=201
 
-"$D_TPL_BASE_PATH"/scripts/db_prepare.sh
+"$D_TPL_BASE_PATH"/scripts/prepare_db.sh
 
 define_ping_cmd # we need the ping_cmd in kill_any_strays
 
@@ -262,7 +261,7 @@ while true; do
     #  Some checks to reduce the risk of having old instances that
     #  keep running in the background.
     #
-  
+
     [[ -f "$monitor_pidfile" ]] || {
         log_it "*** pidfile has dissapeard - exiting this process"
         exit 1

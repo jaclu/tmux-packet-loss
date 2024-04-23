@@ -42,7 +42,7 @@ create_db() {
 
     PRAGMA user_version = $db_version;  -- replace DB if out of date
     "
-    sqlite3 "$sqlite_db" "$sql" || {
+    sqlite_err_handling "$sql" || {
         error_msg "sqlite3[$?] when creating the DB"
     }
     log_it "Created db"
@@ -57,7 +57,7 @@ update_triggers() {
     local sql
 
     sql="DROP TRIGGER IF EXISTS new_loss; DROP TRIGGER IF EXISTS new_minute"
-    sqlite3 "$sqlite_db" "$sql" || {
+    sqlite_err_handling "$sql" || {
         error_msg "sqlite3[$?] when dropping triggers"
     }
 
@@ -111,7 +111,7 @@ update_triggers() {
         datetime('now', '-$cfg_hist_avg_minutes minutes');
     END;
     "
-    sqlite3 "$sqlite_db" "$sql" || {
+    sqlite_err_handling "$sql" || {
         error_msg "sqlite3[$?] when creating triggers"
     }
     log_it "Created db-triggers"
@@ -133,7 +133,7 @@ log_prefix="prp"
 #
 #  Create fresh database if it is missing or obsolete
 #
-[[ "$(sqlite3 "$sqlite_db" "PRAGMA user_version")" != "$db_version" ]] && {
+[[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]] && {
     create_db
 }
 

@@ -256,6 +256,12 @@ display_time_elapsed() {
     log_it "Since start: $(printf "%.2f" "$duration") $label"
 }
 
+sqlite_err_handling() {
+    local sql="$1"
+
+    sqlite3 "$sqlite_db" "$sql" 2>>"$d_data"/sqlite.err
+}
+
 #===============================================================
 #
 #   Main

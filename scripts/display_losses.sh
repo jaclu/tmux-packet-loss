@@ -65,6 +65,10 @@ verify_db_status() {
 }
 
 get_current_loss() {
+    #
+    #  public variables defined
+    #   current_loss
+    #
     local sql
     local err_code
     local msg
@@ -81,19 +85,26 @@ get_current_loss() {
         #    avg of last minute
         #
         sql="max(
-        (SELECT loss FROM t_loss ORDER BY ROWID DESC limit 1),
+        (SELECT loss FROM t_loss ORDER BY ROWID DESC limit 1      ),
+
         (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 2)),
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 2  )),
+
         (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 3)),
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 3  )),
+
         (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 4)),
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 4  )),
+
         (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 5)),
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 5  )),
+
         (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 6)),
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 6  )),
+
         (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 7)),
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 7  )),
+
         (SELECT avg(loss) FROM t_loss)
         )"
     else
@@ -101,11 +112,11 @@ get_current_loss() {
     fi
 
     sql="SELECT CAST(( $sql ) AS INTEGER)"
-    sqlite3 "$sqlite_db" "$sql" || {
+    current_loss="$(sqlite_err_handling "$sql")" || {
         err_code=$?
         [[ "$err_code" = 5 ]] && {
             msg="DB locked"
-            log_it "$msg"
+            log_it "---------------------  $msg"
             script_exit "$msg"
         }
         error_msg \
@@ -118,6 +129,10 @@ get_current_loss() {
 show_trend() {
     #
     #  Indicate if losses are increasing / decreasing setting +/- prefix
+    #
+    #  public variables used
+    #   current_loss
+    #   result
     #
     local prev_loss
 
@@ -170,8 +185,9 @@ display_history() {
     local avg_loss
 
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
-    avg_loss_raw="$(sqlite3 "$sqlite_db" "$sql")" || {
-        error_msg "sqlite3[$?] when retrieving history"
+    avg_loss_raw="$(sqlite_err_handling "$sql")" || {
+        error_msg "sqlite3[$?] when retrieving history" 0 false
+        return
     }
     if [[ "$avg_loss_raw" != "0" ]]; then
         #
@@ -225,7 +241,7 @@ display_time_elapsed "$t_start" "script initialized"
 
 verify_db_status
 
-current_loss="$(get_current_loss)"
+get_current_loss
 s_log_msg="loss: $current_loss" # might get altered by display_history
 
 result="" # indicating no losses

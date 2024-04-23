@@ -196,7 +196,7 @@ while true; do
         sleep "$cfg_ping_count"
     fi
 
-    sqlite3 "$sqlite_db" "INSERT INTO t_loss (loss) VALUES ($percent_loss)" || {
+    sqlite_err_handling "INSERT INTO t_loss (loss) VALUES ($percent_loss)" || {
         err_code=$?
         if [[ "$err_code" = 5 ]]; then
             log_it "DB locked"

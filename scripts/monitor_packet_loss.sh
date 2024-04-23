@@ -111,6 +111,9 @@ pidfile_acquire "$monitor_pidfile" || {
     error_msg "$monitor_pidfile - is owned by process [$pidfile_proc]"
 }
 
+tmux_socket=$(echo $TMUX | sed 's/,/ /' | cut -d' ' -f 1)
+log_it "monitoring executable flag on socket: $tmux_socket"
+
 #
 #  Since loss is <=100, indicate errors with results over 100
 #  Not crucial to remember exactly what it means,
@@ -252,4 +255,15 @@ while true; do
         exit 1
     }
 
+    [[ -x "$tmux_socket" ]] || {
+        #
+        #  If the socket isnt executable, the tmux starting this monitor
+        #  has terminated, so monitor should shut down
+        #
+        log_it "*** tmux is gone $tmux_socket no longer writeable"
+        sleep 5
+        # check how shutdown is handled on ish, dont exit right away
+        log_it "exiting due to missing socket"
+        break
+    }
 done

@@ -84,10 +84,7 @@ monitor_launch() {
     #
     #  Starting a fresh monitor
     #
-    # [[ -t 0 ]] && {
-    #     log_it "$db_monitor runs in the background, so cant print it's output here"
-    #     [[ -n "$log_file" ]] && log_it " it is sent to log_file: $log_file"
-    # }
+
     nohup "$scr_monitor" >/dev/null 2>&1 &
 
     sleep 1 # wait for monitor to start

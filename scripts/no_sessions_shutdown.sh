@@ -5,9 +5,7 @@
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
-#   Version: 0.1.1 2022-09-15
-#
-#  If no more sessions are running, terminate background packet loss processes
+#  If no more sessions are running, terminate monitor_packet_loss.sh
 #
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")

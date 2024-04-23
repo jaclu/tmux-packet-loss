@@ -71,7 +71,8 @@ get_current_loss() {
 
     if param_as_bool "$cfg_weighted_average"; then
         #
-        #  To give loss a declining history weighting, it is displayed as the largest of:
+        #  To give loss a declining history weighting,
+        #  it is displayed as the largest of:
         #    last value
         #    avg of last 2
         #    avg of last 3
@@ -79,15 +80,21 @@ get_current_loss() {
         #    ...
         #    avg of last minute
         #
-        sql="max( \
-        (SELECT loss FROM t_loss ORDER BY ROWID DESC limit 1), \
-        (SELECT avg(loss) FROM(SELECT loss FROM t_loss ORDER BY ROWID DESC limit 2)), \
-        (SELECT avg(loss) FROM(SELECT loss FROM t_loss ORDER BY ROWID DESC limit 3)), \
-        (SELECT avg(loss) FROM(SELECT loss FROM t_loss ORDER BY ROWID DESC limit 4)), \
-        (SELECT avg(loss) FROM(SELECT loss FROM t_loss ORDER BY ROWID DESC limit 5)), \
-        (SELECT avg(loss) FROM(SELECT loss FROM t_loss ORDER BY ROWID DESC limit 6)), \
-        (SELECT avg(loss) FROM(SELECT loss FROM t_loss ORDER BY ROWID DESC limit 7)), \
-        (SELECT avg(loss) FROM t_loss) \
+        sql="max(
+        (SELECT loss FROM t_loss ORDER BY ROWID DESC limit 1),
+        (SELECT avg(loss) FROM(
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 2)),
+        (SELECT avg(loss) FROM(
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 3)),
+        (SELECT avg(loss) FROM(
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 4)),
+        (SELECT avg(loss) FROM(
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 5)),
+        (SELECT avg(loss) FROM(
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 6)),
+        (SELECT avg(loss) FROM(
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 7)),
+        (SELECT avg(loss) FROM t_loss)
         )"
     else
         sql="SELECT avg(loss) FROM t_loss"
@@ -170,7 +177,9 @@ display_history() {
         #
         #  If stats is over trigger levels, display in appropriate color
         #
-        avg_loss="$(colorize_high_numbers "$avg_loss_raw" "$avg_loss_raw")"
+        avg_loss="$(
+            colorize_high_numbers "$avg_loss_raw" "$avg_loss_raw"
+        )"
         result="${result}${cfg_hist_separator}${avg_loss}"
         s_log_msg="$s_log_msg   avg: $avg_loss_raw"
     fi
@@ -179,8 +188,8 @@ display_history() {
 
 safe_now() {
     #
-    #  MacOS date only counts whole seconds, if gdate (GNU-date) is installed
-    #  it can  display times with more precission
+    #  MacOS date only counts whole seconds, if gdate (GNU-date) is
+    #  installed, it can  display times with more precission
     #
     if [[ "$(uname)" = "Darwin" ]]; then
         if [[ -n "$(command -v gdate)" ]]; then

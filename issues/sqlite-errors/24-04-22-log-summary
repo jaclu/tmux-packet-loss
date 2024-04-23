@@ -1,5 +1,0 @@
-18:50:31 serv2 42772 ctr binding monitor_packet_loss.sh shutdown to: session-closed[41]
-18:50:52 serv2 45379 dsp
-18:50:52 serv2 45379 dsp ERROR: sqlite3 reported error:[5] when retrieving current losses
-18:50:52 serv2 45379 dsp
-18:51:01 serv2 42825 mon stored in DB: 16.7

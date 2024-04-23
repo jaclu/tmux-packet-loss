@@ -142,3 +142,6 @@ log_prefix="prp"
 #  starts
 #
 update_triggers
+
+#  a lot of DB related code depends on there being aat least one record
+sqlite_err_handling "INSERT INTO t_loss (loss) VALUES (0)"

@@ -268,131 +268,142 @@ sqlite_err_handling() {
 #
 #===============================================================
 
-#
-#  Shorthand, to avoid manually typing package name on multiple
-#  locations, easily getting out of sync.
-#
-plugin_name="tmux-packet-loss"
+main() {
+    local log_prefix="$log_prefix"
 
-#
-#  log_it is used to display status to $log_file if it is defined.
-#  Good for testing and monitoring actions.
-#  Logging should normally be disabled, since it causes some overhead.
-#  If $log_file is unset no output will happen.
-#  So unless you want logging, comment the next line out.
-#
-log_file="/tmp/${plugin_name}.log"
-
-#  used in logfile to indicate what tool that generated output
-[[ -z "$log_prefix" ]] && log_prefix="???"
-
-log_indent=1
-# if set tools run from commandline will print log entries to screen
-log_interactive_to_stderr=false
-# set to true if session-id & ppid should be displayed instead of pid
-[[ -z "$log_ppid" ]] && log_ppid="false"
-
-#
-#  I use an env var TMUX_BIN to point at the current tmux, defined in my
-#  tmux.conf, in order to pick the version matching the server running.
-#  This is needed when checking backwards compatability with various versions.
-#  If not found, it is set to whatever is in path, so should have no negative
-#  impact. In all calls to tmux I use $TMUX_BIN instead in the rest of this
-#  plugin.
-#
-[[ -z "$TMUX_BIN" ]] && TMUX_BIN="tmux"
-
-#
-#  Should have been set in the calling script, must be done after
-#  log_file is (potentially) defined
-#
-[[ -z "$D_TPL_BASE_PATH" ]] && error_msg "D_TPL_BASE_PATH is not defined!"
-
-d_data="$D_TPL_BASE_PATH/data" # location for all runtime data
-
-#
-#  Shortands for some scripts that are called in various places
-#
-scr_controler="$D_TPL_BASE_PATH/scripts/ctrl_monitor.sh"
-scr_monitor="$D_TPL_BASE_PATH/scripts/monitor_packet_loss.sh"
-scr_display_losses="$D_TPL_BASE_PATH/scripts/display_losses.sh"
-
-#
-#  These files are assumed to be in the directory data
-#
-f_param_cache="$d_data"/param_cache
-f_previous_loss="$d_data"/previous_loss
-sqlite_db="$d_data"/packet_loss.sqlite
-db_restart_log="$d_data"/db_restarted.log
-monitor_pidfile="$d_data"/monitor.pid
-#  check one of the path items to verify D_TPL_BASE_PATH
-[[ -f "$scr_monitor" ]] || {
-    error_msg "D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"
-}
-
-[[ -d "$d_data" ]] || {
     #
-    #  If data dir was removed whilst a monitor was running,
-    #  the running monitor cant be killed via pidfile.
-    #  Do it manually.
+    #  Shorthand, to avoid manually typing package name on multiple
+    #  locations, easily getting out of sync.
     #
-    stray_monitors="$(pgrep -f "$scr_monitor")"
-    [[ -n "$stray_monitors" ]] && {
-        echo "$stray_monitors" | xargs kill
-        log_it "Mannually killed stray monitor(-s)"
+    plugin_name="tmux-packet-loss"
+
+    #
+    #  log_it is used to display status to $log_file if it is defined.
+    #  Good for testing and monitoring actions.
+    #  Logging should normally be disabled, since it causes some overhead.
+    #  If $log_file is unset no output will happen.
+    #  So unless you want logging, comment the next line out.
+    #
+    log_file="/tmp/${plugin_name}.log"
+
+    #
+    # for actions in utils log_prefix gets an u prefix
+    # using local ensures it goes back to its original setting once
+    # code is run from the caller
+    #
+    log_prefix="u-$log_prefix"
+
+    log_indent=1
+    # if set tools run from commandline will print log entries to screen
+    log_interactive_to_stderr=false
+    # set to true if session-id & ppid should be displayed instead of pid
+    [[ -z "$log_ppid" ]] && log_ppid="false"
+
+    #
+    #  I use an env var TMUX_BIN to point at the current tmux, defined in my
+    #  tmux.conf, in order to pick the version matching the server running.
+    #  This is needed when checking backwards compatability with various versions.
+    #  If not found, it is set to whatever is in path, so should have no negative
+    #  impact. In all calls to tmux I use $TMUX_BIN instead in the rest of this
+    #  plugin.
+    #
+    [[ -z "$TMUX_BIN" ]] && TMUX_BIN="tmux"
+
+    #
+    #  Should have been set in the calling script, must be done after
+    #  log_file is (potentially) defined
+    #
+    [[ -z "$D_TPL_BASE_PATH" ]] && error_msg "D_TPL_BASE_PATH is not defined!"
+
+    d_data="$D_TPL_BASE_PATH/data" # location for all runtime data
+
+    #
+    #  Shortands for some scripts that are called in various places
+    #
+    scr_controler="$D_TPL_BASE_PATH/scripts/ctrl_monitor.sh"
+    scr_monitor="$D_TPL_BASE_PATH/scripts/monitor_packet_loss.sh"
+    scr_display_losses="$D_TPL_BASE_PATH/scripts/display_losses.sh"
+
+    #
+    #  These files are assumed to be in the directory data
+    #
+    f_param_cache="$d_data"/param_cache
+    f_previous_loss="$d_data"/previous_loss
+    sqlite_db="$d_data"/packet_loss.sqlite
+    db_restart_log="$d_data"/db_restarted.log
+    monitor_pidfile="$d_data"/monitor.pid
+    #  check one of the path items to verify D_TPL_BASE_PATH
+    [[ -f "$scr_monitor" ]] || {
+        error_msg "D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"
     }
 
-    log_it "Creating $d_data"
-    mkdir -p "$d_data" # ensure it exists
+    [[ -d "$d_data" ]] || {
+        #
+        #  If data dir was removed whilst a monitor was running,
+        #  the running monitor cant be killed via pidfile.
+        #  Do it manually.
+        #
+        stray_monitors="$(pgrep -f "$scr_monitor")"
+        [[ -n "$stray_monitors" ]] && {
+            echo "$stray_monitors" | xargs kill
+            log_it "Mannually killed stray monitor(-s)"
+        }
+
+        log_it "Creating $d_data"
+        mkdir -p "$d_data" # ensure it exists
+    }
+
+    #
+    #  Sanity check that DB structure is current, if not it will be replaced
+    #
+    db_version=11
+
+    skip_time_elapsed=true # creates a lot of overhead so should normally be on
+    [[ -z "$use_param_cache" ]] && {
+        use_param_cache=true # makes gathering the params a lot faster!
+    }
+
+    #
+    #  Defaults for config variables
+    #
+    default_ping_host="8.8.4.4" #  Default host to ping
+    default_ping_count=6        #  how often to report packet loss statistics
+    default_history_size=6      #  how many ping results to keep in the primary table
+
+    #  Use weighted average over averaging all data points
+    default_weighted_average="$(normalize_bool_param "true")"
+
+    #  display ^/v prefix if value is increasing/decreasing
+    default_display_trend="$(normalize_bool_param "false")"
+
+    default_level_disp=1   #  display loss if this or higher
+    default_level_alert=17 #  this or higher triggers alert color
+    default_level_crit=40  #  this or higher triggers critical color
+
+    #  Display long term average
+    default_hist_avg_display="$(normalize_bool_param "false")"
+    default_hist_avg_minutes=30 #  Minutes to keep historical average
+    default_hist_separator='~'  #  Separaor between current and hist data
+
+    default_color_alert="colour226" # bright yellow
+    default_color_crit="colour196"  # bright red
+    default_color_bg='black'        #  only used when displaying alert/crit
+
+    default_prefix=' pkt loss: '
+    default_suffix=' '
+
+    default_hook_idx=41 #  array idx for session-closed hook
+
+    #
+    # override settings for easy debugging
+    #
+    # log_file=""
+    # log_interactive_to_stderr=true # doesnt seem to work on iSH
+    # use_param_cache=false
+    # skip_time_elapsed=false
+
+    get_settings
 }
 
-#
-#  Sanity check that DB structure is current, if not it will be replaced
-#
-db_version=11
-
-skip_time_elapsed=true # creates a lot of overhead so should normally be on
-[[ -z "$use_param_cache" ]] && {
-    use_param_cache=true # makes gathering the params a lot faster!
-}
-
-#
-#  Defaults for config variables
-#
-default_ping_host="8.8.4.4" #  Default host to ping
-default_ping_count=6        #  how often to report packet loss statistics
-default_history_size=6      #  how many ping results to keep in the primary table
-
-#  Use weighted average over averaging all data points
-default_weighted_average="$(normalize_bool_param "true")"
-
-#  display ^/v prefix if value is increasing/decreasing
-default_display_trend="$(normalize_bool_param "false")"
-
-default_level_disp=1   #  display loss if this or higher
-default_level_alert=17 #  this or higher triggers alert color
-default_level_crit=40  #  this or higher triggers critical color
-
-#  Display long term average
-default_hist_avg_display="$(normalize_bool_param "false")"
-default_hist_avg_minutes=30 #  Minutes to keep historical average
-default_hist_separator='~'  #  Separaor between current and hist data
-
-default_color_alert="colour226" # bright yellow
-default_color_crit="colour196"  # bright red
-default_color_bg='black'        #  only used when displaying alert/crit
-
-default_prefix=' pkt loss: '
-default_suffix=' '
-
-default_hook_idx=41 #  array idx for session-closed hook
-
-#
-# override settings for easy debugging
-#
-# log_file=""
-# log_interactive_to_stderr=true # doesnt seem to work on iSH
-# use_param_cache=false
-# skip_time_elapsed=false
-
-get_settings
+[[ -z "$log_prefix" ]] && log_prefix="???"
+main

@@ -129,13 +129,8 @@ pidfile_acquire "$monitor_pidfile" || {
     error_msg "$monitor_pidfile - is owned by process [$pidfile_proc]"
 }
 
-tmux_socket=$(echo "$TMUX" | sed 's/,/ /' | cut -d' ' -f 1)
-if [[ -S "$tmux_socket" ]]; then
-    log_it "monitoring executable flag on socket: $tmux_socket"
-else
-    log_it "Cant find socket, extracted [$tmux_socket] from [$TMUX]"
-    tmux_socket="" # Don't check socket to see if tmux is still running
-fi
+tmux_pid=$(echo "$TMUX" | sed 's/,/ /g' | cut -d' ' -f 2)
+log_it "Will monitor pressence of master tmux pid: $tmux_pid"
 
 #
 #  Since loss is <=100, indicate errors with results over 100
@@ -280,17 +275,17 @@ while true; do
         exit 1
     }
 
-    [[ -n "$tmux_socket" ]] && [[ ! -x "$tmux_socket" ]] && {
+    [[ -n "$tmux_pid" ]] && ! is_pid_alive "$tmux_pid" && {
         #
         #  If the socket isnt executable, the tmux starting this monitor
         #  has terminated, so monitor should shut down
         #
-        log_it "*** tmux is gone - $tmux_socket no longer writeable"
+        log_it "*** tmux is gone - master process no longer writeable"
 
         # check how shutdown is handled on ish, dont exit right away
         sleep 5
 
-        log_it "exiting due to missing socket"
+        log_it "exiting due to missing tmux master process"
         break
     }
 done

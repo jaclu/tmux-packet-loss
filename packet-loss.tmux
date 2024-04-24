@@ -42,7 +42,7 @@ update_tmux_option() {
 
 D_TPL_BASE_PATH=$(dirname -- "$(realpath "$0")")
 
-log_prefix="tmx"
+log_prefix="plg" # plugin handler
 
 #
 #  Ensure (potentially) outdated settings are not used

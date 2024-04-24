@@ -153,8 +153,6 @@ error_invalid_number=102
 #  parsing output gave empty result, unlikely to self correct
 error_unable_to_detect_loss=201
 
-"$D_TPL_BASE_PATH"/scripts/prepare_db.sh
-
 define_ping_cmd # we need the ping_cmd in kill_any_strays
 
 #
@@ -170,9 +168,12 @@ log_it "Checking losses using: $loss_check"
 
 $store_ping_issues && log_it "Will save ping issues in $d_ping_history"
 
+"$D_TPL_BASE_PATH"/scripts/prepare_db.sh
+
 #
 #  Main loop
 #
+log_it "Starting the monitoring loop"
 while true; do
     percent_loss=""
     #

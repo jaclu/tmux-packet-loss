@@ -66,7 +66,7 @@ command -v sqlite3 >/dev/null 2>&1 || {
 #  start monitoring
 #
 log_it "starting monitor"
-$scr_controler
+$scr_ctrl_monitor
 
 #
 #  Match tag with polling script

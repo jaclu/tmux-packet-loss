@@ -18,7 +18,10 @@ ses_count="$($TMUX_BIN ls | wc -l)"
 
 if [[ "$ses_count" -eq 0 ]]; then
     log_it "No remaining sessions, shutting down monitor process"
-    $scr_controler stop
+    $scr_ctrl_monitor stop || {
+        echo "*** $(basename "$scr_ctrl_monitor") Failed to shut down monitor"
+        exit 1
+    }
     #
     #  remove some stat files that will be generated with
     #  fresh content on next run

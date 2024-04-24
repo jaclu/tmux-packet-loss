@@ -28,7 +28,7 @@ restart_monitor() {
     log_it "restarting monitor"
     date >>"$db_restart_log" # log current time
 
-    $scr_controler
+    $scr_ctrl_monitor
 }
 
 verify_db_status() {

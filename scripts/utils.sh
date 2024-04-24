@@ -320,7 +320,7 @@ main() {
     #
     #  Shortands for some scripts that are called in various places
     #
-    scr_controler="$D_TPL_BASE_PATH/scripts/ctrl_monitor.sh"
+    scr_ctrl_monitor="$D_TPL_BASE_PATH/scripts/ctrl_monitor.sh"
     scr_monitor="$D_TPL_BASE_PATH/scripts/monitor_packet_loss.sh"
     scr_display_losses="$D_TPL_BASE_PATH/scripts/display_losses.sh"
 

@@ -59,6 +59,8 @@ clear_losses_in_t_loss() {
 monitor_terminate() {
     local i
 
+    hook_handler clear
+
     # check_pidfile_task
     pidfile_is_live "$monitor_pidfile" && {
         log_it "Will kill [$pidfile_proc] $db_monitor"
@@ -77,7 +79,6 @@ monitor_terminate() {
         killed_monitor=true
     }
     pidfile_release "$monitor_pidfile"
-    hook_handler clear
 }
 
 monitor_launch() {

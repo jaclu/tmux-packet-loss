@@ -65,6 +65,7 @@ command -v sqlite3 >/dev/null 2>&1 || {
 #  update triggers baesd on tmux plgin config
 #  start monitoring
 #
+log_it #  if log is used, create a LF to better isolate init
 log_it "starting monitor"
 $scr_ctrl_monitor
 

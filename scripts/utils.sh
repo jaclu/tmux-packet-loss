@@ -391,8 +391,8 @@ main() {
     default_color_crit="colour196"  # bright red
     default_color_bg='black'        #  only used when displaying alert/crit
 
-    default_prefix=' pkt loss: '
-    default_suffix=' '
+    default_prefix='|'
+    default_suffix='|'
 
     default_hook_idx=41 #  array idx for session-closed hook
 

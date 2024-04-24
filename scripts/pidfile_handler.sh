@@ -29,6 +29,28 @@ _pf_log() {
     $do_pidfile_handler_logging && log_it "pf> ${*}"
 }
 
+is_pid_alive() {
+    #
+    #  Since this might run on iSH, and that platform does not do well
+    #  is ps is called too much, this is a safe workarround,
+    #  and obviously Darwin doesnt have /proc, so it needs it's own
+    #  workarround
+    #
+    local pid="$1"
+    [[ -n "$pid" ]] && {
+        if [[ "$(uname)" = "Darwin" ]]; then
+            #
+            #  kill -0 doesnt kill, it just reports if the process is
+            #  still arround
+            #
+            kill -0 "$pid" 2>/dev/null || return 1
+        else
+            [[ -d /proc/"$pid" ]] || return 1
+        fi
+    }
+    return 0
+}
+
 pidfile_is_live() {
     #
     #  boolean
@@ -43,7 +65,7 @@ pidfile_is_live() {
 
     if [[ -f "$pid_file" ]]; then
         pidfile_proc="$(cat "$pid_file")"
-        ps -p "$pidfile_proc" >/dev/null && {
+        is_pid_alive "$pidfile_proc" && {
             _pf_log "[$pidfile_proc] still pressent"
             return 0
         }

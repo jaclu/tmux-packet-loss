@@ -9,7 +9,7 @@
 #
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
-log_prefix="hok"
+log_prefix="nos"
 
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"

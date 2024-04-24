@@ -30,7 +30,7 @@ if [[ "$ses_count" -eq 0 ]]; then
     #
     rm -f "$f_param_cache"
     rm -f "$f_previous_loss"
-    log_it "$plugin_name - monitoring has shutdown, tmp files have been deleted"
+    log_it "monitoring has shutdown, tmp files have been deleted"
 else
     log_it "Sessions remaining on this server"
 fi

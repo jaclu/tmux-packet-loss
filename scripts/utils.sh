@@ -60,7 +60,7 @@ error_msg() {
         log_it
         $display_message && {
             # only display exit triggering errors on status bar
-            $TMUX_BIN display-message -d 0 "$plugin_name $msg"
+            $TMUX_BIN display-message -d 0 "packet-loss $msg"
         }
     fi
     [[ "$exit_code" -gt 0 ]] && exit "$exit_code"

@@ -11,7 +11,7 @@ Tmux-Packet-Loss is a plugin for Tmux that displays the percentage of packet los
 
 ## Screenshots
 
-Note: The screenshots use compact prefix and suffix settings. Partial status bar configuration: `#{battery_smart}#{packet_loss}%a %h-%d %H:%M`
+Partial status bar configuration: `#{battery_smart}#{packet_loss}%a %h-%d %H:%M`
 
 Plugin output takes no space when under @packet-loss-level_disp level.
 

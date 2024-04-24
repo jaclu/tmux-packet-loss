@@ -9,6 +9,21 @@
 #  Common stuff
 #
 
+#
+#  log_it is used to display status to $log_file if it is defined.
+#  Good for testing and monitoring actions.
+#  Logging should normally be disabled, since it causes some overhead.
+#  If $log_file is unset no output will happen.
+#  So unless you want logging, comment the next line out.
+#
+# log_file="/tmp/tmux-packet-loss.log"
+
+#
+#  Since it is set outside main() this will remain in effect for
+#  modules that didnt set it
+#
+[[ -z "$log_prefix" ]] && log_prefix="???"
+
 get_tmux_socket() {
     if [[ -n "$TMUX" ]]; then
         echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
@@ -174,7 +189,7 @@ get_settings() {
     $use_param_cache && [[ -f "$f_param_cache" ]] && {
         # log_it "using param cache"
 
-        #  shellcheck source=/dev/null
+        # shellcheck source=/dev/null
         source "$f_param_cache"
         return
     }
@@ -272,30 +287,17 @@ main() {
     local log_prefix="$log_prefix"
 
     #
-    #  Shorthand, to avoid manually typing package name on multiple
-    #  locations, easily getting out of sync.
-    #
-    plugin_name="tmux-packet-loss"
-
-    #
-    #  log_it is used to display status to $log_file if it is defined.
-    #  Good for testing and monitoring actions.
-    #  Logging should normally be disabled, since it causes some overhead.
-    #  If $log_file is unset no output will happen.
-    #  So unless you want logging, comment the next line out.
-    #
-    log_file="/tmp/${plugin_name}.log"
-
-    #
     # for actions in utils log_prefix gets an u prefix
     # using local ensures it goes back to its original setting once
-    # code is run from the caller
+    # code is run from the caller.
     #
     log_prefix="u-$log_prefix"
 
     log_indent=1
+
     # if set tools run from commandline will print log entries to screen
     log_interactive_to_stderr=false
+
     # set to true if session-id & ppid should be displayed instead of pid
     [[ -z "$log_ppid" ]] && log_ppid="false"
 
@@ -405,5 +407,4 @@ main() {
     get_settings
 }
 
-[[ -z "$log_prefix" ]] && log_prefix="???"
 main

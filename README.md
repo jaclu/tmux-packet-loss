@@ -133,8 +133,8 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 | @packet-loss-color_crit       | colour196     | Use this color if the loss is at or above `@packet-loss-level_crit`. |
 | @packet-loss-color_bg         | black         | Background color when alert/crit colors are used in the display. |
 |                               |               | |
-| @packet-loss-prefix           | ' pkt loss: ' | Prefix for status when displayed. |
-| @packet-loss-suffix           | ' '           | Suffix for status when displayed. |
+| @packet-loss-prefix           | '\|'          | Prefix for status when displayed. |
+| @packet-loss-suffix           | '\|'          | Suffix for status when displayed. |
 |                               |               | |
 | @packet-loss-hook_idx         | 41            | Index for session-closed hook. Only change if it collides with other usages of session-closed using this index. Check with `tmux show-hooks -g \| grep session-closed`.<br>If you do not want to use session-closed hook - set this to -1 |
 
@@ -144,12 +144,15 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 set -g @packet-loss-display_trend     yes
 set -g @packet-loss-hist_avg_display  yes
 
-set -g @packet-loss-level_disp   3 # makes a glitch disappear quicker
+#
+# In combination with weighted_average, ping_count and history_size,
+# this makes a single ping loss disapear from being displayed in 15s
+#
+set -g @packet-loss-level_disp   5
+
 set -g @packet-loss-color_alert  colour21
 set -g @packet-loss-color_bg     colour226
 
-set -g @packet-loss-prefix '|'
-set -g @packet-loss-suffix '|'
 ```
 
 ## Balancing reporting

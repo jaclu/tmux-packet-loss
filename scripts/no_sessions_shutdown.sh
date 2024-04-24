@@ -16,6 +16,8 @@ log_prefix="nos"
 
 ses_count="$($TMUX_BIN ls | wc -l)"
 
+log_it #  if log is used, create a LF to better isolate shutdown
+
 if [[ "$ses_count" -eq 0 ]]; then
     log_it "No remaining sessions, shutting down monitor process"
     $scr_ctrl_monitor stop || {

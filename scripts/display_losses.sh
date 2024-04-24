@@ -45,9 +45,10 @@ verify_db_status() {
         #  If DB is missing, try to start the monitor
         #
         restart_monitor
-        log_it "db missing restart is done"
+        log_it "DB missing - restart is done"
 
         [[ -e "$sqlite_db" ]] || {
+            log_it "DB still missing - aborting"
             script_exit "DB missing"
         }
     elif [[ -n "$(find "$sqlite_db" -mmin +1)" ]]; then

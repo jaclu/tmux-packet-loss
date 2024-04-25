@@ -4,35 +4,35 @@ Tmux-Packet-Loss is a plugin for Tmux that displays the percentage of packet los
 
 ## Recent changes
 
-- Losses are displayed, but no stats are saved for the first 30 seconds. This avoids getting errors saved during a laptop resume. 
+- Losses are displayed, but no stats are saved for the first 30 seconds. This avoids getting initial errors saved into the history during a laptop resume before the network is re-established. 
 - Fixed boolean parameter handling to allow for yes/no or true/false options.
 - Renamed variables and defaults to match the Tmux option names.
 - Refactored code into more task-isolated modules.
 
 ## Screenshots
 
-Partial status bar configuration: `#{battery_smart}#{packet_loss}%a %h-%d %H:%M`
+Partial status bar configuration: `#{battery_smart} #{packet_loss}%a %h-%d %H:%M`
 
 Plugin output takes no space when under @packet-loss-level_disp level.
 
 ### Loss levels
 
-| Display | With hist avg | Status                 |
-| ------- | ------------- | ---------------------- |
-| ![no_loss  ](https://user-images.githubusercontent.com/5046648/215356290-3155afac-c14f-4f92-9a9a-13752e396410.png) | ![no_loss_h](https://user-images.githubusercontent.com/5046648/215356290-3155afac-c14f-4f92-9a9a-13752e396410.png)   | under threshold        |
-| ![lvl_low  ](https://user-images.githubusercontent.com/5046648/215364078-e139daf0-d224-4275-afe2-6f3894420630.png) | ![lvl_low_h](https://user-images.githubusercontent.com/5046648/215363685-eaf8bc66-44f6-461b-83f1-0b3c16e76869.png)   | low level losses       |
-| ![level_alert](https://user-images.githubusercontent.com/5046648/215363408-4b043df3-fcd3-46d7-a3fa-6c3698806955.png) | ![level_alert_h](https://user-images.githubusercontent.com/5046648/215363791-c1ca0731-57d5-4f34-a580-896b22fbf76b.png) | alert level losses     |
-| ![level_crit ](https://user-images.githubusercontent.com/5046648/215363311-0c925d11-c015-45df-8143-460d2f9d9ec8.png) | ![level_crit_h](https://user-images.githubusercontent.com/5046648/215363877-01509d06-f58e-442a-9ebf-06b80688dd7c.png)  | critical level losses  |
+| Display | With hist avg | Status
+| - | - | - |
+| ![no_loss  ](https://github.com/jaclu/tmux-packet-loss/assets/5046648/91f94685-c931-425e-bc4a-20c0246959a4) |   | under threshold       |
+| ![lvl_low  ](https://github.com/jaclu/tmux-packet-loss/assets/5046648/78fd85b6-fdd3-4609-9903-9d15c0913ab2) | ![lvl_low_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/95c91b03-f562-4790-8e62-1b7a343f90c1)   | low level losses      |
+| ![lvl_alert](https://github.com/jaclu/tmux-packet-loss/assets/5046648/7213af06-6e81-41f1-84d8-2c978beff668) | ![lvl_alert_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/63539008-fd0c-45bf-8f95-7b6e9312dd0c) | alert level losses    |
+| ![lvl_crit ](https://github.com/jaclu/tmux-packet-loss/assets/5046648/7ea54245-d571-45e9-8b04-b100b6d791db) | ![lvl_crit_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/fcc9e663-4b08-4c13-a6e9-9d7b92d3e3ef)  | critical level losses |
 
 ### Trends
 
-If `@packet-loss-display_trend` is set to 1, changes since the previous check are indicated with a prefix character.
+If `@packet-loss-display_trend` is yes, change since the previous check is indicated with a prefix character
 
-| Display | Status       |
-| ------- | ------------ |
-| ![incr  ](https://user-images.githubusercontent.com/5046648/226140494-1715b5fa-61fe-4583-a9d4-d0c94c5ff63d.png) | Increasing   |
-| ![stable](https://user-images.githubusercontent.com/5046648/226140512-fdd824bc-fcd0-4d5e-b960-eb5ec043e190.png) | Stable       |
-| ![decr  ](https://user-images.githubusercontent.com/5046648/226140473-94032422-c028-4ffd-96ef-da8aade23460.png) | Decreasing   |
+| Display | Status
+| - | - |
+|![incr  ](https://github.com/jaclu/tmux-packet-loss/assets/5046648/6b1650f0-fc83-4876-9ebe-30d6fe95898f) | Increasing |
+|![stable](https://github.com/jaclu/tmux-packet-loss/assets/5046648/78fd85b6-fdd3-4609-9903-9d15c0913ab2) | Stable     |
+|![decr  ](https://github.com/jaclu/tmux-packet-loss/assets/5046648/a61e21dd-e7e3-4840-9d58-153644ca1717) | Decreasing |
 
 ## Operation
 
@@ -40,11 +40,11 @@ This plugin runs a background process using repeated runs of ping to determine %
 
 ### Termination on Tmux Exit
 
-On modern Tmux versions, the background process is terminated when Tmux exits. See "Tmux Compatibility" for more details about versions and limitations regarding shutting down this background process.
+The background process terminates if the tmux main process is no longer running.
 
 ### ping issues
 
-If the monitor experiences errors, packet loss above 100% is reported. So far I have created one special case ping parser, for iSH running Debian 10.
+If the monitor fails to calculate loss, packet loss above 100% is reported. So far I have created one special case ping parser, for iSH running Debian 10.
 
 | Result | Explanation                                                                                                     |
 | ------ | --------------------------------------------------------------------------------------------------------------- |
@@ -59,14 +59,6 @@ Ensure you have the following dependencies installed:
 - `tmux 1.9`
 - `sqlite3`
 - `bash`
-
-## Tmux Compatibility
-
-| Version    | Notice                                                                                               |
-| ---------- | ---------------------------------------------------------------------------------------------------- |
-| 3.0 >=     | The background process is shut down when Tmux exits using a session-closed hook with an array suffix. |
-| 2.4 - 2.9  | Will shut down the background process, but since hooks don't support arrays, binding to session-closed might interfere with other stuff using the same hook. |
-| 1.9 - 2.3  | session-closed hook not available. If you want to kill the background monitoring process after Tmux shutdown, you need to add something like `~/.tmux/plugins/tmux-packet-loss/scripts/ctrl_monitor.sh stop` to a script starting Tmux. If you run Tmux most of the time, you can just leave the process running. |
 
 ## Verified Environments
 
@@ -135,8 +127,6 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 |                               |               | |
 | @packet-loss-prefix           | '\|'          | Prefix for status when displayed. |
 | @packet-loss-suffix           | '\|'          | Suffix for status when displayed. |
-|                               |               | |
-| @packet-loss-hook_idx         | 41            | Index for session-closed hook. Only change if it collides with other usages of session-closed using this index. Check with `tmux show-hooks -g \| grep session-closed`.<br>If you do not want to use session-closed hook - set this to -1 |
 
 ## My config
 

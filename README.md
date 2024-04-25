@@ -159,6 +159,10 @@ Given that ping is instantaneous, consider setting the `status-interval` to one 
 
 ## Nerdy stuff
 
+If the data foleder, where the database and status files are kept disapears, the database and statuses 
+will be recreated and a new monotitor process will be started.
+So this is a simple and quick way to clear historical data, without having to bother with SQL!
+
 If `@packet-loss-weighted_average` is set to yes (the default) losses
 are displayed as the largest of:
 
@@ -178,15 +182,15 @@ If set to no, the average of all samples is always displayed.
 Depending on the ping count, it is suggested to set alert,
 so that a single lost packet wont show up as an alert.
 
-| pings | one higher than a single loss % | history size for aprox 30s |
+| pings | one higher than<br>a single loss % | history size<br>for aprox 30s |
 |-|-|-|
-| 10 | 11 |  3=27 4=36 |
-|  9 | 12 |  4=32 |
-|  8 | 13 |  5=35 |
-|  7 | 15 |  5=30 |
-|  6 | 17 |  6=30 |
-|  5 | 21 |  8=32 |
-|  3 | 34 | 15=30 |
+| 10 | 11 |  3 (27) 4 (36) |
+|  9 | 12 |  4 (32) |
+|  8 | 13 |  5 (35) |
+|  7 | 15 |  5 (30) |
+|  6 (default) | 17 |  6 (30) |
+|  5 | 21 |  8 (32) |
+|  3 | 34 | 15 (30) |
 
 ### Database
 

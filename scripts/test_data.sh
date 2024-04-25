@@ -39,6 +39,7 @@ insert_data() {
     if $keep_db; then
         sql="INSERT INTO t_loss (loss) VALUES ($loss)"
     else
+        log_it "Clearing DB"
         sql="
             DELETE FROM t_loss ;
             DELETE FROM t_1_min ;
@@ -48,7 +49,7 @@ insert_data() {
     fi
     sqlite_err_handling "$sql" || {
         err_code=$?
-        tst_error "sqlite3[$err_code] when running: $sql"
+        error_msg "sqlite3[$err_code] when running: $sql" 1 false
     }
     echo "t_loss"
     sqlite_err_handling "SELECT * FROM t_loss"

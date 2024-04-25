@@ -4,7 +4,7 @@ Tmux-Packet-Loss is a plugin for Tmux that displays the percentage of packet los
 
 ## Recent changes
 
-- Losses are displayed, but no stats are saved for the first 30 seconds. This avoids getting initial errors saved into the history during a laptop resume before the network is re-established. 
+- Losses are displayed, but no stats are saved for the first 30 seconds. This avoids getting initial errors before the network is re-established, saved into the history during a laptop resume. 
 - Fixed boolean parameter handling to allow for yes/no or true/false options.
 - Renamed variables and defaults to match the Tmux option names.
 - Refactored code into more task-isolated modules.

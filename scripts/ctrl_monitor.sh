@@ -6,47 +6,6 @@
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
 
-#
-#  When last session terminates, shut down monitor process in order
-#  not to leave any trailing processes once tmux is shut down.
-#
-hook_handler() {
-    local action="$1"
-    local tmux_vers
-    local hook_name
-
-    [[ "$cfg_hook_idx" = "-1" ]] && {
-        log_it "session-closed hook not used, due to cfg_hook_idx=-1"
-        return
-    }
-
-    tmux_vers="$($TMUX_BIN -V | cut -d' ' -f2)"
-
-    # log_it "hook_handler($action) - current tmux vers: $tmux_vers"
-    if min_version 3.0a "$tmux_vers"; then
-        hook_name="session-closed[$cfg_hook_idx]"
-    elif min_version 2.4 "$tmux_vers"; then
-        hook_name="session-closed"
-    else
-        error_msg "WARNING: previous to tmux 2.4 session-closed hook is \
-            not available, so can not shut down monitor process when \
-            tmux exits!" 0 false
-    fi
-
-    [[ -n "$hook_name" ]] && {
-        if [[ "$action" = "set" ]]; then
-            $TMUX_BIN set-hook -g "$hook_name" \
-                "run $D_TPL_BASE_PATH/scripts/no_sessions_shutdown.sh"
-            log_it "binding $db_monitor shutdown to: $hook_name"
-        elif [[ "$action" = "clear" ]]; then
-            $TMUX_BIN set-hook -ug "$hook_name" >/dev/null
-            log_it "releasing hook: $hook_name"
-        else
-            error_msg "hook_handler must be called with param set or clear!"
-        fi
-    }
-}
-
 clear_losses_in_t_loss() {
     [[ -n "$($scr_display_losses)" ]] && {
         log_it "Clearing losses - to ensure plugin isnt stuck alerting"
@@ -59,7 +18,7 @@ clear_losses_in_t_loss() {
 monitor_terminate() {
     local i
 
-    hook_handler clear
+    db_monitor="$(basename "$scr_monitor")"
 
     # check_pidfile_task
     pidfile_is_live "$monitor_pidfile" && {
@@ -89,12 +48,22 @@ monitor_launch() {
     nohup "$scr_monitor" >/dev/null 2>&1 &
 
     sleep 1 # wait for monitor to start
+}
+
+packet_loss_shutdown() {
+    # tmux has exited, do a cleanup
+
+    pidfile_release "$pidfile_tmux"
 
     #
-    #  When last session terminates, shut down monitor process in order
-    #  not to leave any trailing processes once tmux is shut down.
+    #  remove some stat files that will be generated with
+    #  fresh content on next run
     #
-    hook_handler set
+    rm -f "$f_param_cache"
+    rm -f "$f_previous_loss"
+    rm -f "$f_sqlite_errors"
+    log_it "tmp files have been deleted"
+    exit_script 0
 }
 
 exit_script() {

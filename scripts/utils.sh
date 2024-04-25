@@ -179,7 +179,6 @@ param_cache_write() {
     cfg_color_bg="$cfg_color_bg"
     cfg_prefix="$cfg_prefix"
     cfg_suffix="$cfg_suffix"
-    cfg_hook_idx="$cfg_hook_idx"
 
 EOF
 }
@@ -230,8 +229,6 @@ get_settings() {
 
     cfg_prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
     cfg_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
-
-    cfg_hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_hook_idx")"
 
     #
     #  unofficial parameter, still in testing
@@ -393,8 +390,6 @@ main() {
 
     default_prefix='|'
     default_suffix='|'
-
-    default_hook_idx=41 #  array idx for session-closed hook
 
     #
     # override settings for easy debugging

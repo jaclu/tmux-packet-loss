@@ -159,4 +159,4 @@ pidfile_release() {
 #
 # set to true to enable logging of pidfile tasks
 #
-do_pidfile_handler_logging=false
+[[ -z "$do_pidfile_handler_logging" ]] && do_pidfile_handler_logging=false

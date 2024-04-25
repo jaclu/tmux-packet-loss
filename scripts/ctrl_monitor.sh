@@ -20,33 +20,35 @@ monitor_terminate() {
 
     db_monitor="$(basename "$scr_monitor")"
 
-    # check_pidfile_task
-    pidfile_is_live "$monitor_pidfile" && {
+    pidfile_is_live "$pidfile_monitor" && {
         log_it "Will kill [$pidfile_proc] $db_monitor"
         kill "$pidfile_proc"
         for ((i = 0; i < 10; i++)); do
-            pidfile_is_live "$monitor_pidfile" || break
+            pidfile_is_live "$pidfile_monitor" || break
             sleep 1
             # log_it "waiting i[$i]"
         done
         [[ "$i" -gt 0 ]] && log_it "after loop: [$i]"
-        pidfile_is_live "$monitor_pidfile" && {
+        pidfile_is_live "$pidfile_monitor" && {
             error_msg "Failed to terminate $db_monitor [$proc_id]"
         }
         clear_losses_in_t_loss
         log_it "$db_monitor is shutdown"
         killed_monitor=true
     }
-    pidfile_release "$monitor_pidfile"
+    pidfile_release "$pidfile_monitor"
+    rm -f "$f_previous_loss"
 }
 
 monitor_launch() {
+    tmux_pid=$(echo "$TMUX" | sed 's/,/ /g' | cut -d' ' -f 2)
+    [[ -z "$tmux_pid" ]] && error_msg "Failed to extract pid for tmux process!"
+    echo "$tmux_pid" >"$pidfile_tmux"
+
     #
     #  Starting a fresh monitor
     #
-
-    nohup "$scr_monitor" >/dev/null 2>&1 &
-
+    "$scr_monitor" >/dev/null 2>&1 &
     sleep 1 # wait for monitor to start
 }
 
@@ -102,22 +104,19 @@ pidfile_acquire "" || {
     error_msg "pid_file - is owned by process [$pidfile_proc]"
 }
 
-db_monitor="$(basename "$scr_monitor")"
 killed_monitor=false
-
 monitor_terminate
 
 case "$1" in
+"shutdown") packet_loss_shutdown ;;
 "stop")
     $killed_monitor || {
         log_it "Did not find any running instances of $scr_monitor"
     }
     exit_script 0
     ;;
-"start" | "") ;; # continue the startup
-*) error_msg "Valid params: None/start or stop - got [$1]" ;;
+"start" | "") monitor_launch ;; # continue the startup
+*) error_msg "Valid params: [None/start|stop|shutdown] - got [$1]" ;;
 esac
-
-monitor_launch
 
 exit_script

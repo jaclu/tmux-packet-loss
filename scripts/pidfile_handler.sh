@@ -57,7 +57,7 @@ pidfile_is_live() {
     #
     local log_indent=$log_indent
 
-    pid_file="${1:-"$d_data/pid.$(basename "$0")"}"
+    pid_file="${1:-"$d_data/$(basename "$0").pid"}"
     pidfile_proc=""
 
     _pf_log "pidfile_is_live($pid_file)"
@@ -80,7 +80,7 @@ pidfile_is_live() {
 pidfile_is_mine() {
     local log_indent=$log_indent
 
-    pid_file="${1:-"$d_data/pid.$(basename "$0")"}"
+    pid_file="${1:-"$d_data/$(basename "$0").pid"}"
 
     _pf_log "pidfile_is_mine($pid_file)"
     ((log_indent++)) # increase indent until this returns
@@ -98,7 +98,7 @@ pidfile_is_mine() {
 pidfile_acquire() {
     local log_indent=$log_indent
 
-    pid_file="${1:-"$d_data/pid.$(basename "$0")"}"
+    pid_file="${1:-"$d_data/$(basename "$0").pid"}"
 
     _pf_log "pidfile_acquire($pid_file)"
     ((log_indent++)) # increase indent until this returns
@@ -125,7 +125,7 @@ pidfile_release() {
     #
     local log_indent=$log_indent
 
-    pid_file="${1:-"$d_data/pid.$(basename "$0")"}"
+    pid_file="${1:-"$d_data/$(basename "$0").pid"}"
 
     _pf_log "pidfile_release($pid_file)"
     ((log_indent++)) # increase indent until this returns

@@ -125,12 +125,11 @@ d_ping_history="$d_data"/ping_issues
 # shellcheck source=scripts/pidfile_handler.sh
 . "$D_TPL_BASE_PATH"/scripts/pidfile_handler.sh
 
-pidfile_acquire "$monitor_pidfile" || {
-    error_msg "$monitor_pidfile - is owned by process [$pidfile_proc]"
+pidfile_acquire "$pidfile_monitor" || {
+    error_msg "$pidfile_monitor - is owned by process [$pidfile_proc]"
 }
 
-tmux_pid=$(echo "$TMUX" | sed 's/,/ /g' | cut -d' ' -f 2)
-log_it "Will monitor pressence of master tmux pid: $tmux_pid"
+pidfile_is_live "$pidfile_tmux" || error_msg "tmux pidfile not found!"
 
 #
 #  Since loss is <=100, indicate errors with results over 100
@@ -258,12 +257,12 @@ while true; do
     #  keep running in the background.
     #
 
-    [[ -f "$monitor_pidfile" ]] || {
+    [[ -f "$pidfile_monitor" ]] || {
         log_it "*** pidfile has dissapeard - exiting this process"
         exit 1
     }
 
-    pidfile_is_mine "$monitor_pidfile" || {
+    pidfile_is_mine "$pidfile_monitor" || {
         #
         #  A new monitor has started and taken ownership of the pidfile.
         #
@@ -276,17 +275,12 @@ while true; do
         exit 1
     }
 
-    [[ -n "$tmux_pid" ]] && ! is_pid_alive "$tmux_pid" && {
-        #
-        #  If the socket isnt executable, the tmux starting this monitor
-        #  has terminated, so monitor should shut down
-        #
-        log_it "*** tmux is gone - master process no longer writeable"
+    pidfile_is_live "$pidfile_tmux" || {
+        log_it "tmux has exited, terminating packet-loss monitor"
 
-        # check how shutdown is handled on ish, dont exit right away
-        sleep 5
+        # By calling this instead of just exiting, we also get cleanup done
+        $scr_ctrl_monitor shutdown
 
-        log_it "exiting due to missing tmux master process"
-        break
+        exit 1 # should not get to here
     }
 done

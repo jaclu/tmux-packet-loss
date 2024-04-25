@@ -271,7 +271,7 @@ display_time_elapsed() {
 sqlite_err_handling() {
     local sql="$1"
 
-    sqlite3 "$sqlite_db" "$sql" 2>>"$d_data"/sqlite.err
+    sqlite3 "$sqlite_db" "$sql" 2>>"$f_sqlite_errors"
 }
 
 #===============================================================
@@ -328,9 +328,11 @@ main() {
     #
     f_param_cache="$d_data"/param_cache
     f_previous_loss="$d_data"/previous_loss
+    f_sqlite_errors="$d_data"/sqlite.err
     sqlite_db="$d_data"/packet_loss.sqlite
     db_restart_log="$d_data"/db_restarted.log
-    monitor_pidfile="$d_data"/monitor.pid
+    pidfile_tmux="$d_data"/tmux.pid
+    pidfile_monitor="$d_data"/monitor.pid
     #  check one of the path items to verify D_TPL_BASE_PATH
     [[ -f "$scr_monitor" ]] || {
         error_msg "D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"
@@ -365,7 +367,7 @@ main() {
     #
     #  Defaults for config variables
     #
-    default_ping_host="8.8.4.4" #  Default host to ping
+    default_ping_host="8.8.8.8" #  Default host to ping
     default_ping_count=6        #  how often to report packet loss statistics
     default_history_size=6      #  how many ping results to keep in the primary table
 

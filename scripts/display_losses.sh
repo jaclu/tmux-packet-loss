@@ -235,6 +235,11 @@ t_start="$(safe_now)"
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="dsp"
 
+# [[ -f "$D_TPL_BASE_PATH"/data/no_updates ]] && {
+#     cat "$D_TPL_BASE_PATH"/data/no_updates
+#     exit 0
+# }
+
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
@@ -264,6 +269,7 @@ if [[ "$current_loss" -gt 0 ]]; then
     #  Set prefix & suffix for result and report to status bar
     #
     echo "${cfg_prefix}${result}${cfg_suffix}"
+    # echo "${cfg_prefix}${result}${cfg_suffix}" >"$D_TPL_BASE_PATH"/data/no_updates
 
     # log_it "$s_log_msg"
 else

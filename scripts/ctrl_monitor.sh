@@ -73,6 +73,7 @@ packet_loss_plugin_shutdown() {
     #
     rm -f "$f_param_cache"
     rm -f "$f_previous_loss"
+    rm -f "$db_restart_log"
     rm -f "$f_sqlite_errors"
     log_it "tmp files have been deleted"
     exit_script 0

@@ -330,9 +330,11 @@ main() {
     f_previous_loss="$d_data"/previous_loss
     f_sqlite_errors="$d_data"/sqlite.err
     sqlite_db="$d_data"/packet_loss.sqlite
-    db_restart_log="$d_data"/db_restarted.log
     pidfile_tmux="$d_data"/tmux.pid
     pidfile_monitor="$d_data"/monitor.pid
+    # lits each time display_losses had to restart monitor
+    db_restart_log="$d_data"/db_restarted.log
+
     #  check one of the path items to verify D_TPL_BASE_PATH
     [[ -f "$scr_monitor" ]] || {
         error_msg "D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"

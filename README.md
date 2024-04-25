@@ -206,17 +206,11 @@ Each table contains two fields, time_stamp, and value. The time_stamp field is o
 
 ### Simulating losses
 
-If you want to examine the plugin displaying losses you can pause the monitor and
-feed the DB with fake losses like this:
+If you want to examine the plugin displaying losses you can use an included test script. 
+Run it without params to get a help summary
 
 ```bash
-./scripts/ctrl_monitor.sh stop
-```
-
-Then run this a suitable number of times, adjusting the loss level
-
-```bash
-sqlite3 data/packet_loss.sqlite "INSERT INTO t_loss (loss) VALUES (50)"
+./scripts/test_data.sh
 ```
 
 The monitor will be automatically restarted one minute after the last update.

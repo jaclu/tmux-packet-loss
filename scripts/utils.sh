@@ -81,13 +81,6 @@ error_msg() {
     [[ "$exit_code" -gt 0 ]] && exit "$exit_code"
 }
 
-is_integer() {
-    case $1 in
-    '' | *[!0-9]*) return 1 ;; # Contains non-numeric characters
-    *) return 0 ;;             # Contains only digits
-    esac
-}
-
 param_as_bool() {
     [[ "$1" = "true" ]] && return 0
     return 1

@@ -278,9 +278,13 @@ while true; do
     pidfile_is_live "$pidfile_tmux" || {
         log_it "tmux has exited, terminating packet-loss monitor"
 
-        # By calling this instead of just exiting, we also get cleanup done
-        $scr_ctrl_monitor shutdown
-
-        exit 1 # should not get to here
+        #
+        #  By calling this in the background, this process can kill itself
+        #  helping iSH
+        #
+        $scr_ctrl_monitor shutdown &
+        break
     }
 done
+
+pidfile_release "$pidfile_monitor"

@@ -52,10 +52,20 @@ monitor_launch() {
     sleep 1 # wait for monitor to start
 }
 
-packet_loss_shutdown() {
+packet_loss_plugin_shutdown() {
     # tmux has exited, do a cleanup
 
+    pidfile_is_live "$pidfile_tmux" && {
+        error_msg "$(basename "$0") shutdown called when tmux is running"
+    }
+
+    sleep 1 #  monitor should have exited by now
+    pidfile_is_live "$pidfile_monitor" && {
+        error_msg "$(basename "$0") shutdown failed - monitor still running"
+    }
+
     pidfile_release "$pidfile_tmux"
+    # pidfile_release "$pidfile_monitor"
 
     #
     #  remove some stat files that will be generated with
@@ -104,18 +114,20 @@ pidfile_acquire "" || {
     error_msg "pid_file - is owned by process [$pidfile_proc]"
 }
 
-killed_monitor=false
-monitor_terminate
-
 case "$1" in
-"shutdown") packet_loss_shutdown ;;
+"start" | "")
+    monitor_terminate # First kill any running instance
+    monitor_launch
+    ;;
 "stop")
+    killed_monitor=false
+    monitor_terminate
     $killed_monitor || {
         log_it "Did not find any running instances of $scr_monitor"
     }
     exit_script 0
     ;;
-"start" | "") monitor_launch ;; # continue the startup
+"shutdown") packet_loss_plugin_shutdown ;;
 *) error_msg "Valid params: [None/start|stop|shutdown] - got [$1]" ;;
 esac
 

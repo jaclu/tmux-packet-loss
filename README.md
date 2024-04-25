@@ -111,13 +111,13 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 | @packet-loss-ping_count       | 6             | Number of pings per statistics update. |
 | @packet-loss-history_size     | 6             | Number of results to keep when displaying loss statistics.<br>Keeping this value low is recommended since it's more useful to see current status over long-term averages.<br>For a historical overview, use `@packet-loss-hist_avg_display`. |
 |                               |               | |
-| @packet-loss-weighted_average | yes           | Whether to use weighted average focusing on the latest data points (`yes`) or average over all data points (`no`). |
-| @packet-loss-display_trend    | no            | Display trend with `+` prefix for higher levels and `-` prefix for lower levels (`yes`). |
+| @packet-loss-weighted_average | yes           | yes - Use weighted average focusing on the latest data points.<br> no - Average over all data points. |
+| @packet-loss-display_trend    | no            | yes - Display trend with `+` prefix for higher levels and `-` prefix for lower levels.<br>no - Do not indicate change since previous loss level. |
 | @packet-loss-level_disp       | 1             | Display loss if at or higher than this level. |
 | @packet-loss-level_alert      | 17            | Color loss with `color_alert` if at or above this level.<br>Suggestion: set it one higher than the percentage representing one loss in one update to avoid single packet loss triggering an alert initially. |
 | @packet-loss-level_crit       | 40            | Color loss with `color_crit` if at or above this level. |
 |                               |               | |
-| @packet-loss-hist_avg_display | no            | Show historical average when displaying current losses (`yes`). |
+| @packet-loss-hist_avg_display | no            | yes - Show historical average when displaying current losses.<br>no - Do not show historical average. |
 | @packet-loss-hist_avg_minutes | 30            | Minutes to keep the historical average. |
 | @packet-loss-hist_separator   | '\~'          | Separator for current/historical losses. |
 |                               |               | |

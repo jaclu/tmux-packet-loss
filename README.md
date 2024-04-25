@@ -107,7 +107,7 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 
 | Variable                      | Default       | Purpose |
 |-------------------------------|---------------|---------|
-| @packet-loss-ping_host        | 8.8.4.4       | The host to ping. Choosing a well-connected & replicated host like 8.8.4.4 or 1.1.1.1 gives a good idea of your general link quality. |
+| @packet-loss-ping_host        | 8.8.8.8       | The host to ping. Choosing a well-connected & replicated host like 8.8.8.8 or 1.1.1.1 gives a good idea of your general link quality. |
 | @packet-loss-ping_count       | 6             | Number of pings per statistics update. |
 | @packet-loss-history_size     | 6             | Number of results to keep when displaying loss statistics.<br>Keeping this value low is recommended since it's more useful to see current status over long-term averages.<br>For a historical overview, use `@packet-loss-hist_avg_display`. |
 |                               |               | |

@@ -1,7 +1,8 @@
-data/packet_loss.sqlite
-data/monitor.pid
+data/
 
 *~
+
+.markdownlint.yaml
 
 # olint meta linter
 .cache.olint

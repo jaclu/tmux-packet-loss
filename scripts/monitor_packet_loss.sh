@@ -98,6 +98,8 @@ ping_parse_error() {
     local err_code="$1"
     local err_msg="$2"
 
+    parse_error=true
+
     log_it "*** ping parsing error - $err_msg [$percent_loss]"
     percent_loss="$err_code"
 }
@@ -175,6 +177,8 @@ $store_ping_issues && log_it "Will save ping issues in $d_ping_history"
 log_it "Starting the monitoring loop"
 while true; do
     percent_loss=""
+    parse_error=false
+
     #
     #  Redirecting stderr is needed since on some platforms, like
     #  running Debian 10 on iSH, you get warning printouts,
@@ -230,13 +234,14 @@ while true; do
     #  A bit exessive in normal conditions
     [[ "$percent_loss" != "0.0" ]] && log_it "stored in DB: $percent_loss"
 
-    $store_ping_issues && [[ "$percent_loss" != "0.0" ]] && {
+    $store_ping_issues && ! $parse_error && [[ "$percent_loss" != "0.0" ]] && {
         [[ "$loss_check" != "calculate_loss_default" ]] && {
             #
             #  an alternete check detected a loss
             #  compare result with what default check gives
             #  and log the output if they differ
             #
+            log_it "Double checking loss calculation"
             alt_percentage_loss="$percent_loss"
             calculate_loss_default
             [[ "$percent_loss" != "$alt_percentage_loss" ]] && {

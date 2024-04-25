@@ -16,7 +16,7 @@
 #  If $log_file is unset no output will happen.
 #  So unless you want logging, comment the next line out.
 #
-log_file="/tmp/tmux-packet-loss.log"
+# log_file=/tmp/tmux-packet-loss.log
 
 #
 #  Since it is set outside main() this will remain in effect for

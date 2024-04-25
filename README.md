@@ -4,7 +4,7 @@ Tmux-Packet-Loss is a plugin for Tmux that displays the percentage of packet los
 
 ## Recent changes
 
-- Losses are displayed, but no stats are saved for the first 30 seconds. This avoids getting initial errors before the network is re-established during a laptop resume saved into the history . 
+- Losses are displayed, but no stats are saved for the first 30 seconds. This avoids getting initial errors before the network is re-established during a laptop resume saved into the history. 
 - Fixed boolean parameter handling to allow for yes/no or true/false options.
 - Renamed variables and defaults to match the Tmux option names.
 - Refactored code into more task-isolated modules.
@@ -50,7 +50,7 @@ If the monitor fails to calculate loss, packet loss above 100% is reported. So f
 | ------ | --------------------------------------------------------------------------------------------------------------- |
 | 101    | Failed to find % loss in ping output. Temporary issue. Some pings don't report loss % if there is no connection to the host. |
 | 102    | loss reported was < 0 or > 100, odd but hopefully temporary |
-| 201    | Could not parse output. This condition is unlikely to self-correct. If you file the output of `ping -c 5 8.8.4.4` as an Issue and also mention what Operating System this is and any other factors you think are relevant, I will try to fix it by including parsing of that output format. |
+| 201    | Could not parse the output. This condition is unlikely to self-correct. If you file the output of `ping -c 5 8.8.4.4` as an Issue and also mention what Operating System this is and any other factors you think are relevant, I will try to fix it by including parsing of that output format. |
 
 ## Dependencies
 
@@ -111,13 +111,13 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 | @packet-loss-ping_count       | 6             | Number of pings per statistics update. |
 | @packet-loss-history_size     | 6             | Number of results to keep when displaying loss statistics.<br>Keeping this value low is recommended since it's more useful to see current status over long-term averages.<br>For a historical overview, use `@packet-loss-hist_avg_display`. |
 |                               |               | |
-| @packet-loss-weighted_average | yes           | yes - Use weighted average focusing on the latest data points.<br> no - Average over all data points. |
-| @packet-loss-display_trend    | no            | yes - Display trend with `+` prefix for higher levels and `-` prefix for lower levels.<br>no - Do not indicate change since previous loss level. |
+| @packet-loss-weighted_average | yes           | `yes` Use weighted average focusing on the latest data points.<br> `no` Average over all data points. |
+| @packet-loss-display_trend    | no            | `yes` Display trend with `+` prefix for higher levels and `-` prefix for lower levels.<br> `no` Do not indicate change since the previous loss level. |
 | @packet-loss-level_disp       | 1             | Display loss if at or higher than this level. |
 | @packet-loss-level_alert      | 17            | Color loss with `color_alert` if at or above this level.<br>Suggestion: set it one higher than the percentage representing one loss in one update to avoid single packet loss triggering an alert initially. |
 | @packet-loss-level_crit       | 40            | Color loss with `color_crit` if at or above this level. |
 |                               |               | |
-| @packet-loss-hist_avg_display | no            | yes - Show historical average when displaying current losses.<br>no - Do not show historical average. |
+| @packet-loss-hist_avg_display | no            | `yes` Show historical average when displaying current losses.<br> `no` Do not show historical average. |
 | @packet-loss-hist_avg_minutes | 30            | Minutes to keep the historical average. |
 | @packet-loss-hist_separator   | '\~'          | Separator for current/historical losses. |
 |                               |               | |
@@ -136,7 +136,7 @@ set -g @packet-loss-hist_avg_display  yes
 
 #
 # In combination with weighted_average, ping_count and history_size,
-# this makes a single ping loss disapear from being displayed in 15s
+# This makes a single ping loss disappear from being displayed in 15s
 #
 set -g @packet-loss-level_disp   5
 
@@ -151,7 +151,7 @@ To obtain a clearer picture of the current situation, consider adjusting the pin
 
 However, be cautious not to exceed a certain limit, as a higher ping count prolongs the time taken for each test. This delay may render the reported data irrelevant to the current link status, particularly if your focus is on real-time monitoring.
 
-For longer term averages it is better to use @packet-loss-hist_avg_display
+For longer-term averages, it is better to use @packet-loss-hist_avg_display
 
 Additionally, it's advisable to review and potentially adjust the `status-interval` setting to align with your reporting needs. Ensuring that the update rate for this plugin in the status bar remains relevant enhances the effectiveness of your monitoring system.
 
@@ -159,8 +159,8 @@ Given that ping is instantaneous, consider setting the `status-interval` to one 
 
 ## Nerdy stuff
 
-If the data foleder, where the database and status files are kept disapears, the database and statuses 
-will be recreated and a new monotitor process will be started.
+If the data folder, where the database and status files are kept disappears, the database and statuses 
+will be recreated and a new monitor process will be started.
 So this is a simple and quick way to clear historical data, without having to bother with SQL!
 
 If `@packet-loss-weighted_average` is set to yes (the default) losses
@@ -179,8 +179,8 @@ If set to no, the average of all samples is always displayed.
 
 ### Suggested Alert Levels
 
-Depending on the ping count, it is suggested to set alert,
-so that a single lost packet wont show up as an alert.
+Depending on the ping count, it is suggested to set an alert,
+so that a single lost packet won't show up as an alert.
 
 | pings | one higher than<br>a single loss % | history size<br>for aprox 30s |
 |-|-|-|
@@ -206,7 +206,7 @@ Each table contains two fields, time_stamp, and value. The time_stamp field is o
 
 ### Simulating losses
 
-If you want to examine the plugin displaying losses you can use an included test script. 
+To examine the plugin displaying losses in the status bar, there is an included test script. 
 Run it without params to get a help summary
 
 ```bash

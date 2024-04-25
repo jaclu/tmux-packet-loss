@@ -101,11 +101,12 @@ keep_db=false
 loss="$1"
 history="${2:-0}"
 
+is_float "$loss" || tst_error "param 1 not a float"
+
 $keep_db && [[ "$history" != "0" ]] && {
     tst_error "When using --keep, history_loss can not be provided"
 }
 
-is_float "$loss" || tst_error "param 1 not a float"
 is_float "$history" || tst_error "param 2 not a float"
 
 insert_data "$1" "$2"

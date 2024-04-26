@@ -14,9 +14,10 @@
 #  Good for testing and monitoring actions.
 #  Logging should normally be disabled, since it causes some overhead.
 #  If $log_file is unset no output will happen.
-#  So unless you want logging, comment the next line out.
+#  this checks if the log file is present, if it is, logging is used
+#  so will not be activated by default.
 #
-# log_file=/tmp/tmux-packet-loss.log
+[[ -f /tmp/tmux-packet-loss.log ]] && log_file=/tmp/tmux-packet-loss.log
 
 #
 #  Since it is set outside main() this will remain in effect for

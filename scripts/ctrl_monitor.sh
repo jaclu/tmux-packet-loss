@@ -48,6 +48,7 @@ monitor_launch() {
     #
     #  Starting a fresh monitor
     #
+    log_it "starting $db_monitor"
     "$scr_monitor" >/dev/null 2>&1 &
     sleep 1 # wait for monitor to start
 }
@@ -109,11 +110,13 @@ log_prefix="ctr"
 #  Include pidfile handling
 #
 # shellcheck source=scripts/pidfile_handler.sh
-. "$D_TPL_BASE_PATH"/scripts/pidfile_handler.sh
+. "$scr_pidfile_handler"
 
 pidfile_acquire "" || {
     error_msg "pid_file - is owned by process [$pidfile_proc]"
 }
+
+log_it # empty log line to make it easier to see where this starts
 
 case "$1" in
 "start" | "")

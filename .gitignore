@@ -6,4 +6,3 @@ data/
 
 # olint meta linter
 .cache.olint
-.olint.conf

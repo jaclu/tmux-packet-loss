@@ -13,3 +13,8 @@
 15:53:03 serv2 830 mon  Saving ping issue at: /home/jaclu/t2/tmux/plugins/tmux-packet-loss/data/ping_issues/2024-04-26_15:53:03
 15:53:03 serv2 830 mon  <- compare_loss_parsers() - done
 =====
+00:23:23 serv2 4996 mon compare_loss_parsers()
+00:23:23 serv2 4996 mon  This alternate[14.3] and default[14.0] loss check differ
+00:23:23 serv2 4996 mon  Saving ping issue at: /home/jaclu/git_repos/mine/tmux-packet-loss/data/ping_issues/2024-04-27_00:23:23
+00:23:23 serv2 4996 mon  <- compare_loss_parsers() - done
+=====

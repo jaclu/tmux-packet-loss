@@ -63,8 +63,8 @@ recieved_packets="$(echo "$ping_output" | grep -v DUP | grep "seq=" |
 # }
 
 #
-#  bc rounds 33.3333 to 33.4 to work arround this, bc uses two digits
-#  printf rounds it down to one
+#  bc rounds 33.3333 to 33.4 to work arround this, bc uses three digits
+#  in order to give the printf better source data as it rounds it down to one
 #
-echo "scale=2; 100 - 100 * $recieved_packets / $cfg_ping_count" | bc |
+echo "scale=3; 100 - 100 * $recieved_packets / $cfg_ping_count" | bc |
     awk '{printf "%.1f", $0}'

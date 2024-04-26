@@ -29,5 +29,13 @@ else
     ping_output=$(cat)
 fi
 
-echo "$ping_output" | grep "packet loss" |
-    sed 's/packet loss/~/ ; s/%//' | cut -d~ -f 1 | awk 'NF>1{print $NF}'
+#
+#  some pings occationally end up giving 4 decimals on the
+#  average loss, the last step rounds it down to just one
+#
+echo "$ping_output" |
+    grep "packet loss" |
+    sed 's/packet loss/~/ ; s/%//' |
+    cut -d~ -f 1 |
+    awk 'NF>1{print $NF}' |
+    awk '{printf "%.1f", $0}'

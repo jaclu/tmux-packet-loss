@@ -282,7 +282,7 @@ while true; do
     output="$($ping_cmd 2>/dev/null)"
     if [[ -n "$output" ]]; then
         percent_loss="$(echo "$output" | $loss_check)" || {
-            log_it "$(basename "$loss_check") returned error" 1
+            log_it "$(basename "$loss_check") returned error"
             exit 1
         }
         if [[ -z "$percent_loss" ]]; then

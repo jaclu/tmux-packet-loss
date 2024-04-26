@@ -79,54 +79,6 @@ define_ping_cmd() {
     log_it "ping cmd used: [$ping_cmd]"
 }
 
-not_calculate_loss_default() {
-    #  We cant rely on the absolute position of the %loss,
-    #  since sometimes it is prepended with stuff like:
-    #  "+1 duplicates,"
-    #  To handle this we search for "packet loss" and use the word
-    #  just before it.
-    #  1 Only bother with the line containing the word loss
-    #  2 replace "packet loss" with ~, since cut needs a single char
-    #    delimiter
-    #  3 remove any % chars, we want loss as a float
-    #  4 only keep line up to not including ~ (packet loss)
-    #  5 display last remaining word - packet loss as a float with
-    #    no % sign!
-    #
-    percent_loss="$(echo "$output" | grep "packet loss" |
-        sed 's/packet loss/~/ ; s/%//' | cut -d~ -f 1 | awk 'NF>1{print $NF}')"
-}
-
-not_calculate_loss_ish_deb10() {
-    #
-    #  with most pings ' icmp_seq=' can be used to identify a reply
-    #  Obviously busybox uses ' seq=' ...
-    #
-
-    #  shellcheck disable=SC2126
-    recieved_packets="$(echo "$output" | grep -v DUP | grep "seq=" |
-        grep "$cfg_ping_host" | wc -l)"
-
-    #
-    #  Sometimes this gets extra replies fom 8.8.8.8
-    #  If 8.8.4.4 is pinged filtering on $cfg_ping_host gets rid of them,
-    #  if 8.8.8.8 is the pinghost this will signal results over 100
-    #
-    #  Did a quick fix, but will leave it commented out for now to gather
-    #  some more stats on how often this happens.
-    #
-    # [[ "$recieved_packets" -gt "$cfg_ping_count" ]] && {
-    #     recieved_packets="$cfg_ping_count"
-    # }
-
-    #
-    #  bc rounds 33.3333 to 33.4 to work arround this, bc uses two digits
-    #  printf rounds it down to one
-    #
-    percent_loss="$(echo "scale=2;
-    100 - 100 * $recieved_packets / $cfg_ping_count" | bc)"
-}
-
 ping_parse_error() {
     local err_code="$1"
     local err_msg="$2"

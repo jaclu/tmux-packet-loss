@@ -54,6 +54,15 @@ recieved_packets="$(echo "$ping_output" | grep -v DUP | grep "seq=" |
     grep "$cfg_ping_host" | wc -l)"
 
 #
+#  Sometimes this gets extra replies
+#  Did a quick fix, but will leave it commented out for now to gather
+#  some more stats on how often this happens.
+#
+# [[ "$recieved_packets" -gt "$cfg_ping_count" ]] && {
+#     recieved_packets="$cfg_ping_count"
+# }
+
+#
 #  bc rounds 33.3333 to 33.4 to work arround this, bc uses two digits
 #  printf rounds it down to one
 #

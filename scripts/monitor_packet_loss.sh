@@ -12,7 +12,7 @@ float_digits() {
     local digits="$2"
 
     [[ -z "$digits" ]] && {
-        error_msg "rouns_float($value,) - missing digits param" 1 false
+        error_msg "float_digits($value,) - missing digits param" 1 false
     }
     printf "%.${digits}f" "$value"
 }

@@ -8,8 +8,6 @@
 13:46:17 serv2 17865 mon  Saving ping issue at: /home/jaclu/t2/tmux/plugins/tmux-packet-loss/data/ping_issues/2024-04-26_13:46:17
 13:46:17 serv2 17865 mon  <- compare_loss_parsers() - done
 =====
-15:52:51 serv2 830 mon  <- compare_loss_parsers() - done
-15:53:03 serv2 830 mon stored in DB: 44.5
 15:53:03 serv2 830 mon compare_loss_parsers()
 15:53:03 serv2 830 mon  This alternate[44.5] and default[44.4] loss check differ
 15:53:03 serv2 830 mon  Saving ping issue at: /home/jaclu/t2/tmux/plugins/tmux-packet-loss/data/ping_issues/2024-04-26_15:53:03

@@ -97,6 +97,7 @@ compare_loss_parsers() {
     #  It is not an error in it-self if they differ, but it is
     #  quick way to gather sample data for testing.
     #
+    local log_indent=$log_indent
     local alt_percentage_loss
     local msg
     local iso_datetime
@@ -106,7 +107,9 @@ compare_loss_parsers() {
     #  compare result with what default check gives
     #  and log the output if they differ
     #
-    log_it "Double checking loss calculation"
+    log_it "compare_loss_parsers()"
+    ((log_indent++)) # increase indent until this returns
+
     alt_percentage_loss="$percent_loss"
     ! is_busybox_ping && [[ "$loss_check" = "$scr_loss_ish_deb10" ]] && {
         #  in the summary ping is sometimes given with 4 digits...
@@ -137,6 +140,7 @@ compare_loss_parsers() {
         log_it "Saving ping issue at: $f_ping_issue"
         echo "$output" >"$f_ping_issue"
     }
+    log_it "<- compare_loss_parsers() - done"
 }
 
 #===============================================================

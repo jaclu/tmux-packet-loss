@@ -51,15 +51,22 @@ is_pid_alive() {
     return 0
 }
 
+set_pidfile_name() {
+    #
+    #  Variables provided:
+    #    pid_file - based on name of current script if nothing provided
+    #
+    pid_file="${1:-"$d_data/$(basename "$0").pid"}"
+}
+
 pidfile_is_live() {
     #
     #  boolean
     #
     local log_indent=$log_indent
-
-    pid_file="${1:-"$d_data/$(basename "$0").pid"}"
     pidfile_proc=""
 
+    set_pidfile_name "$1"
     _pf_log "pidfile_is_live($pid_file)"
     ((log_indent++)) # increase indent until this returns
 
@@ -80,8 +87,7 @@ pidfile_is_live() {
 pidfile_is_mine() {
     local log_indent=$log_indent
 
-    pid_file="${1:-"$d_data/$(basename "$0").pid"}"
-
+    set_pidfile_name "$1"
     _pf_log "pidfile_is_mine($pid_file)"
     ((log_indent++)) # increase indent until this returns
 
@@ -98,8 +104,7 @@ pidfile_is_mine() {
 pidfile_acquire() {
     local log_indent=$log_indent
 
-    pid_file="${1:-"$d_data/$(basename "$0").pid"}"
-
+    set_pidfile_name "$1"
     _pf_log "pidfile_acquire($pid_file)"
     ((log_indent++)) # increase indent until this returns
 
@@ -125,8 +130,7 @@ pidfile_release() {
     #
     local log_indent=$log_indent
 
-    pid_file="${1:-"$d_data/$(basename "$0").pid"}"
-
+    set_pidfile_name "$1"
     _pf_log "pidfile_release($pid_file)"
     ((log_indent++)) # increase indent until this returns
 

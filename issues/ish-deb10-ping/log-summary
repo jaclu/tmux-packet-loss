@@ -12,6 +12,7 @@
 00:23:23 serv2 4996 mon  This alternate[14.3] and default[14.0] loss check differ
 00:23:23 serv2 4996 mon  Saving ping issue at: /home/jaclu/git_repos/mine/tmux-packet-loss/data/ping_issues/2024-04-27_00:23:23
 =====
+00:35:56 serv2 6425 mon system useses BusyBox ping
 00:41:16 serv2 6425 mon stored in DB: 28.6
 00:41:16 serv2 6425 mon  This alternate[28.6] and default[28.0] loss check differ
 00:41:16 serv2 6425 mon  Saving ping issue at: /home/jaclu/git_repos/mine/tmux-packet-loss/data/ping_issues/2024-04-27_00:41:16

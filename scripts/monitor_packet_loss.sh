@@ -110,11 +110,17 @@ compare_loss_parsers() {
     log_it "compare_loss_parsers()"
     ((log_indent++)) # increase indent until this returns
 
-    alt_percentage_loss="$percent_loss"
-    ! is_busybox_ping && [[ "$loss_check" = "$scr_loss_ish_deb10" ]] && {
-        #  in the summary ping is sometimes given with 4 digits...
-        percent_loss=$(float_digits "$(echo "$output" | $scr_loss_default)" 1)
+    $is_busybox_ping && {
+	#
+	#  another busybox oddity when ensuring alt_calc will match the
+	#  default.
+	#  1st drop digits, then reinsert one digit (.0) to make
+	#  output match the default calculation
+	#
+	percent_loss="$(float_drop_digits "$percent_loss").0"
     }
+    alt_percentage_loss="$percent_loss"
+    percent_loss="$(echo "$output" | $scr_loss_default)"
     is_int "$percent_loss" && {
         #
         #  if default used no digits, round the alt to int in order to

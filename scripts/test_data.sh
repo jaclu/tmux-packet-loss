@@ -19,17 +19,6 @@ tst_error() {
     exit 1
 }
 
-is_float() {
-    local var="$1"
-    local pattern='^[-+]?[0-9]+([.][0-9]+)?$'
-
-    if [[ $var =~ $pattern ]]; then
-        return 0 # Float
-    else
-        return 1 # Not a float
-    fi
-}
-
 insert_data() {
     [[ -f "$pidfile_monitor" ]] && {
         "$scr_ctrl_monitor" stop

@@ -238,8 +238,8 @@ while true; do
         if [[ -z "$percent_loss" ]]; then
             msg="Failed to parse ping output, unlikely to self correct!"
             ping_parse_error "$error_unable_to_detect_loss" "$msg"
-        elif [[ $(echo "$percent_loss" | wc -w) -gt 1 ]]; then
-            ping_parse_error "$error_invalid_number" "multipple words"
+        elif ! is_float "$percent_loss"; then
+            ping_parse_error "$error_invalid_number" "not a float"
         elif (($(echo "$percent_loss < 0.0 || $percent_loss > 100.0" |
             bc -l))); then
 

@@ -86,6 +86,27 @@ error_msg() {
 #
 #---------------------------------------------------------------
 
+is_float() {
+    local input="$1"
+    local strict_check="${2:-}"
+    local float_pattern
+
+    if [[ -n "$strict_check" ]]; then
+        # must be a number with a .
+        float_pattern='^[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?$'
+    else
+        # accepts both ints and floats
+        float_pattern='^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$'
+    fi
+
+    # Check if the input matches the float pattern
+    if [[ $input =~ $float_pattern ]]; then
+        return 0 # Input is a floating-point number
+    else
+        return 1 # Input is not a floating-point number
+    fi
+}
+
 float_drop_digits() {
     #
     # float to int by dropping all digits

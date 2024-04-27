@@ -355,7 +355,10 @@ main() {
     #
     db_version=11
 
-    skip_time_elapsed=true # creates a lot of overhead so should normally be on
+    [[ -z "$skip_time_elapsed" ]] && {
+        # creates a lot of overhead so should normally be true
+        skip_time_elapsed=true
+    }
     [[ -z "$use_param_cache" ]] && {
         use_param_cache=true # makes gathering the params a lot faster!
     }

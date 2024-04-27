@@ -190,9 +190,9 @@ display_history() {
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
     avg_loss_raw="$(sqlite_err_handling "$sql")" || {
         err_code=$?
-	msg="when retrieving history"
+        msg="when retrieving history"
         if [[ "$err_code" = 5 ]]; then
-	    log_it "DB locked $msg"
+            log_it "DB locked $msg"
         else
             #  log the issue as an error, then continue
             error_msg "sqlite3[$err_code] $msg" 0 false
@@ -233,7 +233,9 @@ safe_now() {
 #   Main
 #
 #===============================================================
-t_start="$(safe_now)"
+
+# skip_time_elapsed=false
+$skip_time_elapsed || t_start="$(safe_now)"
 
 #
 #  Prevent tmux from running it every couple of seconds,
@@ -247,7 +249,10 @@ log_prefix="dsp"
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH/scripts/utils.sh"
 
-display_time_elapsed "$t_start" "script initialized"
+$skip_time_elapsed || {
+    log_it "hepp"
+    display_time_elapsed "$t_start" "script initialized"
+}
 
 verify_db_status
 

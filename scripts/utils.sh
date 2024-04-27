@@ -80,6 +80,18 @@ error_msg() {
     [[ "$exit_code" -gt 0 ]] && exit "$exit_code"
 }
 
+save_ping_issue() {
+    local ping_output="$1"
+    local iso_datetime
+    local f_ping_issue
+
+    mkdir -p "$d_ping_issues" # ensure it exists
+    iso_datetime=$(date +'%Y-%m-%d_%H:%M:%S')
+    f_ping_issue="$d_ping_issues/$iso_datetime"
+    log_it "Saving ping issue at: $f_ping_issue"
+    echo "$ping_output" >"$f_ping_issue"
+}
+
 #---------------------------------------------------------------
 #
 #   Datatype handling
@@ -371,6 +383,7 @@ main() {
     [[ -z "$D_TPL_BASE_PATH" ]] && error_msg "D_TPL_BASE_PATH is not defined!"
 
     d_data="$D_TPL_BASE_PATH"/data # location for all runtime data
+    d_ping_issues="$d_data"/ping_issues
 
     #
     #  Shortands for some scripts that are called in various places

@@ -127,11 +127,7 @@ compare_loss_parsers() {
         msg="This alternate[$alt_percentage_loss] and "
         msg+="default[$percent_loss] loss check differ"
         log_it "$msg"
-        mkdir -p "$d_ping_history"
-        iso_datetime=$(date +'%Y-%m-%d_%H:%M:%S')
-        f_ping_issue="$d_ping_history/$iso_datetime"
-        log_it "Saving ping issue at: $f_ping_issue"
-        echo "$output" >"$f_ping_issue"
+        save_ping_issue "$ping_output"
     else
         log_it "both parsers agree on [$percent_loss]"
     fi
@@ -163,8 +159,6 @@ pidfile_is_live "$pidfile_tmux" || error_msg "tmux pidfile not found!"
 
 # If true, output of pings with issues will be saved
 store_ping_issues=false
-
-d_ping_history="$d_data"/ping_issues
 
 #
 #  Since loss is always <=100, indicate errors with results over 100

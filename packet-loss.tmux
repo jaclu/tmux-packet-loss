@@ -17,11 +17,15 @@
 #  for sourcing utils.sh in the other scripts.
 #
 
-do_interpolation() {
-    local all_interpolated="$1"
+set_tmux_option() {
+    local sto_option="$1"
+    local sto_value="$2"
 
-    all_interpolated=${all_interpolated//$pkt_loss_interpolation/$pkt_loss_command}
-    echo "$all_interpolated"
+    [[ -z "$sto_option" ]] && error_msg "set_tmux_option() param 1 empty!"
+
+    [[ "$TMUX" = "" ]] && return # this is run standalone
+
+    $TMUX_BIN set -g "$sto_option" "$sto_value"
 }
 
 update_tmux_option() {
@@ -33,6 +37,15 @@ update_tmux_option() {
     new_option_value="$(do_interpolation "$option_value")"
     set_tmux_option "$option" "$new_option_value"
 }
+
+
+do_interpolation() {
+    local all_interpolated="$1"
+
+    all_interpolated=${all_interpolated//$pkt_loss_interpolation/$pkt_loss_command}
+    echo "$all_interpolated"
+}
+
 
 #===============================================================
 #

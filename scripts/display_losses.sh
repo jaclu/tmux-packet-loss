@@ -247,7 +247,7 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="dsp"
 
 #  shellcheck source=scripts/utils.sh
-. "$D_TPL_BASE_PATH/scripts/utils.sh"
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 $skip_time_elapsed || {
     log_it "hepp"

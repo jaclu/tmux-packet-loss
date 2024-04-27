@@ -157,7 +157,7 @@ pidfile_release() {
     log_prefix="pid"
 
     #  shellcheck source=scripts/utils.sh disable=SC1093
-    . "$D_TPL_BASE_PATH/scripts/utils.sh"
+    . "$D_TPL_BASE_PATH"/scripts/utils.sh
 }
 
 #

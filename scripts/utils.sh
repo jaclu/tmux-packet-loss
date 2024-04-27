@@ -349,7 +349,7 @@ main() {
     #
     [[ -z "$D_TPL_BASE_PATH" ]] && error_msg "D_TPL_BASE_PATH is not defined!"
 
-    d_data="$D_TPL_BASE_PATH/data" # location for all runtime data
+    d_data="$D_TPL_BASE_PATH"/data # location for all runtime data
 
     #
     #  Shortands for some scripts that are called in various places

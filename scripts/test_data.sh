@@ -91,7 +91,7 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="tst"
 
 #  shellcheck source=scripts/utils.sh
-. "$D_TPL_BASE_PATH/scripts/utils.sh"
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 keep_db=false
 [[ "$1" = "--keep" ]] && {

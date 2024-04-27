@@ -101,10 +101,10 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="ctr"
 
 #  shellcheck source=scripts/utils.sh
-. "$D_TPL_BASE_PATH/scripts/utils.sh"
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 #  shellcheck source=scripts/vers_check.sh
-. "$D_TPL_BASE_PATH/scripts/vers_check.sh"
+. "$D_TPL_BASE_PATH"/scripts/vers_check.sh
 
 #
 #  Include pidfile handling

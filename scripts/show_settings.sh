@@ -18,7 +18,7 @@ log_prefix="shw"
 use_param_cache=false
 
 #  shellcheck source=scripts/utils.sh
-. "$D_TPL_BASE_PATH/scripts/utils.sh"
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 show_item() {
     local label="$1"

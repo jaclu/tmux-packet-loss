@@ -25,13 +25,11 @@
 #
 [[ -z "$log_prefix" ]] && log_prefix="???"
 
-get_tmux_socket() {
-    if [[ -n "$TMUX" ]]; then
-        echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
-    else
-        echo "standalone"
-    fi
-}
+#---------------------------------------------------------------
+#
+#   Logging and error msgs
+#
+#---------------------------------------------------------------
 
 #
 #  If $log_file is empty or undefined, no logging will occur.
@@ -138,17 +136,11 @@ normalize_bool_param() {
     return 1
 }
 
-set_tmux_option() {
-    local sto_option="$1"
-    local sto_value="$2"
-
-    [[ -z "$sto_option" ]] && error_msg "set_tmux_option() param 1 empty!"
-
-    [[ "$TMUX" = "" ]] && return # this is run standalone
-
-    $TMUX_BIN set -g "$sto_option" "$sto_value"
-}
-
+#---------------------------------------------------------------
+#
+#   tmux option handling
+#
+#---------------------------------------------------------------
 get_tmux_option() {
     local gto_option="$1"
     local gto_default="$2"
@@ -295,16 +287,26 @@ display_time_elapsed() {
     local label="$2"
     local duration
 
-    # log_it "safe now:[$(safe_now)]"
     duration="$(echo "$(safe_now) - $t_start" | bc)"
     # log_it "duration [$duration]"
     log_it "Since start: $(printf "%.2f" "$duration") $label"
 }
 
 sqlite_err_handling() {
+    #
+    #  Loggs sqlite errors to $f_sqlite_errors
+    #
     local sql="$1"
 
     sqlite3 "$sqlite_db" "$sql" 2>>"$f_sqlite_errors"
+}
+
+get_tmux_socket() {
+    if [[ -n "$TMUX" ]]; then
+        echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
+    else
+        echo "standalone"
+    fi
 }
 
 #===============================================================

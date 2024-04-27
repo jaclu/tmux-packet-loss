@@ -21,13 +21,6 @@ float_2_int() {
     float_digits "$1" 0
 }
 
-float_drop_digits() {
-    #
-    # float to int by dropping all digits
-    #
-    echo "$1" | sed 's/\./ /' | cut -d' ' -f 1
-}
-
 is_int() {
     case $1 in
     '' | *[!0-9]*) return 1 ;; # Contains non-numeric characters

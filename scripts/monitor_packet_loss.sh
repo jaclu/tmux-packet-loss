@@ -123,7 +123,7 @@ compare_loss_parsers() {
             alt_percentage_loss=$(float_2_int "$alt_percentage_loss")
         fi
     }
-    [[ "$percent_loss" != "$alt_percentage_loss" ]] && {
+    if [[ "$percent_loss" != "$alt_percentage_loss" ]]; then
         msg="This alternate[$alt_percentage_loss] and "
         msg+="default[$percent_loss] loss check differ"
         log_it "$msg"
@@ -132,8 +132,9 @@ compare_loss_parsers() {
         f_ping_issue="$d_ping_history/$iso_datetime"
         log_it "Saving ping issue at: $f_ping_issue"
         echo "$output" >"$f_ping_issue"
-    }
-    log_it "<- compare_loss_parsers() - done"
+    else
+        log_it "both parsers agree on [$percent_loss]"
+    fi
 }
 
 #===============================================================
@@ -260,8 +261,8 @@ while true; do
 
     #
     #  Many environments lists average losses with one decimal, but not all,
-    #  BusyBox is one example. In the end, all that is needed is an agreement
-    #  on what describes no losses.
+    #  BusyBox is one example. In the end, all that is needed is an
+    #  agreement on what indicates no losses.
     #
     [[ "$percent_loss" = 0.0 ]] && percent_loss=0
 
@@ -278,7 +279,8 @@ while true; do
     [[ "$percent_loss" != 0 ]] && {
         log_it "stored in DB: $percent_loss"
 
-        $store_ping_issues && ! $parse_error &&
+        $store_ping_issues &&
+            ! $parse_error &&
             [[ "$loss_check" != "$scr_loss_default" ]] &&
             compare_loss_parsers
     }

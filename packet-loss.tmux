@@ -54,16 +54,17 @@ do_interpolation() {
 #===============================================================
 
 D_TPL_BASE_PATH=$(dirname -- "$(realpath "$0")")
-
 log_prefix="plg" # plugin handler
 
-#
-#  Ensure (potentially) outdated settings are not used
-#
-rm -f "$D_TPL_BASE_PATH"/data/param_cache
-
+use_param_cache=false # one-off just for this souring
 #  shellcheck source=scripts/utils.sh
-. "$D_TPL_BASE_PATH"/scripts/utils.sh
+source "$D_TPL_BASE_PATH"/scripts/utils.sh
+
+#
+#  Ensure (potentially) outdated param cache is first removed
+#  depending on other settings it will be re-created if needed
+#
+rm -f "$f_param_cache"
 
 #
 #  Dependency check

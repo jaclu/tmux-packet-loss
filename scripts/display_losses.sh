@@ -187,7 +187,7 @@ display_history() {
 
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
     avg_loss_raw="$(sqlite_err_handling "$sql")" || {
-        error_msg "sqlite3[$?] when retrieving history" 0 false
+	log_it "DB locked when retrieving history"
         return
     }
     if [[ "$avg_loss_raw" != "0" ]]; then

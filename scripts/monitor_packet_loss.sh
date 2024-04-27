@@ -33,18 +33,11 @@ define_ping_cmd() {
     #  Figuring out the nature of the available ping cmd
     #  Variables provided:
     #    ping_cmd - options adjusted for the local environment
-    #    is_busybox_ping - true if it was busybox
     #
     local timeout_help
     local timeout_parameter
 
-    if realpath "$(command -v ping)" | grep -qi busybox; then
-        is_busybox_ping=true
-    else
-        is_busybox_ping=false
-    fi
-    $is_busybox_ping && log_it "system useses BusyBox ping"
-
+    is_busybox_ping && log_it "system useses BusyBox ping"
     #
     #  Selecting the right timeout option
     #
@@ -103,14 +96,15 @@ compare_loss_parsers() {
     log_it "compare_loss_parsers()"
     ((log_indent++)) # increase indent until this returns
 
-    $is_busybox_ping && {
-	#
-	#  another busybox oddity when ensuring alt_calc will match the
-	#  default.
-	#  1st drop digits, then reinsert one digit (.0) to make
-	#  output match the default calculation
-	#
-	percent_loss="$(float_drop_digits "$percent_loss").0"
+    is_busybox_ping && {
+        #
+        #  busybox reports loss average as a rounded down int
+        #  Another busybox oddity when ensuring alt_calc will match the default
+        #  1st drop digits, then reinsert one digit (.0) to make output
+        #  match the default calculation using an int for the value but
+        #  presenting with one digit
+        #
+        percent_loss="$(float_drop_digits "$percent_loss").0"
     }
     alt_percentage_loss="$percent_loss"
     percent_loss="$(echo "$output" | $scr_loss_default)"
@@ -119,7 +113,7 @@ compare_loss_parsers() {
         #  if default used no digits, round the alt to int in order to
         #  avoid irrelevant differences
         #
-        if $is_busybox_ping; then
+        if is_busybox_ping; then
             #
             #  Allways round it down by dropping digits,
             #  busybox ping is one of a kind...

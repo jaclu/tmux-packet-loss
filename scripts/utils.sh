@@ -252,6 +252,26 @@ get_settings() {
     param_as_bool "$use_param_cache" && param_cache_write
 }
 
+#---------------------------------------------------------------
+#
+#   Other
+#
+#---------------------------------------------------------------
+is_busybox_ping() {
+    [[ -z "$this_is_busybox_ping" ]] && {
+        log_it "Checking if ping is a BusyBox one"
+        #
+        #  By saving state, this check only needs to be done once
+        #
+        if realpath "$(command -v ping)" | grep -qi busybox; then
+            this_is_busybox_ping=true
+        else
+            this_is_busybox_ping=false
+        fi
+    }
+    $this_is_busybox_ping
+}
+
 safe_now() {
     #
     #  MacOS date only counts whole seconds, if gdate (GNU-date) is installed

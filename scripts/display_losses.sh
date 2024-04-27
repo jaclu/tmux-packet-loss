@@ -183,11 +183,20 @@ display_history() {
     #
     local sql
     local avg_loss_raw
+    local err_code
+    local msg
     local avg_loss
 
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
     avg_loss_raw="$(sqlite_err_handling "$sql")" || {
-	log_it "DB locked when retrieving history"
+        err_code=$?
+	msg="when retrieving history"
+        if [[ "$err_code" = 5 ]]; then
+	    log_it "DB locked $msg"
+        else
+            #  log the issue as an error, then continue
+            error_msg "sqlite3[$err_code] $msg" 0 false
+        fi
         return
     }
     if [[ "$avg_loss_raw" != "0" ]]; then

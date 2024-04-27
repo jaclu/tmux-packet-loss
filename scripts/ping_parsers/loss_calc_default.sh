@@ -45,7 +45,7 @@ avg_loss="$(echo "$ping_output" |
     awk 'NF>1{print $NF}')"
 
 #
-#  Normalize number of decimals
+#  Normalize number of decimals to one for consistency
 #
 case $(echo "$avg_loss" | awk -F'.' '{ print length($2) }') in
 1) ;;
@@ -55,26 +55,9 @@ case $(echo "$avg_loss" | awk -F'.' '{ print length($2) }') in
     ;;
 *) # only use one digit
     rounded_loss="$(echo "$avg_loss" | awk '{printf "%.1f", $0}')"
-    log_it "odd avg loss, got [$avg_loss] expected [$rounded_loss]"
+    # log_it "odd avg loss, got [$avg_loss] expected [$rounded_loss]"
     avg_loss="$rounded_loss"
     ;;
 esac
-
-# #
-# #  BusyBox occationally end up giving 4 decimals on the average loss,
-# #  this checks for such, and rounds it down to just the normal one
-# #
-# echo "$avg_loss" | awk -F'.' '{ if (length($2) > 1) exit 0; else exit 1 }' && {
-#     # only use one digit
-#     rounded_loss="$(echo "$avg_loss" | awk '{printf "%.1f", $0}')"
-#     log_it "odd loss, got [$avg_loss] expected [$rounded_loss]"
-#     avg_loss="$rounded_loss"
-
-#     is_busybox_ping && {
-#         # shorten it down further to dropbox notation
-#         avg_loss="$(float_drop_digits "$avg_loss")"
-#         log_it "rounded it down to busybox no digits: $avg_loss"
-#     }
-# }
 
 echo "$avg_loss"

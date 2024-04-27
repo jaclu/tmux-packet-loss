@@ -9,8 +9,6 @@
 #  often negative loss numbers and sometimes gives replies
 #  for other hosts - (def gw?)
 #  and often replies tagged with DUP
-#  since we have to filter out any 8.8.8.8 results
-#  this ping parser can not use ping host 8.8.8.8!
 #
 #  Here we instead count the number of correct replies and do the
 #  math ourself
@@ -48,15 +46,6 @@ $extract_settings && {
     echo
 }
 
-[[ "$cfg_ping_host" = "8.8.8.8" ]] && {
-    this_app="$(basename "$0")"
-    msg="$this_app cant use 8.8.8.8 as ping host"
-    $extract_settings && echo "$msg"
-    error_msg "$msg" 0 false
-    echo 201
-    exit 0
-}
-
 #
 #  with most pings ' icmp_seq=' can be used to identify a reply
 #  Obviously busybox uses ' seq=' ...
@@ -69,9 +58,11 @@ recieved_packets="${result#"${result%%[![:space:]]*}"}"
 
 if [[ "$recieved_packets" -gt "$cfg_ping_count" ]]; then
     #
-    #  Sometimes BusyBox ping gets extra replies, this filters them out
+    #  on iSH Deb10 ping sometimes reports more non DUP pings recieved
+    #  than was actually sent, assume no losses in such cases
     #
-    error_msg "got $recieved_packets pkts, expected $cfg_ping_count" 0 false
+    log_it "got $recieved_packets pkts, expected $cfg_ping_count"
+    save_ping_issue "$ping_output"
     echo 0.0
 else
     #

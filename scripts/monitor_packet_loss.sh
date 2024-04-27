@@ -41,18 +41,21 @@ define_ping_cmd() {
     #
     #  Selecting the right timeout option
     #
-    timeout_help="$(ping -h 2>/dev/stdout | grep timeout)"
-
-    if [[ "${timeout_help#*-t}" != "$timeout_help" ]]; then
-        timeout_parameter="t"
-    elif [[ "${timeout_help#*-W}" != "$timeout_help" ]]; then
-        timeout_parameter="W"
+    if is_busybox_ping; then
+        timeout_parameter="-W"
     else
-        timeout_parameter=""
+        timeout_help="$(ping -h 2>&1 | grep timeout | head -n 1)"
+        if [[ $timeout_help == *-t* ]]; then
+            timeout_parameter="-t"
+        elif [[ $timeout_help == *-W* ]]; then
+            timeout_parameter="-W"
+        else
+            timeout_parameter=""
+        fi
     fi
 
     if [[ -n "$timeout_parameter" ]]; then
-        ping_cmd="ping -$timeout_parameter $cfg_ping_count"
+        ping_cmd="ping $timeout_parameter $cfg_ping_count"
     else
         #
         #  Without a timeout flag and no response, ping might end up taking

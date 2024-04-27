@@ -89,14 +89,12 @@ compare_loss_parsers() {
     local log_indent=$log_indent
     local alt_percentage_loss
     local msg
-    local iso_datetime
-    local f_ping_issue
     #
     #  an alternete check detected a loss
     #  compare result with what default check gives
     #  and log the output if they differ
     #
-    log_it "compare_loss_parsers()"
+    # log_it "compare_loss_parsers()"
     ((log_indent++)) # increase indent until this returns
 
     is_busybox_ping && {
@@ -184,7 +182,7 @@ else
     loss_check="$scr_loss_default"
 fi
 log_it "Checking losses using: $(basename "$loss_check")"
-$store_ping_issues && log_it "Will save ping issues in $d_ping_history"
+$store_ping_issues && log_it "Will save ping issues in $d_ping_issues"
 
 #  Ensure DB and all triggers are vallid
 "$D_TPL_BASE_PATH"/scripts/prepare_db.sh
@@ -211,9 +209,9 @@ while true; do
     #  the ping output is saved to a variable, so that it can be
     #  saved to a file in case the output gives issues
     #
-    output="$($ping_cmd 2>/dev/null)"
-    if [[ -n "$output" ]]; then
-        percent_loss="$(echo "$output" | $loss_check)" || {
+    ping_output="$($ping_cmd 2>/dev/null)"
+    if [[ -n "$ping_output" ]]; then
+        percent_loss="$(echo "$ping_output" | $loss_check)" || {
             log_it "$(basename "$loss_check") returned error"
             exit 1
         }
@@ -253,7 +251,7 @@ while true; do
         if [[ "$err_code" = 5 ]]; then
             log_it "DB locked"
         else
-            #  log the issue as an error, then continue
+            #  log the issue as an error, then §continue
             error_msg "sqlite3[$err_code] when adding a loss" 0 false
         fi
         continue

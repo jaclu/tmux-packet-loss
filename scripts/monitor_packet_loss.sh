@@ -102,30 +102,15 @@ compare_loss_parsers() {
     is_busybox_ping && {
         #
         #  busybox reports loss average as a rounded down int
-        #  Another busybox oddity when ensuring alt_calc will match the default
-        #  1st drop digits, then reinsert one digit (.0) to make output
-        #  match the default calculation using an int for the value but
-        #  presenting with one digit
+        #  the default ping parser detects this and appends a .0 to
+        #  ensure consistent notation.
+        #  to emulate this 1st round down to int, then append .0
         #
         percent_loss="$(float_drop_digits "$percent_loss").0"
     }
     alt_percentage_loss="$percent_loss"
-    percent_loss="$(echo "$output" | $scr_loss_default)"
-    is_int "$percent_loss" && {
-        #
-        #  if default used no digits, round the alt to int in order to
-        #  avoid irrelevant differences
-        #
-        if is_busybox_ping; then
-            #
-            #  Allways round it down by dropping digits,
-            #  busybox ping is one of a kind...
-            #
-            alt_percentage_loss=$(float_drop_digits "$alt_percentage_loss")
-        else
-            alt_percentage_loss=$(float_2_int "$alt_percentage_loss")
-        fi
-    }
+    percent_loss="$(echo "$ping_output" | $scr_loss_default)"
+
     if [[ "$percent_loss" != "$alt_percentage_loss" ]]; then
         msg="This alternate[$alt_percentage_loss] and "
         msg+="default[$percent_loss] loss check differ"

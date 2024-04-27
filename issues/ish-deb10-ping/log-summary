@@ -3,18 +3,15 @@
 15:41:09 serv2 1652 mon This alternate[102] and default[-40.0] loss check differ
 15:41:09 serv2 1652 mon Saving ping issue at: /home/jaclu/t2/tmux/plugins/tmux-packet-loss/data/ping_issues/2024-04-22_15-41-09
 =====
-13:46:17 serv2 17865 mon compare_loss_parsers()
 13:46:17 serv2 17865 mon  This alternate[44.5] and default[44.4] loss check differ
 13:46:17 serv2 17865 mon  Saving ping issue at: /home/jaclu/t2/tmux/plugins/tmux-packet-loss/data/ping_issues/2024-04-26_13:46:17
-13:46:17 serv2 17865 mon  <- compare_loss_parsers() - done
 =====
-15:53:03 serv2 830 mon compare_loss_parsers()
 15:53:03 serv2 830 mon  This alternate[44.5] and default[44.4] loss check differ
 15:53:03 serv2 830 mon  Saving ping issue at: /home/jaclu/t2/tmux/plugins/tmux-packet-loss/data/ping_issues/2024-04-26_15:53:03
-15:53:03 serv2 830 mon  <- compare_loss_parsers() - done
 =====
-00:23:23 serv2 4996 mon compare_loss_parsers()
 00:23:23 serv2 4996 mon  This alternate[14.3] and default[14.0] loss check differ
 00:23:23 serv2 4996 mon  Saving ping issue at: /home/jaclu/git_repos/mine/tmux-packet-loss/data/ping_issues/2024-04-27_00:23:23
-00:23:23 serv2 4996 mon  <- compare_loss_parsers() - done
 =====
+00:41:16 serv2 6425 mon stored in DB: 28.6
+00:41:16 serv2 6425 mon  This alternate[28.6] and default[28.0] loss check differ
+00:41:16 serv2 6425 mon  Saving ping issue at: /home/jaclu/git_repos/mine/tmux-packet-loss/data/ping_issues/2024-04-27_00:41:16

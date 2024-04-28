@@ -36,7 +36,7 @@ insert_data() {
             DELETE FROM t_stats;
             INSERT INTO t_stats (loss) VALUES ($history);"
     fi
-    sqlite_err_handling "$sql" || {
+    sqlite_transaction "$sql" || {
         err_code=$?
         error_msg "sqlite3[$err_code] when running: $sql" 1 false
     }

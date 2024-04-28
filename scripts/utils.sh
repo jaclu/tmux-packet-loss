@@ -113,6 +113,21 @@ sqlite_err_handling() {
     sqlite3 "$sqlite_db" "$sql" 2>>"$f_sqlite_errors"
 }
 
+sqlite_transaction() {
+    local sql_original="$1"
+    local sql
+
+    sql="
+        BEGIN TRANSACTION; -- Start the transaction
+
+        $sql_original ;
+
+        COMMIT; -- Commit the transaction
+        "
+    sqlite_err_handling "$sql"
+    # caller should parse any sqlite errors
+}
+
 #---------------------------------------------------------------
 #
 #   Datatype handling

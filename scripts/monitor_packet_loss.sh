@@ -246,10 +246,10 @@ while true; do
     #
     [[ "$percent_loss" = 0.0 ]] && percent_loss=0
 
-    sqlite_err_handling "INSERT INTO t_loss (loss) VALUES ($percent_loss)" || {
+    sqlite_transaction "INSERT INTO t_loss (loss) VALUES ($percent_loss)" || {
         err_code=$?
         if [[ "$err_code" = 5 ]]; then
-            log_it "DB locked"
+            log_it "DB locked when attmpting to insert loss:$percent_loss"
         else
             #  log the issue as an error, then §continue
             error_msg "sqlite3[$err_code] when adding a loss" 0 false

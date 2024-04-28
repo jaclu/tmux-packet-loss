@@ -42,7 +42,7 @@ create_db() {
 
     PRAGMA user_version = $db_version;  -- replace DB if out of date
     "
-    sqlite_err_handling "$sql" || {
+    sqlite_transaction "$sql" || {
         error_msg "sqlite3[$?] when creating the DB"
     }
     log_it "Created db"
@@ -111,7 +111,7 @@ update_triggers() {
         datetime('now', '-$cfg_hist_avg_minutes minutes');
     END;
     "
-    sqlite_err_handling "$sql" || {
+    sqlite_transaction "$sql" || {
         error_msg "sqlite3[$?] when creating triggers"
     }
     log_it "Created db-triggers"
@@ -144,4 +144,4 @@ log_prefix="prp"
 update_triggers
 
 #  a lot of DB related code depends on there being aat least one record
-sqlite_err_handling "INSERT INTO t_loss (loss) VALUES (0)"
+sqlite_transaction "INSERT INTO t_loss (loss) VALUES (0)"

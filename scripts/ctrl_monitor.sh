@@ -65,13 +65,11 @@ packet_loss_plugin_shutdown() {
         error_msg "$(basename "$0") shutdown failed - monitor still running"
     }
 
-    pidfile_release "$pidfile_tmux"
-    # pidfile_release "$pidfile_monitor"
-
     #
     #  remove some stat files that will be generated with
     #  fresh content on next run
     #
+    pidfile_release "$pidfile_tmux"
     rm -f "$f_param_cache"
     rm -f "$f_previous_loss"
     rm -f "$db_restart_log"

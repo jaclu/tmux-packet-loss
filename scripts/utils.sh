@@ -80,6 +80,18 @@ error_msg() {
     [[ "$exit_code" -gt 0 ]] && exit "$exit_code"
 }
 
+display_time_elapsed() {
+    $skip_time_elapsed && return # quick abort if not used
+
+    local t_start="$1"
+    local label="$2"
+    local duration
+
+    duration="$(echo "$(safe_now) - $t_start" | bc)"
+    # log_it "duration [$duration]"
+    log_it "Since start: $(printf "%.2f" "$duration") $label"
+}
+
 save_ping_issue() {
     local ping_output="$1"
     local iso_datetime
@@ -90,6 +102,15 @@ save_ping_issue() {
     f_ping_issue="$d_ping_issues/$iso_datetime"
     log_it "Saving ping issue at: $f_ping_issue"
     echo "$ping_output" >"$f_ping_issue"
+}
+
+sqlite_err_handling() {
+    #
+    #  Loggs sqlite errors to $f_sqlite_errors
+    #
+    local sql="$1"
+
+    sqlite3 "$sqlite_db" "$sql" 2>>"$f_sqlite_errors"
 }
 
 #---------------------------------------------------------------
@@ -171,7 +192,7 @@ normalize_bool_param() {
 
 #---------------------------------------------------------------
 #
-#   tmux option handling
+#   tmux env handling
 #
 #---------------------------------------------------------------
 get_tmux_option() {
@@ -277,6 +298,17 @@ get_settings() {
     param_as_bool "$use_param_cache" && param_cache_write
 }
 
+get_tmux_socket() {
+    #
+    #  returns name of tmux socket being used
+    #
+    if [[ -n "$TMUX" ]]; then
+        echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
+    else
+        echo "standalone"
+    fi
+}
+
 #---------------------------------------------------------------
 #
 #   Other
@@ -310,35 +342,6 @@ safe_now() {
         fi
     else
         date +%s.%N
-    fi
-}
-
-display_time_elapsed() {
-    $skip_time_elapsed && return
-
-    local t_start="$1"
-    local label="$2"
-    local duration
-
-    duration="$(echo "$(safe_now) - $t_start" | bc)"
-    # log_it "duration [$duration]"
-    log_it "Since start: $(printf "%.2f" "$duration") $label"
-}
-
-sqlite_err_handling() {
-    #
-    #  Loggs sqlite errors to $f_sqlite_errors
-    #
-    local sql="$1"
-
-    sqlite3 "$sqlite_db" "$sql" 2>>"$f_sqlite_errors"
-}
-
-get_tmux_socket() {
-    if [[ -n "$TMUX" ]]; then
-        echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
-    else
-        echo "standalone"
     fi
 }
 

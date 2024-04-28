@@ -24,6 +24,25 @@ script_exit() {
     exit 0
 }
 
+safe_now() {
+    #
+    #  This one is in utils, but since it is called before sourcing utils
+    #  it needs to be duplicated here
+    #
+    #  MacOS date only counts whole seconds, if gdate (GNU-date) is
+    #  installed, it can  display times with more precission
+    #
+    if [[ "$(uname)" = "Darwin" ]]; then
+        if [[ -n "$(command -v gdate)" ]]; then
+            gdate +%s.%N
+        else
+            date +%s
+        fi
+    else
+        date +%s.%N
+    fi
+}
+
 restart_monitor() {
     log_it "restarting monitor"
     date >>"$db_restart_log" # log current time
@@ -59,8 +78,7 @@ verify_db_status() {
         #  assume the monitor is not running, so (re-)start it
         #
         restart_monitor
-        log_it "no db updates restart is done"
-        script_exit "DB old"
+        log_it "no db updates for one minute - restart is done"
     fi
     display_time_elapsed "$t_start" "verify_db_status($db_was_ok)"
 }
@@ -112,7 +130,7 @@ get_current_loss() {
         sql="SELECT avg(loss) FROM t_loss"
     fi
 
-    sql="SELECT CAST(( $sql ) AS INTEGER)"
+    sql="SELECT CAST(( $sql + 0.499 ) AS INTEGER)"
     current_loss="$(sqlite_err_handling "$sql")" || {
         err_code=$?
         [[ "$err_code" = 5 ]] && {
@@ -127,24 +145,24 @@ get_current_loss() {
     display_time_elapsed "$t_start" "get_current_loss()"
 }
 
-show_trend() {
-    #
-    #  Indicate if losses are increasing / decreasing setting +/- prefix
-    #
-    #  public variables used
-    #   current_loss
-    #   result
-    #
-    local prev_loss
-
+get_prev_loss() {
     if [[ -f "$f_previous_loss" ]]; then
         read -r prev_loss <"$f_previous_loss"
     else
         prev_loss=0
     fi
+}
+
+show_trend() {
+    #
+    #  Indicate if losses are increasing / decreasing setting +/- prefix
+    #
+    #  public variables provided
+    #    prev_loss
+    #
+    [[ -z "$prev_loss" ]] && get_prev_loss
 
     if [[ "$prev_loss" -ne "$current_loss" ]]; then
-        echo "$current_loss" >"$f_previous_loss"
         if [[ "$current_loss" -gt "$prev_loss" ]]; then
             result="+$current_loss"
         elif [[ "$current_loss" -lt "$prev_loss" ]]; then
@@ -212,20 +230,25 @@ display_history() {
     display_time_elapsed "$t_start" "display_history($avg_loss_raw)"
 }
 
-safe_now() {
-    #
-    #  MacOS date only counts whole seconds, if gdate (GNU-date) is
-    #  installed, it can  display times with more precission
-    #
-    if [[ "$(uname)" = "Darwin" ]]; then
-        if [[ -n "$(command -v gdate)" ]]; then
-            gdate +%s.%N
-        else
-            date +%s
-        fi
+handle_loss_changes() {
+
+    [[ -z "$prev_loss" ]] && get_prev_loss
+
+    if [[ "$current_loss" -gt 0 ]]; then
+        echo "$current_loss" >"$f_previous_loss"
     else
-        date +%s.%N
+        rm -f "$f_previous_loss"
     fi
+
+    # log changes
+    [[ "$prev_loss" -ne "$current_loss" ]] &&
+        {
+            if [[ "$current_loss" -gt 0 ]]; then
+                log_it "$s_log_msg"
+            else
+                log_it "no packet losses"
+            fi
+        }
 }
 
 #===============================================================
@@ -234,7 +257,11 @@ safe_now() {
 #
 #===============================================================
 
-# skip_time_elapsed=false
+#
+#  Debug tools, if skip_time_elapsed is set to false, time elapsed
+#  since t_start can be logged by calling display_time_elapsed
+#
+#skip_time_elapsed=false
 $skip_time_elapsed || t_start="$(safe_now)"
 
 #
@@ -250,17 +277,19 @@ log_prefix="dsp"
 . "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 $skip_time_elapsed || {
-    log_it "hepp"
+    log_it
     display_time_elapsed "$t_start" "script initialized"
 }
+
+result="" # indicating no losses
 
 verify_db_status
 
 get_current_loss
-s_log_msg="loss: $current_loss" # might get altered by display_history
 
-result="" # indicating no losses
 [[ "$current_loss" -lt "$cfg_level_disp" ]] && current_loss=0
+
+s_log_msg="loss: $current_loss" # might get altered by display_history
 
 if [[ "$current_loss" -gt 0 ]]; then
     result="$current_loss"
@@ -278,11 +307,8 @@ if [[ "$current_loss" -gt 0 ]]; then
     #  Set prefix & suffix for result and report to status bar
     #
     echo "${cfg_prefix}${result}${cfg_suffix}"
-
-    # log_it "$s_log_msg"
-else
-    # log_it "no packet losses"
-    echo 0 >"$f_previous_loss"
 fi
+
+handle_loss_changes
 
 display_time_elapsed "$t_start" "display_losses.sh"

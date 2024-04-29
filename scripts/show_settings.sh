@@ -12,8 +12,8 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="shw"
 
 #
-# ensures terminals from other sessions will read their own tmux config
-# if the cwd happens to be in another instance of this plugin
+#  Ensures terminals will use their own tmux config, and not the
+#  one that might be cached in this instance of the plugin
 #
 use_param_cache=false
 
@@ -49,26 +49,23 @@ echo "=====   Config for  session: $session   ====="
     echo
     echo "*** This is not inside any tmux session - only defaults will be displayed!"
     echo
-
-    use_param_cache=false
-    get_settings
 }
 
 show_item "headers"
 show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count"
 
 [[ "$session" != "standalone" ]] && {
-    status_interval="$($TMUX_BIN display -p "#{status-interval}" 2>/dev/null)"
+    status_interval="$($TMUX_BIN show-option -gqv status-interval 2>/dev/null)"
     if [[ -n "$status_interval" ]]; then
-        msg_interval="status bar update frequency = [$status_interval]"
         req_interval="$(echo "$cfg_ping_count - 1" | bc)"
         if [[ "$req_interval" != "$status_interval" ]]; then
-            msg_interval="$msg_interval  - tmux status-interval is recomended to be arround: $req_interval"
+            echo "
+To better match this cfg_ping_count, tmux status-interval is recomended
+to be: $req_interval  currently is: $status_interval
+            "
+            show_item "headers"
         fi
-        echo "$msg_interval"
-        echo
     fi
-    show_item "headers"
 }
 
 show_item cfg_ping_host "$cfg_ping_host" "$default_ping_host"

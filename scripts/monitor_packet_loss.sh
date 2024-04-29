@@ -7,20 +7,6 @@
 #
 #   This runs forever.
 #
-float_digits() {
-    local value="$1"
-    local digits="$2"
-
-    [[ -z "$digits" ]] && {
-        error_msg "float_digits($value,) - missing digits param" 1 false
-    }
-    printf "%.${digits}f" "$value"
-}
-
-float_2_int() {
-    float_digits "$1" 0
-}
-
 is_int() {
     case $1 in
     '' | *[!0-9]*) return 1 ;; # Contains non-numeric characters

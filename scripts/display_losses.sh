@@ -75,8 +75,8 @@ verify_db_status() {
         log_it "DB missing - restart is done"
 
         [[ -e "$sqlite_db" ]] || {
-            log_it "DB still missing - aborting"
-            script_exit "DB missing"
+            log_it "DB failed to restart - aborting"
+            script_exit "DB failed to restart"
         }
     elif db_seems_inactive; then
         db_was_ok=false

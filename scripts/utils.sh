@@ -26,7 +26,8 @@ log_it() {
     local socket
 
     $log_interactive_to_stderr && [[ -t 0 ]] && {
-        printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
+        printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" \
+            "$@" >/dev/stderr
         return
     }
 

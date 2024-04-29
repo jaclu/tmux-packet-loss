@@ -155,13 +155,6 @@ is_float() {
     fi
 }
 
-float_drop_digits() {
-    #
-    # float to int by dropping all digits
-    #
-    echo "$1" | sed 's/\./ /' | cut -d' ' -f 1
-}
-
 #---------------------------------------------------------------
 #
 #   bool params

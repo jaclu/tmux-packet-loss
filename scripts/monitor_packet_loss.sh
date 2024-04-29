@@ -14,6 +14,13 @@ is_int() {
     esac
 }
 
+float_drop_digits() {
+    #
+    # float to int by dropping all digits
+    #
+    echo "$1" | sed 's/\./ /' | cut -d' ' -f 1
+}
+
 define_ping_cmd() {
     #
     #  Figuring out the nature of the available ping cmd

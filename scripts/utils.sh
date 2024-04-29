@@ -396,10 +396,7 @@ main() {
     #
     [[ -z "$TMUX_BIN" ]] && TMUX_BIN="tmux"
 
-    #
-    #  Should have been set in the calling script, must be done after
-    #  log_file is (potentially) defined
-    #
+    #  Should have been set in the calling script
     [[ -z "$D_TPL_BASE_PATH" ]] && error_msg "D_TPL_BASE_PATH is not defined!"
 
     d_data="$D_TPL_BASE_PATH"/data # location for all runtime data

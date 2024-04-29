@@ -50,6 +50,15 @@ restart_monitor() {
     $scr_ctrl_monitor start
 }
 
+db_seems_inactive() {
+    #
+    #  New records should normally be written to the DB every cfg_ping_count
+    #  seconds. If it hasnt happened for some minutes, it can be assumed
+    #  that the monitor is no longer oprtating normally
+    #
+    [[ -n "$(find "$sqlite_db" -mmin +"$db_max_age_mins")" ]]
+}
+
 verify_db_status() {
     #
     #  Some sanity check, ensuring the monitor is running
@@ -70,17 +79,16 @@ verify_db_status() {
             log_it "DB still missing - aborting"
             script_exit "DB missing"
         }
-    elif [[ -n "$(find "$sqlite_db" -mmin +1)" ]]; then
+    elif db_seems_inactive; then
         db_was_ok=false
-        log_it "DB is over one minute old"
+        log_it "DB is over $db_max_age_mins minutes old"
         #
         #  If DB is over a minute old,
         #  assume the monitor is not running, so (re-)start it
         #
         restart_monitor
-        log_it "no db updates for one minute - restart is done"
     fi
-    display_time_elapsed "$t_start" "verify_db_status($db_was_ok)"
+    display_time_elapsed "$t_start" "verify_db_status() - was ok: $db_was_ok"
 }
 
 get_current_loss() {
@@ -275,6 +283,15 @@ log_prefix="dsp"
 
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH"/scripts/utils.sh
+
+#
+#  DB should be updated every $cfg_ping_count seconds, if it hasnt
+#  been changed in a while monitor is most likely not running, or has
+#  gotten stuck. Restarting it should solve the issue.
+#  Since this script is run at regular intervalls, it is a good place
+#  to ensure it is operational.
+#
+db_max_age_mins=2
 
 $skip_time_elapsed || {
     log_it

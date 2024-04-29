@@ -264,17 +264,18 @@ display_history() {
 #===============================================================
 
 #
-#  Debug tools, if skip_time_elapsed is set to false, time elapsed
-#  since t_start can be logged by calling display_time_elapsed
-#
-#skip_time_elapsed=false
-$skip_time_elapsed || t_start="$(safe_now)"
-
-#
-#  Prevent tmux from running it every couple of seconds,
+#  Prevent tmux from running this every couple of seconds,
 #  convenient during debugging
 #
 # [[ "$1" != "hepp" ]] && exit 0
+
+#
+#  Banchmark debug utility, if skip_time_elapsed is set to false, time
+#  elapsed since t_start can be logged by calling display_time_elapsed,
+#  in order to see how long this script takes to complete various tasks.
+#
+# skip_time_elapsed=false
+$skip_time_elapsed || t_start="$(safe_now)"
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="dsp"

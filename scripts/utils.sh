@@ -31,18 +31,17 @@
 #
 #---------------------------------------------------------------
 
-#
-#  If $log_file is empty or undefined, no logging will occur.
-#
 log_it() {
+    [[ -z "$log_file" ]] && return #  early abort if no logging
+    #
+    #  If $log_file is empty or undefined, no logging will occur.
+    #
     local socket
 
-    if $log_interactive_to_stderr && [[ -t 0 ]]; then
+    $log_interactive_to_stderr && [[ -t 0 ]] && {
         printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
         return
-    elif [[ -z "$log_file" ]]; then
-        return
-    fi
+    }
 
     if [[ "$log_ppid" = "true" ]]; then
         proc_id="$(tmux display -p "#{session_id}"):$PPID"

@@ -10,20 +10,12 @@
 #
 
 #
-#  log_it is used to display status to $log_file if it is defined.
-#  Good for testing and monitoring actions.
+#  If $log_file_name is pressent, it will be used for logging by log_it()
+#  If not found, no logging will happen.
 #  Logging should normally be disabled, since it causes some overhead.
-#  If $log_file is unset no output will happen.
-#  this checks if the log file is present, if it is, logging is used
-#  so will not be activated by default.
 #
-[[ -f /tmp/tmux-packet-loss.log ]] && log_file=/tmp/tmux-packet-loss.log
-
-#
-#  Since it is set outside main() this will remain in effect for
-#  modules that didnt set it
-#
-[[ -z "$log_prefix" ]] && log_prefix="???"
+log_file_name=/tmp/tmux-packet-loss.log
+[[ -f "$log_file_name" ]] && log_file="$log_file_name"
 
 #---------------------------------------------------------------
 #

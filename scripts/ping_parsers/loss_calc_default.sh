@@ -50,7 +50,6 @@ avg_loss="$(echo "$ping_output" |
 case $(echo "$avg_loss" | awk -F'.' '{ print length($2) }') in
 1) ;;
 0) # fake a decimal
-    # log_it "faked one decimal"
     avg_loss="${avg_loss}.0"
     ;;
 *) # only use one digit

@@ -87,7 +87,6 @@ compare_loss_parsers() {
     #  compare result with what default check gives
     #  and log the output if they differ
     #
-    # log_it "compare_loss_parsers()"
     ((log_indent++)) # increase indent until this returns
 
     is_busybox_ping && {

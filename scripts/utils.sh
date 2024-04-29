@@ -37,6 +37,7 @@ log_it() {
         proc_id="$$"
     fi
 
+    #  needs leading space for compactness in the printf if empty
     socket=" $(get_tmux_socket)"
     # only show socket name if not default
     # [[ "$socket" = " default" ]] && socket=""
@@ -117,6 +118,7 @@ is_float() {
 #---------------------------------------------------------------
 
 param_as_bool() {
+    #  Used to parse variables assigned "true" or "false" as booleans
     [[ "$1" = "true" ]] && return 0
     return 1
 }
@@ -133,13 +135,11 @@ normalize_bool_param() {
     #
     "1" | "yes" | "Yes" | "YES" | "true" | "True" | "TRUE")
         #  Be a nice guy and accept some common positive notations
-        # log_it "Converted [$1] to boolean:  0"
         echo "true"
         ;;
 
     "0" | "no" | "No" | "NO" | "false" | "False" | "FALSE")
         #  Be a nice guy and accept some common false notations
-        # log_it "Converted [$1] to boolean:  1"
         echo "false"
         ;;
 
@@ -255,12 +255,6 @@ get_settings() {
 
     cfg_log_file="$(get_tmux_option "@packet-loss-log_file" "")"
 
-    #
-    #  unofficial parameter, still in testing
-    #
-    # use_param_cache="$(normalize_bool_param "$(get_tmux_option \
-    #    "@packet-loss-use_param_cache" "true")")"
-
     param_as_bool "$use_param_cache" && param_cache_write
 }
 
@@ -356,7 +350,6 @@ display_time_elapsed() {
         error_msg "display_time_elapsed() called t_start unset"
     }
     duration="$(echo "$(safe_now) - $t_start" | bc)"
-    # log_it "duration [$duration]"
     log_it "Since start: $(printf "%.2f" "$duration") $label"
 }
 

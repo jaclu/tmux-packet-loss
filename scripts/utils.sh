@@ -48,11 +48,11 @@ log_it() {
     printf "%s%s %s %s%*s%s\n" "$(date '+%H:%M:%S')" "$socket" "$proc_id" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
 }
 
-#
-#  Display $1 as an error message in log and as a tmux display-message
-#  If $2 is set to 0, process is not exited
-#
 error_msg() {
+    #
+    #  Display $1 as an error message in log and as a tmux display-message
+    #  If $2 is set to 0, process is not exited
+    #
     local msg="ERROR: $1"
     local exit_code="${2:-1}"
     local display_message=${3:-true}
@@ -72,6 +72,9 @@ error_msg() {
 }
 
 save_ping_issue() {
+    #
+    #  Save a ping outout for later inspection
+    #
     local ping_output="$1"
     local iso_datetime
     local f_ping_issue
@@ -324,8 +327,11 @@ is_busybox_ping() {
 
 safe_now() {
     #
-    #  MacOS date only counts whole seconds, if gdate (GNU-date) is installed
-    #  it can  display times with more precission
+    #  This one is in utils, but since it is called before sourcing utils
+    #  it needs to be duplicated here
+    #
+    #  MacOS date only counts whole seconds, if gdate (GNU-date) is
+    #  installed, it can  display times with more precission
     #
     if [[ "$(uname)" = "Darwin" ]]; then
         if [[ -n "$(command -v gdate)" ]]; then
@@ -334,6 +340,7 @@ safe_now() {
             date +%s
         fi
     else
+        #  On Linux the native date suports sub second precission
         date +%s.%N
     fi
 }
@@ -363,16 +370,19 @@ main() {
     local log_prefix="$log_prefix"
 
     #
-    # for actions in utils log_prefix gets an u prefix
-    # using local ensures it goes back to its original setting once
-    # code is run from the caller.
+    #  For actions in utils log_prefix gets an u- prefix
+    #  using local ensures it goes back to its original setting once
+    #  code is run from the caller.
     #
     log_prefix="u-$log_prefix"
 
-    log_indent=1
+    log_indent=1 # check pidfile_handler.sh to see how this is used
 
-    # if set tools run from commandline will print log entries to screen
-    log_interactive_to_stderr=false
+    #
+    #  Debug help, should not normally be used
+    #
+
+    [[ -z $log_interactive_to_stderr ]] && log_interactive_to_stderr=false
 
     # set to true if session-id & ppid should be displayed instead of pid
     [[ -z "$log_ppid" ]] && log_ppid="false"
@@ -478,15 +488,22 @@ main() {
     default_prefix='|'
     default_suffix='|'
 
-    #
-    # override settings for easy debugging
-    #
-    # log_file=""
-    # log_interactive_to_stderr=true # doesnt seem to work on iSH
-    # use_param_cache=false
-    # skip_time_elapsed=false
-
     get_settings
 }
+
+#
+#  Identifies the script triggering a log entry.
+#  Since it is set outside main() this will remain in effect for
+#  modules that didnt set it, during utils:main a prefix "u-" will be
+#  added to show the log action happened as utils was sourced.
+#
+[[ -z "$log_prefix" ]] && log_prefix="???"
+
+#
+# override settings for easy debugging
+#
+# log_file=""
+# log_interactive_to_stderr=true # doesnt seem to work on iSH
+# use_param_cache=false
 
 main

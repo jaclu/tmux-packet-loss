@@ -38,6 +38,7 @@ safe_now() {
             date +%s
         fi
     else
+        #  On Linux the native date suports sub second precission
         date +%s.%N
     fi
 }
@@ -153,6 +154,10 @@ get_current_loss() {
 }
 
 get_prev_loss() {
+    #
+    #  public variables defined
+    #   prev_loss
+    #
     if [[ -f "$f_previous_loss" ]]; then
         read -r prev_loss <"$f_previous_loss"
     else
@@ -185,7 +190,7 @@ show_trend() {
     #  Indicate if losses are increasing / decreasing setting +/- prefix
     #
     #  public variables provided
-    #    prev_loss
+    #    result
     #
     [[ -z "$prev_loss" ]] && get_prev_loss
 

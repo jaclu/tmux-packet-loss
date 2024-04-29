@@ -205,7 +205,7 @@ display_history() {
     #  Display history
     #
     #  Outside variables modified:
-    #    s_log_msg - will be used by main to display current losses
+    #    s_log_result - will be used by main to display current losses
     #
     local sql
     local avg_loss_raw
@@ -233,7 +233,7 @@ display_history() {
             colorize_high_numbers "$avg_loss_raw" "$avg_loss_raw"
         )"
         result="${result}${cfg_hist_separator}${avg_loss}"
-        s_log_msg="$s_log_msg   avg: $avg_loss_raw"
+        s_log_result="$s_log_result   avg: $avg_loss_raw"
     fi
     display_time_elapsed "$t_start" "display_history($avg_loss_raw)"
 }
@@ -306,7 +306,7 @@ get_current_loss
 
 [[ "$current_loss" -lt "$cfg_level_disp" ]] && current_loss=0
 
-s_log_msg="loss: $current_loss" # might get altered by display_history
+s_log_result="loss: $current_loss" # might get altered by display_history
 
 if [[ "$current_loss" -gt 0 ]]; then
     result="$current_loss"

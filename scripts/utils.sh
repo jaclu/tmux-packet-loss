@@ -79,18 +79,6 @@ error_msg() {
     [[ "$exit_code" -gt 0 ]] && exit "$exit_code"
 }
 
-display_time_elapsed() {
-    $skip_time_elapsed && return # quick abort if not used
-
-    local t_start="$1"
-    local label="$2"
-    local duration
-
-    duration="$(echo "$(safe_now) - $t_start" | bc)"
-    # log_it "duration [$duration]"
-    log_it "Since start: $(printf "%.2f" "$duration") $label"
-}
-
 save_ping_issue() {
     local ping_output="$1"
     local iso_datetime
@@ -101,30 +89,6 @@ save_ping_issue() {
     f_ping_issue="$d_ping_issues/$iso_datetime"
     log_it "Saving ping issue at: $f_ping_issue"
     echo "$ping_output" >"$f_ping_issue"
-}
-
-sqlite_err_handling() {
-    #
-    #  Loggs sqlite errors to $f_sqlite_errors
-    #
-    local sql="$1"
-
-    sqlite3 "$sqlite_db" "$sql" 2>>"$f_sqlite_errors"
-}
-
-sqlite_transaction() {
-    local sql_original="$1"
-    local sql
-
-    sql="
-        BEGIN TRANSACTION; -- Start the transaction
-
-        $sql_original ;
-
-        COMMIT; -- Commit the transaction
-        "
-    sqlite_err_handling "$sql"
-    # caller should parse any sqlite errors
 }
 
 #---------------------------------------------------------------

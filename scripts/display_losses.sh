@@ -297,7 +297,7 @@ log_prefix="dsp"
 #
 db_max_age_mins=2
 
-log_loss_changes=true # set to false to reduce logging from this module
+log_loss_changes=false # set to false to reduce logging from this module
 result=""             # indicating no losses
 
 $skip_time_elapsed || {

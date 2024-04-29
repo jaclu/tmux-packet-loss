@@ -81,7 +81,7 @@ command -v sqlite3 >/dev/null 2>&1 || {
 #
 log_it #  if log is used, create a LF to better isolate init
 log_it "starting monitor"
-$scr_ctrl_monitor
+$scr_ctrl_monitor start
 
 #
 #  Match tag with polling script

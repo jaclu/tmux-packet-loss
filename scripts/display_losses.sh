@@ -14,11 +14,10 @@ script_exit() {
     #
     local status="$1"
 
-    [[ -n "$status" ]] && {
-        # log_it "should not have pre/suf  $status"
-        echo "${cfg_prefix}${status}${cfg_suffix}"
-    }
+    [[ -n "$status" ]] && echo "${cfg_prefix}${status}${cfg_suffix}"
+
     [[ -n "$2" ]] && {
+        # param check
         error_msg "script_exit() got 2nd unexpected param[$2]"
     }
     exit 0

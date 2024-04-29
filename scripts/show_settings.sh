@@ -8,14 +8,14 @@
 #   Displays current settings for plugin
 #
 
-D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
-log_prefix="shw"
-
 #
 #  Ensures terminals will use their own tmux config, and not the
 #  one that might be cached in this instance of the plugin
 #
 use_param_cache=false
+
+D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
+log_prefix="shw"
 
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH"/scripts/utils.sh

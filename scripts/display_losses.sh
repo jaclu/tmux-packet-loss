@@ -161,6 +161,26 @@ get_prev_loss() {
     fi
 }
 
+set_prev_loss() {
+    [[ -z "$prev_loss" ]] && get_prev_loss
+
+    if [[ "$current_loss" -gt 0 ]]; then
+        echo "$current_loss" >"$f_previous_loss"
+    else
+        rm -f "$f_previous_loss"
+    fi
+
+    # log loss changes
+    $log_loss_changes && [[ "$prev_loss" -ne "$current_loss" ]] &&
+        {
+            if [[ "$current_loss" -gt 0 ]]; then
+                log_it "$s_log_result"
+            else
+                log_it "no packet losses"
+            fi
+        }
+}
+
 show_trend() {
     #
     #  Indicate if losses are increasing / decreasing setting +/- prefix
@@ -238,27 +258,6 @@ display_history() {
     display_time_elapsed "$t_start" "display_history($avg_loss_raw)"
 }
 
-handle_loss_changes() {
-
-    [[ -z "$prev_loss" ]] && get_prev_loss
-
-    if [[ "$current_loss" -gt 0 ]]; then
-        echo "$current_loss" >"$f_previous_loss"
-    else
-        rm -f "$f_previous_loss"
-    fi
-
-    # log changes
-    [[ "$prev_loss" -ne "$current_loss" ]] &&
-        {
-            if [[ "$current_loss" -gt 0 ]]; then
-                log_it "$s_log_msg"
-            else
-                log_it "no packet losses"
-            fi
-        }
-}
-
 #===============================================================
 #
 #   Main
@@ -293,12 +292,13 @@ log_prefix="dsp"
 #
 db_max_age_mins=2
 
+log_loss_changes=true # set to false to reduce logging from this module
+result=""             # indicating no losses
+
 $skip_time_elapsed || {
     log_it
     display_time_elapsed "$t_start" "script initialized"
 }
-
-result="" # indicating no losses
 
 verify_db_status
 
@@ -326,6 +326,6 @@ if [[ "$current_loss" -gt 0 ]]; then
     echo "${cfg_prefix}${result}${cfg_suffix}"
 fi
 
-handle_loss_changes
+param_as_bool "$cfg_display_trend" && set_prev_loss
 
 display_time_elapsed "$t_start" "display_losses.sh"

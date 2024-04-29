@@ -142,9 +142,9 @@ get_current_loss() {
     current_loss="$(sqlite_err_handling "$sql")" || {
         err_code=$?
         [[ "$err_code" = 5 ]] && {
-            msg="DB locked"
-            log_it "---------------------  $msg"
-            script_exit "$msg"
+            msg="DB locked when getting avg loss"
+            log_it "$msg"
+            script_exit "DB locked"
         }
         error_msg \
             "sqlite3[$err_code] when retrieving current losses" \

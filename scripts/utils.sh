@@ -9,14 +9,6 @@
 #  Common stuff
 #
 
-#
-#  If $log_file_name is pressent, it will be used for logging by log_it()
-#  If not found, no logging will happen.
-#  Logging should normally be disabled, since it causes some overhead.
-#
-log_file_name=/tmp/tmux-packet-loss.log
-[[ -f "$log_file_name" ]] && log_file="$log_file_name"
-
 #---------------------------------------------------------------
 #
 #   Logging and error msgs
@@ -24,9 +16,12 @@ log_file_name=/tmp/tmux-packet-loss.log
 #---------------------------------------------------------------
 
 log_it() {
-    [[ -z "$log_file" ]] && return #  early abort if no logging
+    [[ -z "$cfg_log_file" ]] && return #  early abort if no logging
     #
-    #  If $log_file is empty or undefined, no logging will occur.
+    #  If @packet-loss-log_file is defined, it will be read into the
+    #  cfg_log_file variable and used for logging.
+    #
+    #  Logging should normally be disabled, since it causes some overhead.
     #
     local socket
 
@@ -45,7 +40,8 @@ log_it() {
     # only show socket name if not default
     # [[ "$socket" = " default" ]] && socket=""
 
-    printf "%s%s %s %s%*s%s\n" "$(date '+%H:%M:%S')" "$socket" "$proc_id" "$log_prefix" "$log_indent" "" "$@" >>"$log_file"
+    printf "%s%s %s %s%*s%s\n" "$(date '+%H:%M:%S')" "$socket" "$proc_id" \
+        "$log_prefix" "$log_indent" "" "$@" >>"$cfg_log_file"
 }
 
 error_msg() {
@@ -204,6 +200,7 @@ param_cache_write() {
     cfg_color_bg="$cfg_color_bg"
     cfg_prefix="$cfg_prefix"
     cfg_suffix="$cfg_suffix"
+    cfg_log_file="$cfg_log_file"
 
 EOF
 }
@@ -255,10 +252,12 @@ get_settings() {
     cfg_prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
     cfg_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
 
+    cfg_log_file="$(get_tmux_option "@packet-loss-log_file" "")"
+
     #
     #  unofficial parameter, still in testing
     #
-    #use_param_cache="$(normalize_bool_param "$(get_tmux_option \
+    # use_param_cache="$(normalize_bool_param "$(get_tmux_option \
     #    "@packet-loss-use_param_cache" "true")")"
 
     param_as_bool "$use_param_cache" && param_cache_write
@@ -502,7 +501,7 @@ main() {
 #
 # override settings for easy debugging
 #
-# log_file=""
+# cfg_log_file=""
 # log_interactive_to_stderr=true # doesnt seem to work on iSH
 # use_param_cache=false
 

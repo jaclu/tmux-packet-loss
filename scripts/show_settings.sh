@@ -90,7 +90,7 @@ show_item cfg_color_bg "$cfg_color_bg" "$default_color_bg"
 show_item cfg_prefix "$cfg_prefix" "$default_prefix"
 show_item cfg_suffix "$cfg_suffix" "$default_suffix"
 
-[[ -n "$log_file" ]] && {
+[[ -n "$cfg_log_file" ]] && {
     echo
-    echo "log_file in use: $log_file"
+    echo "log_file in use: $cfg_log_file"
 }

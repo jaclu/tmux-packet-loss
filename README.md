@@ -127,6 +127,8 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 |                               |               | |
 | @packet-loss-prefix           | '\|'          | Prefix for status when displayed. |
 | @packet-loss-suffix           | '\|'          | Suffix for status when displayed. |
+|                               |               | |
+| @packet-loss-log_file         |               | If defined this file will be used for logging. |
 
 ## My config
 

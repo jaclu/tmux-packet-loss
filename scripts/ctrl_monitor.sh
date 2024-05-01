@@ -87,7 +87,9 @@ exit_script() {
     local exit_code="${1:-0}"
 
     pidfile_release ""
-    log_it "$(basename "$0") - done!"
+    msg="$(basename "$0") - done!"
+    [[ "$exit_code" -ne 0 ]] && msg+=" exit code:$exit_code"
+    log_it "$msg"
     exit "$exit_code"
 }
 

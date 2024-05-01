@@ -295,12 +295,40 @@ get_tmux_socket() {
 
 sqlite_err_handling() {
     #
+    #  If SQLITE_BUSY is detected, one more attempt is done after a sleep
+    #  other error handling should be done by the caller
+    #
     #  Loggs sqlite errors to $f_sqlite_errors
     #
+    #  Variables provided:
+    #    sqlite_exit_code - exit code for latest sqlite3 action
+    #
     local sql="$1"
+    local recursing=false
+
+    [[ -n "$2" ]] && recursing=true
 
     sqlite3 "$sqlite_db" "$sql" 2>>"$f_sqlite_errors"
-    # caller should parse any sqlite errors
+    sqlite_exit_code=$?
+    [[ "$sqlite_exit_code" = 5 ]] && { #  SQLITE_BUSY
+        $recursing && return
+
+        log_it "SQLITE_BUSY"
+        #
+        #  Make the sleep somewhat random, in order to not have two processes
+        #  sleeping the same and coliding again
+        #
+        sleep $((RANDOM % 4 + 2)) #  2-5 seconds
+        sqlite_err_handling "$sql" recursing
+        [[ "$sqlite_exit_code" = 5 ]] && {
+            log_it "2nd attempt also got SQLITE_BUSY -giving up"
+        }
+    }
+    #
+    #  this will exit true if it is 0, false otherwise
+    #  caller should check sqlite_exit_code
+    #
+    [[ "$sqlite_exit_code" -eq 0 ]] || false
 }
 
 sqlite_transaction() {
@@ -315,7 +343,12 @@ sqlite_transaction() {
         COMMIT; -- Commit the transaction
         "
     sqlite_err_handling "$sql"
-    # caller should parse any sqlite errors
+
+    #
+    #  this will exit true if it is 0, false otherwise
+    #  caller should check sqlite_exit_code
+    #
+    [[ "$sqlite_exit_code" -eq 0 ]] || false
 }
 
 #---------------------------------------------------------------

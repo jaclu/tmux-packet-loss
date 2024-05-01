@@ -101,7 +101,6 @@ get_current_loss() {
     #   current_loss
     #
     local sql
-    local err_code
     local msg
 
     if param_as_bool "$cfg_weighted_average"; then
@@ -144,15 +143,10 @@ get_current_loss() {
 
     sql="SELECT CAST(( $sql + 0.499 ) AS INTEGER)"
     current_loss="$(sqlite_err_handling "$sql")" || {
-        err_code=$?
-        [[ "$err_code" = 5 ]] && {
-            msg="DB locked when getting avg loss"
-            log_it "$msg"
-            script_exit "DB locked"
-        }
-        error_msg "sqlite3[$err_code] when retrieving current losses"
+        [[ "$sqlite_exit_code" = 5 ]] && script_exit "SQLITE_BUSY"
+        error_msg "sqlite3[$sqlite_exit_code] when retrieving current losses"
     }
-    display_time_elapsed "$t_start" "get_current_loss()"
+    display_time_elapsed "$t_start" "get_current_loss() - $current_loss"
 }
 
 get_prev_loss() {
@@ -235,20 +229,12 @@ display_history() {
     #
     local sql
     local avg_loss_raw
-    local err_code
     local msg
     local avg_loss
 
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
     avg_loss_raw="$(sqlite_err_handling "$sql")" || {
-        err_code=$?
-        msg="when retrieving history"
-        if [[ "$err_code" = 5 ]]; then
-            log_it "DB locked $msg"
-        else
-            #  log the issue as an error, then continue
-            error_msg "sqlite3[$err_code] $msg" 0
-        fi
+        error_msg "sqlite3[$sqlite_exit_code] "when retrieving history"" 0
         return
     }
     if [[ "$avg_loss_raw" != "0" ]]; then

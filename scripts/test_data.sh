@@ -37,8 +37,7 @@ insert_data() {
             INSERT INTO t_stats (loss) VALUES ($history);"
     fi
     sqlite_transaction "$sql" || {
-        err_code=$?
-        error_msg "sqlite3[$err_code] when running: $sql"
+        error_msg "sqlite3[$sqlite_exit_code] when running: $sql"
     }
     echo "t_loss"
     sqlite_err_handling "SELECT * FROM t_loss"

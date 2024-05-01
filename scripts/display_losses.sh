@@ -45,9 +45,8 @@ safe_now() {
 
 restart_monitor() {
     log_it "restarting monitor"
+    $scr_ctrl_monitor start || error_msg "ctrl_monitor gave error"
     date >>"$db_restart_log" # log current time
-
-    $scr_ctrl_monitor start
 }
 
 db_seems_inactive() {

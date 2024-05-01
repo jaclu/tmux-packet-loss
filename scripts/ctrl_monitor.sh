@@ -121,11 +121,11 @@ pidfile_acquire "" || {
 log_it # empty log line to make it easier to see where this starts
 
 case "$1" in
-"start" | "")
+start | "")
     monitor_terminate # First kill any running instance
     monitor_launch
     ;;
-"stop")
+stop)
     killed_monitor=false
     monitor_terminate
     $killed_monitor || {
@@ -133,8 +133,10 @@ case "$1" in
     }
     exit_script 0
     ;;
-"shutdown") packet_loss_plugin_shutdown ;;
-*) error_msg "Valid params: [None/start|stop|shutdown] - got [$1]" ;;
+shutdown) packet_loss_plugin_shutdown ;;
+
+*) echo "Valid params: [None/start|stop|shutdown] - got [$1]" ;;
+
 esac
 
 exit_script

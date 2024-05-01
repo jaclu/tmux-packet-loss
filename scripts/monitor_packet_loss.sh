@@ -197,6 +197,7 @@ while true; do
 
     [[ -s "$sqlite_db" ]] || {
         error_msg "database file gone $exit_msg" 0
+        #  next call to $scr_display_losses will start a new monitor
         break
     }
     #

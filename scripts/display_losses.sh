@@ -88,6 +88,10 @@ verify_db_status() {
         #  assume the monitor is not running, so (re-)start it
         #
         restart_monitor
+
+    elif [[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]]; then
+        error_msg "DB incorrect user_version: " 0
+        restart_monitor
     fi
     display_time_elapsed "$t_start" "verify_db_status() - was ok: $db_was_ok"
 }

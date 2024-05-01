@@ -12,6 +12,7 @@
 #   current tmux settings.
 #
 #   ---  DB revision history  ---
+#   12 - Changed triggers
 #   11 - Added minute_trigger
 #
 create_db() {

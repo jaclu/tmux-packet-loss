@@ -434,6 +434,8 @@ main() {
 
     pidfile_ctrl_monitor="$d_data"/ctrl_monitor.pid
     pidfile_monitor="$d_data"/monitor.pid
+    pidfile_tmux="$d_data"/tmux.pid
+
     # lits each time display_losses had to restart monitor
     db_restart_log="$d_data"/db_restarted.log
 

@@ -300,6 +300,7 @@ sqlite_err_handling() {
     local sql="$1"
 
     sqlite3 "$sqlite_db" "$sql" 2>>"$f_sqlite_errors"
+    # caller should parse any sqlite errors
 }
 
 sqlite_transaction() {
@@ -459,7 +460,7 @@ main() {
     #
     #  Sanity check that DB structure is current, if not it will be replaced
     #
-    db_version=11
+    db_version=12
 
     [[ -z "$skip_time_elapsed" ]] && {
         # creates a lot of overhead so should normally be true

@@ -87,44 +87,51 @@ update_triggers() {
     CREATE TRIGGER IF NOT EXISTS new_loss
     AFTER INSERT ON t_loss
     BEGIN
-        -- keep loss table within max size
+        -- Keep t_loss table within max size
         DELETE FROM t_loss
-        WHERE
-            -- +1 to also consider the just inserted row
-            ROWID < NEW.ROWID - $cfg_history_size +1;
+        WHERE ROWID < NEW.ROWID - $cfg_history_size + 1;
 
-        -- Only keep one min of records in t_1_min
+        -- Only keep one minute of records in t_1_min
         -- Clear old records before considering to insert, to ensure no
         -- unintended averages are saved after a sleep.
-        DELETE FROM t_1_min WHERE time_stamp <= datetime('now', '-1 minutes');
+        DELETE FROM t_1_min
+        WHERE time_stamp <= datetime('now', '-1 minutes');
 
         -- Insert new loss into t_1_min unless this is startup
         INSERT INTO t_1_min (loss)
         SELECT CASE
-            -- if machine was just resuming, and network isnt up yet
-            -- this prevents early losses to skew the stats
-            WHEN (SELECT COUNT(*) FROM t_1_min) < $ignore_first_items THEN
-                0
-            ELSE
-                NEW.loss
+            -- If machine was just resuming, and network isn't up yet
+            -- This prevents early losses to skew the stats
+            WHEN (SELECT COUNT(*) FROM t_1_min) < $ignore_first_items THEN 0
+            ELSE NEW.loss
         END;
     END;
 
     CREATE TRIGGER IF NOT EXISTS new_minute
-    AFTER INSERT ON t_1_min
-    WHEN (
-            -- if no records for this minute is present
-            SELECT COUNT(*)
-            FROM t_stats
-            WHERE time_stamp >= datetime(strftime('%Y-%m-%d %H:%M'))
-        ) = 0
+        AFTER INSERT ON t_1_min
+        WHEN (
+            -- Check if no records for this minute are present
+            (
+                SELECT COUNT(*)
+                FROM t_stats
+                WHERE time_stamp >= datetime(strftime('%Y-%m-%d %H:%M'))
+            ) = 0
+        )
+        AND (
+            -- Check if the oldest record in t_1_min is older than 30 seconds
+            (
+                SELECT strftime('%s', 'now') - strftime('%s', MIN(time_stamp))
+                FROM t_1_min
+            ) > 30
+        )
     BEGIN
         INSERT INTO t_stats (loss)
-            SELECT COALESCE(avg(loss), 0) FROM t_1_min;
+        SELECT COALESCE(avg(loss), 0)
+        FROM t_1_min;
 
-        -- keep statistics table within specified age
-        DELETE FROM t_stats WHERE time_stamp <=
-        datetime('now', '-$cfg_hist_avg_minutes minutes');
+        -- Keep statistics table within specified age
+        DELETE FROM t_stats
+        WHERE time_stamp <= datetime('now', '-$cfg_hist_avg_minutes minutes');
     END;
     "
     sqlite_transaction "$sql" || {

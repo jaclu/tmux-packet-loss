@@ -48,7 +48,7 @@ create_db() {
     sqlite_transaction "$sql" || {
         error_msg "sqlite3[$?] when creating the DB"
     }
-    log_it "Created db"
+    log_it "Created DB - user_version: $db_version"
 }
 
 update_triggers() {
@@ -157,8 +157,10 @@ log_prefix="prp"
 #
 #  Create fresh database if it is missing or obsolete
 #
-[[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]] && {
-    log_it "DB is not user_version: $db_version"
+current_db_vers="$(sqlite_err_handling "PRAGMA user_version")"
+
+[[ "$current_db_vers" != "$db_version" ]] && {
+    log_it "DB incorrect user_version: $current_db_vers"
     create_db
 }
 

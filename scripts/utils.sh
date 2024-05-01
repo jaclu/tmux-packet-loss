@@ -69,7 +69,7 @@ error_msg() {
     #
     local msg="ERROR: $1"
     local exit_code="${2:-1}"
-    local display_message=${3:-true}
+    local display_message=${3:-false}
 
     if $log_interactive_to_stderr && [[ -t 0 ]]; then
         echo "$msg" >/dev/stderr
@@ -161,7 +161,9 @@ normalize_bool_param() {
 
     *)
         log_it "Invalid parameter normalize_bool_param($1)"
-        error_msg "normalize_bool_param($1) - should be yes/true or no/false" 1
+        error_msg \
+            "normalize_bool_param($1) - should be yes/true/1 or no/false/0" \
+            1 true
         ;;
 
     esac
@@ -363,7 +365,7 @@ display_time_elapsed() {
     local duration
 
     [[ -z "$t_start" ]] && {
-        error_msg "display_time_elapsed() called t_start unset"
+        error_msg "display_time_elapsed() t_start unset"
     }
     duration="$(echo "$(safe_now) - $t_start" | bc)"
     log_it "Since start: $(printf "%.2f" "$duration") $label"

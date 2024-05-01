@@ -21,8 +21,9 @@ set_tmux_option() {
     local sto_option="$1"
     local sto_value="$2"
 
-    [[ -z "$sto_option" ]] && error_msg "set_tmux_option() param 1 empty!"
-
+    [[ -z "$sto_option" ]] && {
+       error_msg "set_tmux_option() param 1 empty!" 1 true
+    }
     [[ "$TMUX" = "" ]] && return # this is run standalone
 
     $TMUX_BIN set -g "$sto_option" "$sto_value"
@@ -70,7 +71,7 @@ rm -f "$f_param_cache"
 #  Dependency check
 #
 command -v sqlite3 >/dev/null 2>&1 || {
-    error_msg "Missing dependency sqlite3"
+    error_msg "Missing dependency sqlite3" 1 true
 }
 
 #

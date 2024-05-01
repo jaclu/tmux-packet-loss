@@ -10,7 +10,7 @@ clear_losses_in_t_loss() {
     [[ -n "$($scr_display_losses)" ]] && {
         log_it "Clearing losses - to ensure plugin isnt stuck alerting"
         sqlite_err_handling "DELETE FROM t_loss WHERE loss != 0" || {
-            error_msg "sqlite3[$?] in clear_losses_in_t_loss()"
+            error_msg "sqlite3[$?] in clear_losses_in_t_loss()" 0
         }
     }
 }
@@ -42,7 +42,8 @@ monitor_terminate() {
 
 monitor_launch() {
     tmux_pid=$(echo "$TMUX" | sed 's/,/ /g' | cut -d' ' -f 2)
-    [[ -z "$tmux_pid" ]] && error_msg "Failed to extract pid for tmux process!"
+    [[ -z "$tmux_pid" ]] && error_msg \
+        "Failed to extract pid for tmux process!" 1 true
     echo "$tmux_pid" >"$pidfile_tmux"
 
     #
@@ -62,7 +63,8 @@ packet_loss_plugin_shutdown() {
 
     sleep 1 #  monitor should have exited by now
     pidfile_is_live "$pidfile_monitor" && {
-        error_msg "$(basename "$0") shutdown failed - monitor still running"
+        error_msg \
+            "$(basename "$0") shutdown failed - monitor still running"
     }
 
     #

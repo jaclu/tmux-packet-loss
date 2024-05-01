@@ -196,7 +196,7 @@ while true; do
     }
 
     [[ -s "$sqlite_db" ]] || {
-        error_msg "database file gone $exit_msg" 0 false
+        error_msg "database file gone $exit_msg" 0
         break
     }
     #
@@ -257,7 +257,7 @@ while true; do
             log_it "DB locked when attmpting to insert loss:$percent_loss"
         else
             #  log the issue as an error, then continue
-            error_msg "sqlite3[$err_code] when adding a loss" 0 false
+            error_msg "sqlite3[$err_code] when adding a loss" 0
             ((err_count++))
         fi
         continue

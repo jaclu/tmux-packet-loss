@@ -146,9 +146,7 @@ get_current_loss() {
             log_it "$msg"
             script_exit "DB locked"
         }
-        error_msg \
-            "sqlite3[$err_code] when retrieving current losses" \
-            1 false
+        error_msg "sqlite3[$err_code] when retrieving current losses"
     }
     display_time_elapsed "$t_start" "get_current_loss()"
 }
@@ -245,7 +243,7 @@ display_history() {
             log_it "DB locked $msg"
         else
             #  log the issue as an error, then continue
-            error_msg "sqlite3[$err_code] $msg" 0 false
+            error_msg "sqlite3[$err_code] $msg" 0
         fi
         return
     }

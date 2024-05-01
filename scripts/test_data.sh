@@ -38,7 +38,7 @@ insert_data() {
     fi
     sqlite_transaction "$sql" || {
         err_code=$?
-        error_msg "sqlite3[$err_code] when running: $sql" 1 false
+        error_msg "sqlite3[$err_code] when running: $sql"
     }
     echo "t_loss"
     sqlite_err_handling "SELECT * FROM t_loss"

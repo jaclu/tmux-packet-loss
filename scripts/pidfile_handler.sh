@@ -136,7 +136,9 @@ pidfile_release() {
 
     pidfile_is_mine "$pid_file" || {
         pidfile_is_live "$pid_file" && {
-            error_msg "pidfile_release($pid_file) failed - still in use by [$pidfile_proc]"
+            msg="pidfile_release($pid_file) failed"
+            msg+=" - still in use by [$pidfile_proc]"
+            error_msg "$msg"
         }
         _pf_log "pid_file was a left-over"
     }

@@ -159,6 +159,9 @@ error_invalid_number=102
 #  parsing output gave empty result, unlikely to self correct
 error_unable_to_detect_loss=201
 
+#  Ensure DB and all triggers are vallid
+"$D_TPL_BASE_PATH"/scripts/prepare_db.sh
+
 define_ping_cmd # we need the ping_cmd in kill_any_strays
 
 scr_loss_default="$D_TPL_BASE_PATH"/scripts/ping_parsers/loss_calc_default.sh
@@ -176,8 +179,9 @@ fi
 log_it "Checking losses using: $(basename "$loss_check")"
 $store_ping_issues && log_it "Will save ping issues in $d_ping_issues"
 
-#  Ensure DB and all triggers are vallid
-"$D_TPL_BASE_PATH"/scripts/prepare_db.sh
+err_count=0
+err_count_max=3 # terminate if this many errors have occured
+exit_msg="- exiting this process"
 
 #
 #  Main loop
@@ -186,7 +190,15 @@ log_it "Starting the monitoring loop"
 while true; do
     percent_loss=""
     parse_error=false
+    [[ "$err_count" -ge "$err_count_max" ]] && {
+        log_it "*** shutting down - error count reached: $err_count_max"
+        break
+    }
 
+    [[ -s "$sqlite_db" ]] || {
+        error_msg "database file gone $exit_msg" 0 false
+        break
+    }
     #
     #  Redirecting stderr is needed since on some platforms, like
     #  running Debian 10 on iSH, you get warning printouts,
@@ -205,7 +217,8 @@ while true; do
     if [[ -n "$ping_output" ]]; then
         percent_loss="$(echo "$ping_output" | $loss_check)" || {
             log_it "$(basename "$loss_check") returned error"
-            exit 1
+            ((err_count++))
+            continue
         }
         if [[ -z "$percent_loss" ]]; then
             msg="Failed to parse ping output, unlikely to self correct!"
@@ -243,8 +256,9 @@ while true; do
         if [[ "$err_code" = 5 ]]; then
             log_it "DB locked when attmpting to insert loss:$percent_loss"
         else
-            #  log the issue as an error, then §continue
+            #  log the issue as an error, then continue
             error_msg "sqlite3[$err_code] when adding a loss" 0 false
+            ((err_count++))
         fi
         continue
     }
@@ -263,8 +277,8 @@ while true; do
     #
 
     [[ -f "$pidfile_monitor" ]] || {
-        log_it "*** pidfile has dissapeard - exiting this process"
-        exit 1
+        log_it "*** pidfile has dissapeard $exit_msg"
+        break
     }
 
     pidfile_is_mine "$pidfile_monitor" || {
@@ -276,12 +290,12 @@ while true; do
         #  One reason could be if somebody accidentally manually
         #  removed the pidfile
         #
-        log_it "*** pidfile is no longer mine - exiting this process"
-        exit 1
+        log_it "*** pidfile is no longer mine $exit_msg"
+        break
     }
 
     pidfile_is_live "$pidfile_tmux" || {
-        log_it "tmux has exited, terminating packet-loss monitor"
+        log_it "tmux has exited $exit_msg"
 
         #
         #  By calling this in the background, this process can kill itself

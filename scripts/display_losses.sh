@@ -67,17 +67,18 @@ verify_db_status() {
 
     if [[ ! -s "$sqlite_db" ]]; then
         db_was_ok=false
-        log_it "DB missing"
+        db_missing="DB missing"
+        error_msg "$db_missing" 0
 
         #
         #  If DB is missing, try to start the monitor
         #
         restart_monitor
-        log_it "DB missing - restart is done"
+        log_it "$db_missing - monitor is restarted"
 
-        [[ -e "$sqlite_db" ]] || {
-            log_it "DB failed to restart - aborting"
-            script_exit "DB failed to restart"
+        [[ -s "$sqlite_db" ]] || {
+            error_msg "$db_missing - after monitor restart - aborting"
+            script_exit "DB monitor failed to restart"
         }
     elif db_seems_inactive; then
         db_was_ok=false

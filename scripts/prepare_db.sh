@@ -20,7 +20,8 @@ create_db() {
         log_it "old_db removed"
     }
     #
-    #  t_loss is limited to $cfg_history_size rows, in order to make statistics consistent
+    #  t_loss is limited to $cfg_history_size records, in order to make
+    #  statistics consistent
     #
     local sql="
     CREATE TABLE t_loss (
@@ -28,7 +29,8 @@ create_db() {
         loss DECIMAL(5,1)
     );
 
-    -- Ensures items in t_loss are kept long enough to get 1 min averages
+    -- Unless just starting, all items inserted into t_loss are also
+    -- inserted here, to ensure we can get 1 min averages
     CREATE TABLE t_1_min (
         time_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
@@ -56,55 +58,69 @@ update_triggers() {
     #
     local sql
 
-    sql="DROP TRIGGER IF EXISTS new_loss; DROP TRIGGER IF EXISTS new_minute"
-    sqlite_err_handling "$sql" || {
+    sql="
+    DROP TRIGGER IF EXISTS new_loss;
+    DROP TRIGGER IF EXISTS new_minute
+    "
+    sqlite_transaction "$sql" || {
         error_msg "sqlite3[$?] when dropping triggers"
     }
 
     #
     #  If a device wakes up from sleep it might take a while unitl the
     #  network connection is back online.
-    #  To minimize getting crap into the statistics the first 30 seconds
+    #  To minimize getting crap into the statistics, the first 30 seconds
     #  of data is not stored in t_1_min
-    #  Since all records older than one minute has just been erased from
+    #  Since all records older than one minute have just been erased from
     #  t_1_min previously in the trigger, its enough to count the number
     #  of records present in t_1_min to detect this condition.
     #  Normally ping count would be low, but if it is over 30, no such
     #  filtering will happen.
     #
-    ignore_first_items=$(echo "30 / $cfg_ping_count" | bc)
+    #  Since a 0 loss is inserted at end of this script, to ensure
+    #  all tables have data, add one to compensate for this.
+    #
+    ignore_first_items=$(echo "1 + 30 / $cfg_ping_count" | bc)
+    log_it "ignore_first_items: $ignore_first_items"
 
     sql="
     CREATE TRIGGER IF NOT EXISTS new_loss
     AFTER INSERT ON t_loss
     BEGIN
-        -- keep loss table within max length
+        -- keep loss table within max size
         DELETE FROM t_loss
-        WHERE ROWID <
-            NEW.ROWID - $cfg_history_size + 1;
+        WHERE
+            -- +1 to also consider the just inserted row
+            ROWID < NEW.ROWID - $cfg_history_size +1;
+
+        -- Only keep one min of records in t_1_min
+        -- Clear old records before considering to insert, to ensure no
+        -- unintended averages are saved after a sleep.
+        DELETE FROM t_1_min WHERE time_stamp <= datetime('now', '-1 minutes');
 
         -- Insert new loss into t_1_min unless this is startup
         INSERT INTO t_1_min (loss)
         SELECT CASE
             -- if machine was just resuming, and network isnt up yet
             -- this prevents early losses to skew the stats
-            WHEN (SELECT COUNT(*) FROM t_1_min) < $ignore_first_items THEN 0
-            ELSE NEW.loss
+            WHEN (SELECT COUNT(*) FROM t_1_min) < $ignore_first_items THEN
+                0
+            ELSE
+                NEW.loss
         END;
-
-        -- only keep one min of records in t_1_min
-        DELETE FROM t_1_min WHERE time_stamp <= datetime('now', '-1 minutes');
     END;
 
     CREATE TRIGGER IF NOT EXISTS new_minute
     AFTER INSERT ON t_1_min
     WHEN (
+            -- if no records for this minute is present
             SELECT COUNT(*)
             FROM t_stats
             WHERE time_stamp >= datetime(strftime('%Y-%m-%d %H:%M'))
         ) = 0
     BEGIN
-        INSERT INTO t_stats (loss) SELECT avg(loss) FROM t_1_min;
+        INSERT INTO t_stats (loss)
+            SELECT COALESCE(avg(loss), 0) FROM t_1_min;
 
         -- keep statistics table within specified age
         DELETE FROM t_stats WHERE time_stamp <=
@@ -134,6 +150,7 @@ log_prefix="prp"
 #  Create fresh database if it is missing or obsolete
 #
 [[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]] && {
+    log_it "DB is not user_version: $db_version"
     create_db
 }
 
@@ -143,5 +160,5 @@ log_prefix="prp"
 #
 update_triggers
 
-#  a lot of DB related code depends on there being aat least one record
+# a lot of DB related code depends on there being at least one record
 sqlite_transaction "INSERT INTO t_loss (loss) VALUES (0)"

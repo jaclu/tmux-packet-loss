@@ -86,7 +86,7 @@ exit_script() {
     #
     local exit_code="${1:-0}"
 
-    pidfile_release ""
+    pidfile_release "$pidfile_ctrl_monitor"
     msg="$(basename "$0") - done!"
     [[ "$exit_code" -ne 0 ]] && msg+=" exit code:$exit_code"
     log_it "$msg"
@@ -114,8 +114,8 @@ log_prefix="ctr"
 # shellcheck source=scripts/pidfile_handler.sh
 . "$scr_pidfile_handler"
 
-pidfile_acquire "" || {
-    error_msg "pid_file [$pid_file] - is owned by process [$pidfile_proc]"
+pidfile_acquire "$pidfile_ctrl_monitor" || {
+    error_msg "My pid_file is owned by process [$pidfile_proc]"
 }
 
 log_it # empty log line to make it easier to see where this starts

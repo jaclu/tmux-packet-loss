@@ -431,7 +431,8 @@ main() {
     f_log_date="$d_data"/log_date
 
     sqlite_db="$d_data"/packet_loss.sqlite
-    pidfile_tmux="$d_data"/tmux.pid
+
+    pidfile_ctrl_monitor="$d_data"/ctrl_monitor.pid
     pidfile_monitor="$d_data"/monitor.pid
     # lits each time display_losses had to restart monitor
     db_restart_log="$d_data"/db_restarted.log

@@ -111,7 +111,7 @@ log_prefix="ctr"
 . "$scr_pidfile_handler"
 
 pidfile_acquire "" || {
-    error_msg "pid_file - is owned by process [$pidfile_proc]"
+    error_msg "pid_file [$pid_file] - is owned by process [$pidfile_proc]"
 }
 
 log_it # empty log line to make it easier to see where this starts

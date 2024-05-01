@@ -65,7 +65,7 @@ verify_db_status() {
     #
     local db_was_ok=true
 
-    if [[ ! -e "$sqlite_db" ]]; then
+    if [[ ! -s "$sqlite_db" ]]; then
         db_was_ok=false
         log_it "DB missing"
 

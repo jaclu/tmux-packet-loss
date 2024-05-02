@@ -83,6 +83,7 @@ error_msg() {
         }
     fi
     [[ "$exit_code" -gt 0 ]] && exit "$exit_code"
+    # log_it "error_msg($msg) - dont exit"
 }
 
 save_ping_issue() {
@@ -118,6 +119,7 @@ is_float() {
     local strict_check="${2:-}"
     local float_pattern
 
+    # log_it "is_float($input,$strict_check)"
     if [[ -n "$strict_check" ]]; then
         # must be a number with a .
         float_pattern='^[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?$'
@@ -176,6 +178,76 @@ normalize_bool_param() {
     esac
 
     return 1
+}
+
+#---------------------------------------------------------------
+#
+#   sqlite
+#
+#---------------------------------------------------------------
+
+sqlite_err_handling() {
+    #
+    #  If SQLITE_BUSY is detected, two more attempt is done after a sleep
+    #  other error handling should be done by the caller
+    #
+    #  Loggs sqlite errors to $f_sqlite_errors
+    #
+    #  Additional exit code:
+    #    99  - still SQLITE_BUSY despite recursion
+    #
+    #  Variables provided:
+    #    sqlite_exit_code - exit code for latest sqlite3 action
+    #                       if called as a function
+    #
+    local sql="$1"
+    local recursion="${2:-1}"
+
+    is_int "$recursion" || {
+        error_msg \
+            "sqlite_err_handling(): recursion param not int [$recursion]"
+    }
+
+    sqlite3 "$sqlite_db" "$sql" 2>>"$f_sqlite_errors"
+    sqlite_exit_code=$?
+
+    [[ "$sqlite_exit_code" = 5 ]] && { #  SQLITE_BUSY
+        if [[ "$recursion" -gt 2 ]]; then
+            log_it "attempt $recursion also got SQLITE_BUSY - giving up"
+            sqlite_exit_code=99 # repeated SQLITE_BUSY
+        else
+            #
+            #  Make the sleep somewhat random, in order to not have two processes
+            #  sleeping the same and coliding again
+            #
+            sleep $((RANDOM % 4 + 2)) #  2-5 seconds
+            ((recursion++))
+            log_it "SQLITE_BUSY - recursion: $recursion"
+            sqlite_err_handling "$sql" "$recursion"
+        fi
+    }
+    return "$sqlite_exit_code"
+}
+
+sqlite_transaction() {
+    local sql_original="$1"
+    local sql
+
+    sql="
+        BEGIN TRANSACTION; -- Start the transaction
+
+        $sql_original ;
+
+        COMMIT; -- Commit the transaction
+        "
+    sqlite_err_handling "$sql"
+
+    #
+    #  this will exit true if $sqlite_err_handling is 0
+    #  caller should check sqlite_exit_code or $? depending how this was
+    #  called
+    #
+    return "$sqlite_exit_code"
 }
 
 #---------------------------------------------------------------
@@ -292,72 +364,6 @@ get_tmux_socket() {
     else
         echo "standalone"
     fi
-}
-
-#---------------------------------------------------------------
-#
-#   sqlite
-#
-#---------------------------------------------------------------
-
-sqlite_err_handling() {
-    #
-    #  If SQLITE_BUSY is detected, one more attempt is done after a sleep
-    #  other error handling should be done by the caller
-    #
-    #  Loggs sqlite errors to $f_sqlite_errors
-    #
-    #  Variables provided:
-    #    sqlite_exit_code - exit code for latest sqlite3 action
-    #
-    local sql="$1"
-    local recursing="${2:-0}"
-
-    [[ "$recursing" -gt 0 ]] && {
-        log_it "sqlite_err_handling() - recursing: $recursing"
-    }
-
-    sqlite3 "$sqlite_db" "$sql" 2>>"$f_sqlite_errors"
-    sqlite_exit_code=$?
-    [[ "$sqlite_exit_code" = 5 ]] && { #  SQLITE_BUSY
-        if [[ "$recursing" -gt 3 ]]; then
-            log_it "attempt $recursing also got SQLITE_BUSY - giving up"
-        else
-            log_it "SQLITE_BUSY"
-            #
-            #  Make the sleep somewhat random, in order to not have two processes
-            #  sleeping the same and coliding again
-            #
-            sleep $((RANDOM % 4 + 2)) #  2-5 seconds
-            ((recursing++))
-            sqlite_err_handling "$sql" "$recursing"
-        fi
-    }
-    #
-    #  this will exit true if it is 0
-    #  caller should check sqlite_exit_code if this returns false
-    #
-    [[ "$sqlite_exit_code" -eq 0 ]] || false
-}
-
-sqlite_transaction() {
-    local sql_original="$1"
-    local sql
-
-    sql="
-        BEGIN TRANSACTION; -- Start the transaction
-
-        $sql_original ;
-
-        COMMIT; -- Commit the transaction
-        "
-    sqlite_err_handling "$sql"
-
-    #
-    #  this will exit true if it is 0
-    #  caller should check sqlite_exit_code if this returns false
-    #
-    [[ "$sqlite_exit_code" -eq 0 ]] || false
 }
 
 #---------------------------------------------------------------

@@ -87,7 +87,6 @@ verify_db_status() {
         #  assume the monitor is not running, so (re-)start it
         #
         restart_monitor
-
     elif [[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]]; then
         error_msg "DB incorrect user_version: " 0
         restart_monitor
@@ -143,7 +142,7 @@ get_current_loss() {
 
     sql="SELECT CAST(( $sql + 0.499 ) AS INTEGER)"
     current_loss="$(sqlite_err_handling "$sql")" || {
-        [[ "$sqlite_exit_code" = 5 ]] && script_exit "SQLITE_BUSY"
+        sqlite_exit_code="$?"
         error_msg "sqlite3[$sqlite_exit_code] when retrieving current losses"
     }
     display_time_elapsed "$t_start" "get_current_loss() - $current_loss"
@@ -234,6 +233,7 @@ display_history() {
 
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
     avg_loss_raw="$(sqlite_err_handling "$sql")" || {
+        sqlite_exit_code="$?"
         error_msg "sqlite3[$sqlite_exit_code] "when retrieving history"" 0
         return
     }

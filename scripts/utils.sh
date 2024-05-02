@@ -83,7 +83,6 @@ error_msg() {
         }
     fi
     [[ "$exit_code" -gt 0 ]] && exit "$exit_code"
-    # log_it "error_msg($msg) - dont exit"
 }
 
 save_ping_issue() {
@@ -119,7 +118,6 @@ is_float() {
     local strict_check="${2:-}"
     local float_pattern
 
-    # log_it "is_float($input,$strict_check)"
     if [[ -n "$strict_check" ]]; then
         # must be a number with a .
         float_pattern='^[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?$'

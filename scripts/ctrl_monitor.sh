@@ -7,11 +7,10 @@
 #
 
 clear_losses_in_t_loss() {
-    [[ -n "$($scr_display_losses)" ]] && {
-        log_it "Clearing losses - to ensure plugin isnt stuck alerting"
-        sqlite_err_handling "DELETE FROM t_loss WHERE loss != 0" || {
-            error_msg "sqlite3[$?] in clear_losses_in_t_loss()" 0
-        }
+    log_it "Clearing losses - to ensure plugin isnt stuck alerting"
+    sqlite_err_handling "DELETE FROM t_loss WHERE loss != 0" || {
+        error_msg \
+            "sqlite3[$sqlite_exit_code] in clear_losses_in_t_loss()"
     }
 }
 

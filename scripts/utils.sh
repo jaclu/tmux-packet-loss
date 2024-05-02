@@ -224,6 +224,9 @@ sqlite_err_handling() {
             sqlite_err_handling "$sql" "$recursion"
         fi
     }
+    [[ "$recursion" -gt 1 ]] && {
+        log_it "sqlite_err_handling() suceeded at recursion lvl: $recursion"
+    }
     return "$sqlite_exit_code"
 }
 

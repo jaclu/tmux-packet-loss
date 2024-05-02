@@ -220,12 +220,9 @@ sqlite_err_handling() {
             #
             sleep $((RANDOM % 4 + 2)) #  2-5 seconds
             ((recursion++))
-            log_it "SQLITE_BUSY - recursion: $recursion"
+            log_it "SQLITE_BUSY - attempt: $recursion"
             sqlite_err_handling "$sql" "$recursion"
         fi
-    }
-    [[ "$recursion" -gt 1 ]] && {
-        log_it "sqlite_err_handling() suceeded at recursion lvl: $recursion"
     }
     return "$sqlite_exit_code"
 }

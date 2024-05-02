@@ -7,13 +7,6 @@
 #
 #   This runs forever.
 #
-is_int() {
-    case $1 in
-    '' | *[!0-9]*) return 1 ;; # Contains non-numeric characters
-    *) return 0 ;;             # Contains only digits
-    esac
-}
-
 float_drop_digits() {
     #
     # float to int by dropping all digits

@@ -106,6 +106,13 @@ save_ping_issue() {
 #
 #---------------------------------------------------------------
 
+is_int() {
+    case $1 in
+    '' | *[!0-9]*) return 1 ;; # Contains non-numeric characters
+    *) return 0 ;;             # Contains only digits
+    esac
+}
+
 is_float() {
     local input="$1"
     local strict_check="${2:-}"

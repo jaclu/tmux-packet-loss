@@ -277,15 +277,6 @@ log_prefix="dsp"
 #  shellcheck source=scripts/utils.sh
 . "$D_TPL_BASE_PATH"/scripts/utils.sh
 
-#
-#  DB should be updated every $cfg_ping_count seconds, if it hasnt
-#  been changed in a while monitor is most likely not running, or has
-#  gotten stuck. Restarting it should solve the issue.
-#  Since this script is run at regular intervalls, it is a good place
-#  to ensure it is operational.
-#
-db_max_age_mins=2
-
 log_loss_changes=false # set to false to reduce logging from this module
 result=""              # indicating no losses
 

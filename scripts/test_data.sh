@@ -21,6 +21,9 @@ tst_error() {
 
 insert_data() {
     [[ -f "$pidfile_monitor" ]] && {
+        echo "Terminated the monitor. It will be restarted automatically"
+        echo "$db_max_age_mins minute(-s) after last db change."
+        echo
         "$scr_ctrl_monitor" stop
     }
 

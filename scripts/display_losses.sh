@@ -140,6 +140,7 @@ get_current_loss() {
         sql="SELECT avg(loss) FROM t_loss"
     fi
 
+    # CAST seems to always round down...
     sql="SELECT CAST(( $sql + 0.499 ) AS INTEGER)"
     current_loss="$(sqlite_err_handling "$sql")" || {
         sqlite_exit_code="$?"

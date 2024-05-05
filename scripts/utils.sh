@@ -487,6 +487,15 @@ main() {
     # lits each time display_losses had to restart monitor
     db_restart_log="$d_data"/db_restarted.log
 
+    #
+    #  DB should be updated every $cfg_ping_count seconds, if it hasnt
+    #  been changed in a while monitor is most likely not running, or has
+    #  gotten stuck. Restarting it should solve the issue.
+    #  Since this script is run at regular intervalls, it is a good place
+    #  to ensure it is operational.
+    #
+    db_max_age_mins=2
+
     #  check one of the path items to verify D_TPL_BASE_PATH
     [[ -f "$scr_monitor" ]] || {
         error_msg "D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"

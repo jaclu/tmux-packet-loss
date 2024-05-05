@@ -101,7 +101,7 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 
 | Code           | Action                                             |
 | -------------- | -------------------------------------------------- |
-| `#{packet_loss}` | Displays packet loss % if at or above `@packet-loss-level_disp` |
+| `#{packet_loss}` | Displays packet loss % if at or above `@packet-loss-level_disp`<br>Otherwise nothing|
 
 ## Configuration Variables
 

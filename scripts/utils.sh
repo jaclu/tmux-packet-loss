@@ -79,7 +79,7 @@ error_msg() {
         log_it
         $display_message && {
             # only display exit triggering errors on status bar
-            $TMUX_BIN display-message -d 0 "packet-loss $msg"
+            $TMUX_BIN display-message -d 0 "packet-loss:$msg"
         }
     fi
     [[ "$exit_code" -gt 0 ]] && exit "$exit_code"
@@ -275,6 +275,7 @@ get_tmux_option() {
 
 param_cache_write() {
     log_it "Generating param cache: $f_param_cache"
+    #region conf cache file
     cat <<EOF >"$f_param_cache"
     #
     # param cache, should always be removed on startup when
@@ -299,6 +300,7 @@ param_cache_write() {
     cfg_log_file="$cfg_log_file"
 
 EOF
+    #endregion
 }
 
 get_settings() {

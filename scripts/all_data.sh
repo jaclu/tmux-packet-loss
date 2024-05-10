@@ -21,7 +21,7 @@ case "$action" in
 show)
     cmd="SELECT *"
     ;;
-stats)
+avgs)
     cmd=""
     ;;
 clear)
@@ -29,7 +29,7 @@ clear)
     log_it "DB will be cleared"
     ;;
 *)
-    echo "usage: $app_name show/stats/clear"
+    echo "usage: $app_name show/avgs/clear"
     exit 1
     ;;
 esac

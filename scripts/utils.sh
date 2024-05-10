@@ -69,7 +69,7 @@ error_msg() {
     #
     local msg="ERROR: $1"
     local exit_code="${2:-1}"
-    local display_message=${3:-false}
+    local do_display_message=${3:-false}
 
     if $log_interactive_to_stderr && [[ -t 0 ]]; then
         echo "$msg" >/dev/stderr
@@ -77,12 +77,33 @@ error_msg() {
         log_it
         log_it "$msg"
         log_it
-        $display_message && {
-            # only display exit triggering errors on status bar
-            $TMUX_BIN display-message -d 0 "packet-loss:$msg"
-        }
+        #  display-message filters out \n
+        msg="$(echo "$msg" | tr '\n' ' ')"
+        $do_display_message && display_message_hold "$plugin_name $msg"
     fi
-    [[ "$exit_code" -gt 0 ]] && exit "$exit_code"
+    [[ "$exit_code" -gt -1 ]] && exit "$exit_code"
+}
+
+display_message_hold() {
+    #
+    #  Display a message and hold until key-press
+    #  Can't use tmux_error_handler in this func, since that could
+    #  trigger recursion
+    #
+    local msg="$1"
+    local org_display_time
+
+    if tmux_vers_compare 3.2; then
+        $TMUX_BIN display-message -d 0 "$msg"
+    else
+        # Manually make the error msg stay on screen a long time
+        org_display_time="$($TMUX_BIN show-option -gv display-time)"
+        $TMUX_BIN set -g display-time 120000 >/dev/null
+        $TMUX_BIN display-message "$msg"
+
+        posix_get_char >/dev/null # wait for keypress
+        $TMUX_BIN set -g display-time "$org_display_time" >/dev/null
+    fi
 }
 
 save_ping_issue() {
@@ -134,49 +155,27 @@ is_float() {
     fi
 }
 
+lowercase_it() {
+    echo "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+posix_get_char() {
+    #
+    #  Configure terminal to read a single character without echoing,
+    #  restoring the terminal and returning the char
+    #
+    local old_stty_cfg
+    old_stty_cfg=$(stty -g)
+    stty raw -echo
+    dd bs=1 count=1 2>/dev/null
+    stty "$old_stty_cfg"
+}
+
 #---------------------------------------------------------------
 #
 #   bool params
 #
 #---------------------------------------------------------------
-
-param_as_bool() {
-    #  Used to parse variables assigned "true" or "false" as booleans
-    [[ "$1" = "true" ]] && return 0
-    return 1
-}
-
-normalize_bool_param() {
-    #
-    #  Ensure boolean style params use consistent states
-    #
-    case "$1" in
-    #
-    #  First handle the mindboggling tradition by tmux to use
-    #  1 to indicate selected / active.
-    #  This means 1 is 0 and 0 is 1, how Orwellian...
-    #
-    "1" | "yes" | "Yes" | "YES" | "true" | "True" | "TRUE")
-        #  Be a nice guy and accept some common positive notations
-        echo "true"
-        ;;
-
-    "0" | "no" | "No" | "NO" | "false" | "False" | "FALSE")
-        #  Be a nice guy and accept some common false notations
-        echo "false"
-        ;;
-
-    *)
-        log_it "Invalid parameter normalize_bool_param($1)"
-        error_msg \
-            "normalize_bool_param($1) - should be yes/true/1 or no/false/0" \
-            1 true
-        ;;
-
-    esac
-
-    return 1
-}
 
 #---------------------------------------------------------------
 #
@@ -273,6 +272,64 @@ get_tmux_option() {
     fi
 }
 
+normalize_bool_param() {
+    #
+    #  Take a boolean style text param and convert it into an actual boolean
+    #  that can be used in your code. Example of usage:
+    #
+    #  normalize_bool_param "@menus_without_prefix" "$default_no_prefix" &&
+    #      cfg_no_prefix=true || cfg_no_prefix=false
+    #
+
+    param="$1"
+    _variable_name=""
+    # log_it "normalize_bool_param($param, $2)"
+
+    [[ "${param%"${param#?}"}" = "@" ]] && {
+        #
+        #  If it starts with "@", assume it is tmux variable name, thus
+        #  read its value from the tmux environment.
+        #  In this case $2 must be given as the default value!
+        #
+        [[ -z "$2" ]] && {
+            error_msg "normalize_bool_param($param) - no default" 0 true
+        }
+        _variable_name="$param"
+        param="$(get_tmux_option "$param" "$2")"
+    }
+
+    param="$(lowercase_it "$param")"
+    case "$param" in
+    #
+    #  First handle the unfortunate tradition by tmux to use
+    #  1 to indicate selected / active.
+    #  This means 1 is 0 and 0 is 1, how Orwellian...
+    #
+    1 | yes | true)
+        #  Be a nice guy and accept some common positive notations
+        return 0
+        ;;
+
+    0 | no | false)
+        #  Be a nice guy and accept some common false notations
+        return 1
+        ;;
+
+    *)
+        if [[ -n "$_variable_name" ]]; then
+            prefix="$_variable_name=$param"
+        else
+            prefix="$param"
+        fi
+        error_msg "$prefix - should be yes/true or no/false" 0 true
+        ;;
+
+    esac
+
+    # Should never get here...
+    return 2
+}
+
 param_cache_write() {
     log_it "Generating param cache: $f_param_cache"
     #region conf cache file
@@ -321,11 +378,10 @@ get_settings() {
         "$default_history_size")"
 
     # in order to assign a boolean to a variable this two line aproach is needed
-
-    cfg_weighted_average="$(normalize_bool_param "$(get_tmux_option \
-        "@packet-loss-weighted_average" "$default_weighted_average")")"
-    cfg_display_trend="$(normalize_bool_param "$(get_tmux_option \
-        "@packet-loss-display_trend" "$default_display_trend")")"
+    normalize_bool_param "@packet-loss-weighted_average" "$default_weighted_average" &&
+        cfg_weighted_average=true || cfg_weighted_average=false
+    normalize_bool_param "@packet-loss-display_trend" "$default_display_trend" &&
+        cfg_display_trend=true || cfg_display_trend=false
 
     cfg_level_disp="$(get_tmux_option "@packet-loss-level_disp" \
         "$default_level_disp")"
@@ -333,9 +389,8 @@ get_settings() {
         "$default_level_alert")"
     cfg_level_crit="$(get_tmux_option "@packet-loss-level_crit" \
         "$default_level_crit")"
-
-    cfg_hist_avg_display="$(normalize_bool_param "$(get_tmux_option \
-        "@packet-loss-hist_avg_display" "$default_hist_avg_display")")"
+    normalize_bool_param "@packet-loss-hist_avg_display" "$default_hist_avg_display" &&
+        cfg_hist_avg_display=true || cfg_hist_avg_display=false
     cfg_hist_avg_minutes="$(get_tmux_option "@packet-loss-hist_avg_minutes" \
         "$default_hist_avg_minutes")"
     cfg_hist_separator="$(get_tmux_option "@packet-loss-hist_separator" \
@@ -352,7 +407,7 @@ get_settings() {
 
     cfg_log_file="$(get_tmux_option "@packet-loss-log_file" "")"
 
-    param_as_bool "$use_param_cache" && param_cache_write
+    $use_param_cache && param_cache_write
 }
 
 get_tmux_socket() {
@@ -429,6 +484,7 @@ display_time_elapsed() {
 main() {
     local log_prefix="$log_prefix"
 
+    plugin_name="tmux-packet-loss"
     #
     #  For actions in utils log_prefix gets an u- prefix
     #  using local ensures it goes back to its original setting once
@@ -538,17 +594,17 @@ main() {
     default_history_size=6      #  how many ping results to keep in the primary table
 
     #  Use weighted average over averaging all data points
-    default_weighted_average="$(normalize_bool_param "true")"
+    default_weighted_average=true
 
     #  display ^/v prefix if value is increasing/decreasing
-    default_display_trend="$(normalize_bool_param "false")"
+    default_display_trend=false
 
     default_level_disp=1   #  display loss if this or higher
     default_level_alert=17 #  this or higher triggers alert color
     default_level_crit=40  #  this or higher triggers critical color
 
     #  Display long term average
-    default_hist_avg_display="$(normalize_bool_param "false")"
+    default_hist_avg_display=false
     default_hist_avg_minutes=30 #  Minutes to keep historical average
     default_hist_separator='~'  #  Separaor between current and hist data
 

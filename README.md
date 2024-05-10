@@ -4,7 +4,7 @@ Tmux-Packet-Loss is a plugin for Tmux that displays the percentage of packet los
 
 ## Recent changes
 
-- Losses are displayed, but no stats are saved for the first 30 seconds. This avoids getting initial errors before the network is re-established during a laptop resume saved into the history. 
+- Losses are displayed, but no stats are saved for the first 30 seconds. This avoids getting initial errors before the network is re-established during a laptop resume saved into the history.
 - Fixed boolean parameter handling to allow for yes/no or true/false options.
 - Renamed variables and defaults to match the Tmux option names.
 - Refactored code into more task-isolated modules.
@@ -17,7 +17,7 @@ Plugin output takes no space when under @packet-loss-level_disp level.
 
 ### Loss levels
 
-| Display | With hist avg | Status
+| Display | With hist avg | Status |
 | - | - | - |
 | ![no_loss  ](https://github.com/jaclu/tmux-packet-loss/assets/5046648/91f94685-c931-425e-bc4a-20c0246959a4) |   | under threshold       |
 | ![lvl_low  ](https://github.com/jaclu/tmux-packet-loss/assets/5046648/78fd85b6-fdd3-4609-9903-9d15c0913ab2) | ![lvl_low_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/95c91b03-f562-4790-8e62-1b7a343f90c1)   | low level losses      |
@@ -28,7 +28,7 @@ Plugin output takes no space when under @packet-loss-level_disp level.
 
 If `@packet-loss-display_trend` is yes, change since the previous check is indicated with a prefix character
 
-| Display | Status
+| Display | Status |
 | - | - |
 |![incr  ](https://github.com/jaclu/tmux-packet-loss/assets/5046648/6b1650f0-fc83-4876-9ebe-30d6fe95898f) | Increasing |
 |![stable](https://github.com/jaclu/tmux-packet-loss/assets/5046648/78fd85b6-fdd3-4609-9903-9d15c0913ab2) | Stable     |
@@ -161,7 +161,7 @@ Given that ping is instantaneous, consider setting the `status-interval` to one 
 
 ## Nerdy stuff
 
-If the data folder, where the database and status files are kept disappears, the database and statuses 
+If the data folder, where the database and status files are kept disappears, the database and statuses
 will be recreated and a new monitor process will be started.
 So this is a simple and quick way to clear historical data, without having to bother with SQL!
 
@@ -208,7 +208,7 @@ Each table contains two fields, time_stamp, and value. The time_stamp field is o
 
 ### Simulating losses
 
-To examine the plugin displaying losses in the status bar, there is an included test script. 
+To examine the plugin displaying losses in the status bar, there is an included test script.
 Run it without params to get a help summary
 
 ```bash

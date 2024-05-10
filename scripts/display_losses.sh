@@ -102,7 +102,7 @@ get_current_loss() {
     local sql
     local msg
 
-    if param_as_bool "$cfg_weighted_average"; then
+    if $cfg_weighted_average; then
         #
         #  To give loss a declining history weighting,
         #  it is displayed as the largest of:
@@ -299,11 +299,11 @@ if [[ "$current_loss" -gt 0 ]]; then
     #
     #  Check trend, ie change since last update
     #
-    param_as_bool "$cfg_display_trend" && show_trend
+    $cfg_display_trend && show_trend
 
     result="$(colorize_high_numbers "$current_loss" "$result")"
 
-    param_as_bool "$cfg_hist_avg_display" && display_history
+    $cfg_hist_avg_display && display_history
 
     #
     #  Set prefix & suffix for result and report to status bar
@@ -311,6 +311,6 @@ if [[ "$current_loss" -gt 0 ]]; then
     echo "${cfg_prefix}${result}${cfg_suffix}"
 fi
 
-param_as_bool "$cfg_display_trend" && set_prev_loss
+$cfg_display_trend && set_prev_loss
 
 display_time_elapsed "$t_start" "display_losses.sh"

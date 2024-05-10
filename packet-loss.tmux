@@ -22,7 +22,7 @@ set_tmux_option() {
     local sto_value="$2"
 
     [[ -z "$sto_option" ]] && {
-       error_msg "set_tmux_option() param 1 empty!" 1 true
+        error_msg "set_tmux_option() param 1 empty!" 0 true
     }
     [[ "$TMUX" = "" ]] && return # this is run standalone
 
@@ -39,14 +39,12 @@ update_tmux_option() {
     set_tmux_option "$option" "$new_option_value"
 }
 
-
 do_interpolation() {
     local all_interpolated="$1"
 
     all_interpolated=${all_interpolated//$pkt_loss_interpolation/$pkt_loss_command}
     echo "$all_interpolated"
 }
-
 
 #===============================================================
 #
@@ -71,7 +69,7 @@ rm -f "$f_param_cache"
 #  Dependency check
 #
 command -v sqlite3 >/dev/null 2>&1 || {
-    error_msg "Missing dependency sqlite3" 1 true
+    error_msg "Missing dependency sqlite3" 0 true
 }
 
 #

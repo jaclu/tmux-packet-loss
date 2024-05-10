@@ -21,12 +21,15 @@ case "$action" in
 show)
     cmd="SELECT *"
     ;;
+stats)
+    cmd=""
+    ;;
 clear)
     cmd="DELETE"
     log_it "DB will be cleared"
     ;;
 *)
-    echo "usage: $app_name show/clear"
+    echo "usage: $app_name show/stats/clear"
     exit 1
     ;;
 esac
@@ -34,7 +37,7 @@ esac
 tables=$(sqlite3 "$sqlite_db" ".tables")
 for table in $tables; do
     echo "-----  Table: $table"
-    sqlite3 "$sqlite_db" "$cmd FROM $table;"
+    [[ -n "$cmd" ]] && sqlite3 "$sqlite_db" "$cmd FROM $table;"
     echo "average: $(
         sqlite3 "$sqlite_db" "SELECT round(avg(loss),1) FROM $table;"
     )"

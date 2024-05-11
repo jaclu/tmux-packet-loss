@@ -34,9 +34,14 @@ clear)
     ;;
 esac
 
-tables=$(sqlite3 "$sqlite_db" ".tables")
-for table in $tables; do
-    echo "-----  Table: $table"
+#  auto fill
+# tables=$(sqlite3 "$sqlite_db" ".tables")
+
+#  sorted
+tables=( t_loss t_1_min t_stats )
+
+for table in "${tables[@]}"; do
+    echo "--------  Table: $table  --------"
     [[ -n "$cmd" ]] && sqlite3 "$sqlite_db" "$cmd FROM $table;"
     echo "average: $(
         sqlite3 "$sqlite_db" "SELECT round(avg(loss),1) FROM $table;"

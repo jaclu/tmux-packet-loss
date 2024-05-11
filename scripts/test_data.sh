@@ -43,11 +43,8 @@ insert_data() {
     sqlite_transaction "$sql" || {
         error_msg "sqlite3[$sqlite_exit_code] when running: $sql"
     }
-    echo "t_loss"
-    sqlite_err_handling "SELECT * FROM t_loss"
-    echo
-    echo "t_stats"
-    sqlite_err_handling "SELECT * FROM t_stats"
+
+    "$D_TPL_BASE_PATH"/scripts/all_data.sh show
 }
 
 #===============================================================

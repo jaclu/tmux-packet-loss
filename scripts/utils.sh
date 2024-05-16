@@ -294,7 +294,7 @@ normalize_bool_param() {
         #  In this case $2 must be given as the default value!
         #
         [[ -z "$2" ]] && {
-            error_msg "normalize_bool_param($param) - no default" 0 true
+            error_msg "normalize_bool_param($param) - no default" 1 true
         }
         _variable_name="$param"
         param="$(get_tmux_option "$param" "$2")"
@@ -323,7 +323,7 @@ normalize_bool_param() {
         else
             prefix="$param"
         fi
-        error_msg "$prefix - should be yes/true or no/false" 0 true
+        error_msg "$prefix - should be yes/true or no/false" 1 true
         ;;
 
     esac

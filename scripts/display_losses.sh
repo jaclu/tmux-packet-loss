@@ -76,8 +76,7 @@ verify_db_status() {
         log_it "$db_missing - monitor is restarted"
 
         [[ -s "$sqlite_db" ]] || {
-            error_msg "$db_missing - after monitor restart - aborting"
-            script_exit "DB monitor failed to restart"
+            error_msg "$db_missing - after monitor restart - aborting" 1 true
         }
     elif db_seems_inactive; then
         db_was_ok=false
@@ -88,7 +87,7 @@ verify_db_status() {
         #
         restart_monitor
     elif [[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]]; then
-        error_msg "DB incorrect user_version: " 0
+        error_msg "DB incorrect user_version: " -1
         restart_monitor
     fi
     display_time_elapsed "$t_start" "verify_db_status() - was ok: $db_was_ok"
@@ -235,7 +234,7 @@ display_history() {
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
     avg_loss_raw="$(sqlite_err_handling "$sql")" || {
         sqlite_exit_code="$?"
-        error_msg "sqlite3[$sqlite_exit_code] "when retrieving history"" 0
+        error_msg "sqlite3[$sqlite_exit_code] "when retrieving history"" -1
         return
     }
     if [[ "$avg_loss_raw" != "0" ]]; then

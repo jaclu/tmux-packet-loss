@@ -189,7 +189,7 @@ while true; do
     }
 
     [[ -s "$sqlite_db" ]] || {
-        error_msg "database file gone $exit_msg" 0
+        error_msg "database file gone $exit_msg" -1
         #  next call to $scr_display_losses will start a new monitor
         break
     }
@@ -247,7 +247,7 @@ while true; do
 
     sqlite_transaction "INSERT INTO t_loss (loss) VALUES ($percent_loss)" || {
         [[ "$sqlite_exit_code" = 5 ]] || {
-            error_msg "sqlite3[$sqlite_exit_code] when adding a loss" 0
+            error_msg "sqlite3[$sqlite_exit_code] when adding a loss" -1
             ((err_count++))
         }
         continue

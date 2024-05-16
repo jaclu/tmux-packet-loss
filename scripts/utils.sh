@@ -65,7 +65,9 @@ log_it() {
 error_msg() {
     #
     #  Display $1 as an error message in log and as a tmux display-message
-    #  If $2 is set to 0, process is not exited
+    #  If exit_code is set to -1, process is not exited
+    #  if do_display_message is true, the error msg is displayed on
+    #  the status bar
     #
     local msg="ERROR: $1"
     local exit_code="${2:-1}"

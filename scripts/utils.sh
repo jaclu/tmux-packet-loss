@@ -574,6 +574,11 @@ main() {
     d_ping_issues="$d_data"/ping_issues
 
     #
+    #  Currently running script
+    #
+    this_app="$(basename "$0")"
+
+    #
     #  Shortands for some scripts that are called in various places
     #
     scr_ctrl_monitor="$D_TPL_BASE_PATH"/scripts/ctrl_monitor.sh

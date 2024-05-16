@@ -56,7 +56,7 @@ set_pidfile_name() {
     #  Variables provided:
     #    pid_file - based on name of current script if nothing provided
     #
-    pid_file="${1:-"$d_data/$(basename "$0").pid"}"
+    pid_file="${1:-"$d_data/$this_app.pid"}"
 }
 
 pidfile_is_live() {

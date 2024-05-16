@@ -53,8 +53,6 @@ insert_data() {
 #
 #===============================================================
 
-this_app="$(basename "$0")"
-
 [[ -z "$1" ]] && {
     echo "Usage: $this_app [--keep] tst_loss [history_loss]
 

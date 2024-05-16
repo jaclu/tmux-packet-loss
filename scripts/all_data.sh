@@ -7,7 +7,6 @@
 #
 #  Show / Clear content of all tables
 #
-app_name=$(basename "$0")
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="a_d"
@@ -29,7 +28,7 @@ clear)
     log_it "DB will be cleared"
     ;;
 *)
-    echo "usage: $app_name show/avgs/clear"
+    echo "usage: $this_app show/avgs/clear"
     exit 1
     ;;
 esac

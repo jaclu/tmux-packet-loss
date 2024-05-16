@@ -249,6 +249,58 @@ sqlite_transaction() {
     return "$sqlite_exit_code"
 }
 
+sql_current_loss() {
+    #
+    #  Exported variables
+    #    sql - the sql to get a weighted / average loss rate
+    #
+    local use_weighted="$1"
+
+    [[ -z "$use_weighted" ]] && {
+        error_msg "Call to sql_current_loss() without param"
+    }
+    # normalize_bool_param "$a" &&
+    #     use_weighted=true || use_weighted=false
+    # error_msg "use_weighted [$use_weighted]"
+
+    if $use_weighted; then
+        #
+        #  To give loss a declining history weighting,
+        #  it is displayed as the largest of:
+        #    last value
+        #    avg of last 2
+        #    avg of last 3
+        #    avg of last 4
+        #    ...
+        #
+        sql="SELECT max(
+        (SELECT loss FROM t_loss ORDER BY ROWID DESC limit 1      ),
+
+        (SELECT avg(loss) FROM(
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 2  )),
+
+        (SELECT avg(loss) FROM(
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 3  )),
+
+        (SELECT avg(loss) FROM(
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 4  )),
+
+        (SELECT avg(loss) FROM(
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 5  )),
+
+        (SELECT avg(loss) FROM(
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 6  )),
+
+        (SELECT avg(loss) FROM(
+            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 7  )),
+
+        (SELECT avg(loss) FROM t_loss)
+        )"
+    else
+        sql="SELECT avg(loss) FROM t_loss"
+    fi
+}
+
 #---------------------------------------------------------------
 #
 #   tmux env handling

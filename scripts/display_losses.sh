@@ -67,8 +67,7 @@ verify_db_status() {
     if [[ ! -s "$sqlite_db" ]]; then
         db_was_ok=false
         db_missing="DB missing"
-        error_msg "$db_missing" 0
-
+        error_msg "$db_missing" -1
         #
         #  If DB is missing, try to start the monitor
         #
@@ -101,50 +100,15 @@ get_current_loss() {
     local sql
     local msg
 
-    if $cfg_weighted_average; then
-        #
-        #  To give loss a declining history weighting,
-        #  it is displayed as the largest of:
-        #    last value
-        #    avg of last 2
-        #    avg of last 3
-        #    avg of last 4
-        #    ...
-        #    avg of last minute
-        #
-        sql="max(
-        (SELECT loss FROM t_loss ORDER BY ROWID DESC limit 1      ),
-
-        (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 2  )),
-
-        (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 3  )),
-
-        (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 4  )),
-
-        (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 5  )),
-
-        (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 6  )),
-
-        (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 7  )),
-
-        (SELECT avg(loss) FROM t_loss)
-        )"
-    else
-        sql="SELECT avg(loss) FROM t_loss"
-    fi
+    cfg_weighted_average=false
+    sql_current_loss "$cfg_weighted_average"
 
     # CAST seems to always round down...
-    sql="SELECT CAST(( $sql + 0.499 ) AS INTEGER)"
-    current_loss="$(sqlite_err_handling "$sql")" || {
+    f_current_loss="$(sqlite_err_handling "$sql")" || {
         sqlite_exit_code="$?"
         error_msg "sqlite3[$sqlite_exit_code] when retrieving current losses"
     }
+    current_loss=$(printf "%.0f" "$f_current_loss") # float -> int
     display_time_elapsed "$t_start" "get_current_loss() - $current_loss"
 }
 

@@ -549,6 +549,20 @@ main() {
     log_indent=1 # check pidfile_handler.sh to see how this is used
 
     #
+    #  Sanity check that DB structure is current, if not it will be replaced
+    #
+    db_version=12
+
+    #
+    #  DB should be updated every $cfg_ping_count seconds, if it hasnt
+    #  been changed in a while monitor is most likely not running, or has
+    #  gotten stuck. Restarting it should solve the issue.
+    #  Since this script is run at regular intervalls, it is a good place
+    #  to ensure it is operational.
+    #
+    db_max_age_mins=2
+
+    #
     #  Debug help, should not normally be used
     #
 
@@ -582,16 +596,17 @@ main() {
     #  Shortands for some scripts that are called in various places
     #
     scr_ctrl_monitor="$D_TPL_BASE_PATH"/scripts/ctrl_monitor.sh
-    scr_monitor="$D_TPL_BASE_PATH"/scripts/monitor_packet_loss.sh
     scr_display_losses="$D_TPL_BASE_PATH"/scripts/display_losses.sh
+    scr_monitor="$D_TPL_BASE_PATH"/scripts/monitor_packet_loss.sh
     scr_pidfile_handler="$D_TPL_BASE_PATH"/scripts/pidfile_handler.sh
+
     #
     #  These files are assumed to be in the directory data
     #
+    f_log_date="$d_data"/log_date
     f_param_cache="$d_data"/param_cache
     f_previous_loss="$d_data"/previous_loss
     f_sqlite_errors="$d_data"/sqlite.err
-    f_log_date="$d_data"/log_date
 
     sqlite_db="$d_data"/packet_loss.sqlite
 
@@ -599,17 +614,8 @@ main() {
     pidfile_monitor="$d_data"/monitor.pid
     pidfile_tmux="$d_data"/tmux.pid
 
-    # lits each time display_losses had to restart monitor
+    #  lists each time display_losses had to restart monitor
     db_restart_log="$d_data"/db_restarted.log
-
-    #
-    #  DB should be updated every $cfg_ping_count seconds, if it hasnt
-    #  been changed in a while monitor is most likely not running, or has
-    #  gotten stuck. Restarting it should solve the issue.
-    #  Since this script is run at regular intervalls, it is a good place
-    #  to ensure it is operational.
-    #
-    db_max_age_mins=2
 
     #  check one of the path items to verify D_TPL_BASE_PATH
     [[ -f "$scr_monitor" ]] || {
@@ -631,11 +637,6 @@ main() {
         log_it "Creating $d_data"
         mkdir -p "$d_data" # ensure it exists
     }
-
-    #
-    #  Sanity check that DB structure is current, if not it will be replaced
-    #
-    db_version=12
 
     [[ -z "$skip_time_elapsed" ]] && {
         # creates a lot of overhead so should normally be true

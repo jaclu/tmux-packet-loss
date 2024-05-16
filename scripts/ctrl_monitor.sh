@@ -134,7 +134,11 @@ stop)
     ;;
 shutdown) packet_loss_plugin_shutdown ;;
 
-*) echo "Valid params: [None/start|stop|shutdown] - got [$1]" ;;
+*)
+    msg="Valid params: [None/start|stop|shutdown] - got [$1]"
+    echo "$msg"
+    error_msg "$msg"
+    ;;
 
 esac
 

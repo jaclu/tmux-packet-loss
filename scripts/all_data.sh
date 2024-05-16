@@ -34,11 +34,7 @@ clear)
     ;;
 esac
 
-#  auto fill
-# tables=$(sqlite3 "$sqlite_db" ".tables")
-
-#  sorted
-tables=( t_loss t_1_min t_stats )
+tables=(t_stats t_1_min t_loss)
 
 for table in "${tables[@]}"; do
     echo "--------  Table: $table  --------"

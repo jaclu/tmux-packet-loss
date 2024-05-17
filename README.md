@@ -113,11 +113,11 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 |                               |               | |
 | @packet-loss-weighted_average | yes           | `yes` Use weighted average focusing on the latest data points.<br> `no` Average over all data points. |
 | @packet-loss-display_trend    | no            | `yes` Display trend with `+` prefix for higher levels and `-` prefix for lower levels.<br> `no` Do not indicate change since the previous loss level. |
+| @packet-loss-hist_avg_display | no            | `yes` Show historical average when displaying current losses.<br> `no` Do not show historical average. |
 | @packet-loss-level_disp       | 1             | Display loss if at or higher than this level. |
 | @packet-loss-level_alert      | 17            | Color loss with `color_alert` if at or above this level.<br>Suggestion: set it one higher than the percentage representing one loss in one update to avoid single packet loss triggering an alert initially. |
 | @packet-loss-level_crit       | 40            | Color loss with `color_crit` if at or above this level. |
 |                               |               | |
-| @packet-loss-hist_avg_display | no            | `yes` Show historical average when displaying current losses.<br> `no` Do not show historical average. |
 | @packet-loss-hist_avg_minutes | 30            | Minutes to keep the historical average. |
 | @packet-loss-hist_separator   | '\~'          | Separator for current/historical losses. |
 |                               |               | |

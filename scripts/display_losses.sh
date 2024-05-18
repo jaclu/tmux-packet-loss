@@ -100,7 +100,6 @@ get_current_loss() {
     local sql
     local msg
 
-    cfg_weighted_average=false
     sql_current_loss "$cfg_weighted_average"
 
     # CAST seems to always round down...

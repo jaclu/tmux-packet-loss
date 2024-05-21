@@ -36,7 +36,7 @@ insert_data() {
         sql="
             DELETE FROM t_loss ;
             DELETE FROM t_1_min ;
-            INSDERT INTO t_loss (loss) VALUES ($loss);
+            INSERT INTO t_loss (loss) VALUES ($loss);
             DELETE FROM t_stats;
             INSERT INTO t_stats (loss) VALUES ($history);"
     fi

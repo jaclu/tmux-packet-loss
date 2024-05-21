@@ -18,7 +18,8 @@ action="$1"
 
 case "$action" in
 show)
-    cmd="SELECT *"
+    #cmd="SELECT time_stamp,round(loss,1)"
+    cmd="SELECT time_stamp || '  ' || round(loss, 1) AS formatted_output"
     ;;
 avgs)
     cmd=""
@@ -38,6 +39,10 @@ tables=(t_stats t_1_min t_loss)
 for table in "${tables[@]}"; do
     echo "--------  Table: $table  --------"
     [[ -n "$cmd" ]] && sqlite3 "$sqlite_db" "$cmd FROM $table;"
+
+    #
+    #  Display averages - and for t_loss also weighted avg
+    #
     if [[ "$table" = "t_loss" ]]; then
         sql_current_loss true
         weighted="$(sqlite_err_handling "$sql")" || {

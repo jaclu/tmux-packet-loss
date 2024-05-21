@@ -294,6 +294,83 @@ sql_current_loss() {
 #   tmux env handling
 #
 #---------------------------------------------------------------
+parse_tmux_version() {
+    local version="$1"
+
+    v_maj=$(echo "$version" | cut -d. -f1)
+    v_min=$(echo "$version" | cut -d. -f2 | sed 's/[^0-9]//g')
+    v_suffix=$(echo "$version" | cut -d. -f2 | sed 's/[0-9]//g')
+    if [[ -z "$v_min" ]]; then
+        v_min=0
+    fi
+    if [[ -n "$v_suffix" ]]; then
+        v_suffix=$(echo "$v_suffix" | tr '[:lower:]' '1-26')
+    else
+        v_suffix=0
+    fi
+}
+
+tmux_vers_compare() {
+    #
+    #  This returns true if v_comp <= v_ref
+    #  If only one param is given it is compared vs version of running tmux
+    #
+    local v_comp="$1"
+    local v_ref="$2" # "${2:-$tmux_vers}"
+
+    local comp_maj
+    local comp_min
+    local comp_suf
+    local ref_maj
+    local ref_min
+    local ref_suf
+
+    parse_tmux_version "$v_comp"
+    comp_maj=$v_maj
+    comp_min=$v_min
+    comp_suf=$v_suffix
+
+    if [[ -z "$v_ref" ]]; then
+        if [[ -n "$cached_v_maj" ]]; then
+            log_it "using cached ref vers"
+            ref_maj="$cached_v_maj"
+            ref_min="$cached_v_min"
+            ref_suf="$cached_v_suffix"
+        else
+            log_it "using tmux_vers"
+            v_ref="$tmux_vers"
+        fi
+    fi
+
+    if [[ -n "$v_ref" ]]; then
+        parse_tmux_version "$v_ref"
+        ref_maj=$v_maj
+        ref_min=$v_min
+        ref_suf=$v_suffix
+    fi
+    #echo "><> comp_maj[$comp_maj] comp_min[$comp_min]comp_suf[$comp_suf]" >/dev/stderr
+    #echo "><> ref_maj[$ref_maj] ref_min[$ref_min]ref_suf[$ref_suf]" > /dev/stderr
+    unset v_maj v_min v_suffix
+
+    if [[ "$comp_maj" -lt "$ref_maj" ]]; then
+        return 0
+    elif [[ "$comp_maj" -gt "$ref_maj" ]]; then
+        return 1
+    fi
+
+    if [[ "$comp_min" -lt "$ref_min" ]]; then
+        return 0
+    elif [[ "$comp_min" -gt "$ref_min" ]]; then
+        return 1
+    fi
+
+    if [[ "$comp_suf" -le "$ref_suf" ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 get_tmux_option() {
     local gto_option="$1"
     local gto_default="$2"
@@ -373,7 +450,26 @@ normalize_bool_param() {
 }
 
 param_cache_write() {
+    local v_maj
+    local v_min
+    local c_suffix
+    local cached_v_maj
+    local cached_v_min
+    local cached_v_suffix
+
     log_it "Generating param cache: $f_param_cache"
+
+    tmux_vers="$(tmux -V | cut -d' ' -f2)"
+    #
+    #  Cache current tmux version breakdown into components
+    #  to speedup calls to tmux_vers_compare without 2nd param
+    #
+    parse_tmux_version "$tmux_vers"
+    cached_v_maj=$v_maj
+    cached_v_min=$v_min
+    cached_v_suffix=$v_suffix
+    unset v_maj v_min v_suffix
+
     #region conf cache file
     cat <<EOF >"$f_param_cache"
     #
@@ -383,21 +479,31 @@ param_cache_write() {
     cfg_ping_host="$cfg_ping_host"
     cfg_ping_count="$cfg_ping_count"
     cfg_history_size="$cfg_history_size"
+
     cfg_weighted_average="$cfg_weighted_average"
     cfg_display_trend="$cfg_display_trend"
+    cfg_hist_avg_display="$cfg_hist_avg_display"
+
     cfg_level_disp="$cfg_level_disp"
     cfg_level_alert="$cfg_level_alert"
     cfg_level_crit="$cfg_level_crit"
-    cfg_hist_avg_display="$cfg_hist_avg_display"
+
     cfg_hist_avg_minutes="$cfg_hist_avg_minutes"
     cfg_hist_separator="$cfg_hist_separator"
+
     cfg_color_alert="$cfg_color_alert"
     cfg_color_crit="$cfg_color_crit"
     cfg_color_bg="$cfg_color_bg"
+
     cfg_prefix="$cfg_prefix"
     cfg_suffix="$cfg_suffix"
+
     cfg_log_file="$cfg_log_file"
 
+    tmux_vers="$tmux_vers"
+    cached_v_maj="$cached_v_maj"
+    cached_v_min="$cached_v_min"
+    cached_v_suffix="$cached_v_suffix"
 EOF
     #endregion
 }
@@ -447,7 +553,13 @@ get_settings() {
     cfg_prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
     cfg_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
 
-    cfg_log_file="$(get_tmux_option "@packet-loss-log_file" "")"
+    [[ -z "$cfg_log_file" ]] && {
+        #
+        #  would only be set in debug mode, in that case ignore
+        #  tmux setting and defuault
+        #
+        cfg_log_file="$(get_tmux_option "@packet-loss-log_file" "")"
+    }
 
     $use_param_cache && param_cache_write
 }
@@ -524,15 +636,20 @@ display_time_elapsed() {
 #===============================================================
 
 main() {
-    local log_prefix="$log_prefix"
-
-    plugin_name="tmux-packet-loss"
     #
     #  For actions in utils log_prefix gets an u- prefix
     #  using local ensures it goes back to its original setting once
     #  code is run from the caller.
     #
-    log_prefix="u-$log_prefix"
+    local log_prefix="u-$log_prefix"
+
+    plugin_name="tmux-packet-loss"
+
+    #
+    #  Setting a cfg_log_file here overrides tmux config, should only
+    #  be used for debugging
+    #
+    cfg_log_file="$HOME/tmp/${plugin_name}-dev.log"
 
     log_indent=1 # check pidfile_handler.sh to see how this is used
 

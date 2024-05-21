@@ -100,8 +100,8 @@ get_current_loss() {
     local sql
     local msg
 
-    cfg_weighted_average=false
-    sql_current_loss "$cfg_weighted_average"
+    #  shellcheck disable=SC2086 # boolean - cant be quoted
+    sql_current_loss $cfg_weighted_average
 
     # CAST seems to always round down...
     f_current_loss="$(sqlite_err_handling "$sql")" || {
@@ -224,7 +224,7 @@ display_history() {
 #  Prevent tmux from running this every couple of seconds,
 #  convenient during debugging
 #
-# [[ "$1" != "hepp" ]] && exit 0
+[[ "$1" != "hepp" ]] && exit 0
 
 #
 #  Banchmark debug utility, if skip_time_elapsed is set to false, time

@@ -17,6 +17,13 @@
 #  for sourcing utils.sh in the other scripts.
 #
 
+do_interpolation() {
+    local all_interpolated="$1"
+
+    all_interpolated=${all_interpolated//$pkt_loss_interpolation/$pkt_loss_command}
+    echo "$all_interpolated"
+}
+
 set_tmux_option() {
     local sto_option="$1"
     local sto_value="$2"
@@ -39,13 +46,6 @@ update_tmux_option() {
     set_tmux_option "$option" "$new_option_value"
 }
 
-do_interpolation() {
-    local all_interpolated="$1"
-
-    all_interpolated=${all_interpolated//$pkt_loss_interpolation/$pkt_loss_command}
-    echo "$all_interpolated"
-}
-
 #===============================================================
 #
 #   Main
@@ -58,6 +58,12 @@ log_prefix="plg" # plugin handler
 use_param_cache=false # one-off just for this souring
 #  shellcheck source=scripts/utils.sh
 source "$D_TPL_BASE_PATH"/scripts/utils.sh
+
+#
+#  By printing a NL and date, its easier to keep separate runs apart
+#
+log_it
+log_it "$(date)"
 
 #
 #  Ensure (potentially) outdated param cache is first removed

@@ -45,7 +45,7 @@ safe_now() {
 
 restart_monitor() {
     log_it "restarting monitor"
-    $scr_ctrl_monitor start || error_msg "ctrl_monitor gave error"
+    $scr_ctrl_monitor start || error_msg "ctrl_monitor gave error on restart"
     date >>"$db_restart_log" # log current time
 }
 
@@ -67,7 +67,7 @@ verify_db_status() {
     if [[ ! -s "$sqlite_db" ]]; then
         db_was_ok=false
         db_missing="DB missing"
-        error_msg "$db_missing" -1
+        error_msg "$db_missing" -1 false
         #
         #  If DB is missing, try to start the monitor
         #
@@ -75,7 +75,7 @@ verify_db_status() {
         log_it "$db_missing - monitor is restarted"
 
         [[ -s "$sqlite_db" ]] || {
-            error_msg "$db_missing - after monitor restart - aborting" 1 true
+            error_msg "$db_missing - after monitor restart - aborting"
         }
     elif db_seems_inactive; then
         db_was_ok=false
@@ -86,7 +86,7 @@ verify_db_status() {
         #
         restart_monitor
     elif [[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]]; then
-        error_msg "DB incorrect user_version: " -1
+        error_msg "DB incorrect user_version: " -1 false
         restart_monitor
     fi
     display_time_elapsed "$t_start" "verify_db_status() - was ok: $db_was_ok"
@@ -198,7 +198,7 @@ display_history() {
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
     avg_loss_raw="$(sqlite_err_handling "$sql")" || {
         sqlite_exit_code="$?"
-        error_msg "sqlite3[$sqlite_exit_code] "when retrieving history"" -1
+        error_msg "sqlite3[$sqlite_exit_code] "when retrieving history"" -1 false
         return
     }
     if [[ "$avg_loss_raw" != "0" ]]; then

@@ -10,7 +10,7 @@ clear_losses_in_t_loss() {
     log_it "Clearing losses - to ensure plugin isnt stuck alerting"
     sqlite_err_handling "DELETE FROM t_loss WHERE loss != 0" || {
         error_msg \
-            "sqlite3[$sqlite_exit_code] in clear_losses_in_t_loss()"
+            "sqlite3[$sqlite_exit_code] in clear_losses_in_t_loss()" 1 false
     }
 }
 
@@ -29,7 +29,7 @@ monitor_terminate() {
         done
         [[ "$i" -gt 0 ]] && log_it "after loop: [$i]"
         pidfile_is_live "$pidfile_monitor" && {
-            error_msg "Failed to terminate $db_monitor [$proc_id]"
+            error_msg "Failed to terminate $db_monitor [$proc_id]" 1 false
         }
         clear_losses_in_t_loss
         log_it "$db_monitor is shutdown"
@@ -42,7 +42,7 @@ monitor_terminate() {
 monitor_launch() {
     tmux_pid=$(echo "$TMUX" | sed 's/,/ /g' | cut -d' ' -f 2)
     [[ -z "$tmux_pid" ]] && error_msg \
-        "Failed to extract pid for tmux process!" 1 true
+        "Failed to extract pid for tmux process!"
     echo "$tmux_pid" >"$pidfile_tmux"
 
     #
@@ -57,13 +57,13 @@ packet_loss_plugin_shutdown() {
     # tmux has exited, do a cleanup
 
     pidfile_is_live "$pidfile_tmux" && {
-        error_msg "$this_app shutdown called when tmux is running" 1 true
+        error_msg "$this_app shutdown called when tmux is running" 1 false
     }
 
     sleep 1 #  monitor should have exited by now
     pidfile_is_live "$pidfile_monitor" && {
         error_msg \
-            "$this_app shutdown failed - monitor still running"
+            "$this_app shutdown failed - monitor still running" 1 false
     }
 
     #
@@ -111,7 +111,7 @@ log_prefix="ctr"
 . "$scr_pidfile_handler"
 
 pidfile_acquire "$pidfile_ctrl_monitor" || {
-    error_msg "My pid_file is owned by process [$pidfile_proc]"
+    error_msg "My pid_file is owned by process [$pidfile_proc]" 1 false
 }
 
 log_it # empty log line to make it easier to see where this starts

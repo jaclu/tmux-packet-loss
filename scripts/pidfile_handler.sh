@@ -109,15 +109,20 @@ pidfile_acquire() {
     ((log_indent++)) # increase indent until this returns
 
     pidfile_is_live "$pid_file" && {
-        # Could be called by some many different tasks, let them decide
+        # Could be called by many different tasks, let them decide
         # if there is a need to document this failure
         return 1
     }
-    echo $$ >"$pid_file" # claim it
+    echo $$ 2>/dev/null >"$pid_file" || {
+        error_msg "Failed to write pid_file: [$pid_file]" 0 false
+        return 1
+    }
+
     _pf_log "pid_file created"
 
     pidfile_is_mine "$pid_file" || {
-        error_msg "Failed to create pid_file: [$pid_file]"
+        error_msg "Failed to create pid_file: [$pid_file]" 0 false
+        return 1
     }
     _pf_log "Aquire successfull"
     return 0
@@ -142,8 +147,15 @@ pidfile_release() {
         }
         _pf_log "pid_file was a left-over"
     }
-    rm -f "$pid_file"
-    _pf_log "Release successful"
+    [[ -f "$pid_file" ]] && {
+        [[ -O "$pid_file" ]] || {
+            error_msg "$pid_file not writeable"
+        }
+        rm -f "$pid_file" 2>/dev/null || {
+            error_msg "Failed to remove $pid_file"
+        }
+        _pf_log "Release successful"
+    }
 }
 
 #===============================================================

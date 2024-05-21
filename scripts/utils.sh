@@ -53,13 +53,23 @@ log_it() {
 error_msg() {
     #
     #  Display $1 as an error message in log and as a tmux display-message
+    #  unless do_display_message is false
+    #
+    #  exit_code defaults to 0, which might seem odd for an error exit,
+    #  but in combination with display-message it makes sense.
+    #  If the script exits with something else than 0, the current pane
+    #  will be temporary replaced by an error message mentioning the exit
+    #  code. Wich is both redundant and much less informative than the
+    #  display-message that is also printed.
+    #  If display-message is not desired it would make sense to use a more
+    #  normal positive exit_code to indicate error, making the 2 & 3
+    #  params be something like: 1 false
+    #
     #  If exit_code is set to -1, process is not exited
-    #  if do_display_message is true, the error msg is displayed on
-    #  the status bar
     #
     local msg="ERROR: $1"
-    local exit_code="${2:-1}"
-    local do_display_message=${3:-false}
+    local exit_code="${2:-0}"
+    local do_display_message=${3:-true}
 
     if $log_interactive_to_stderr && [[ -t 0 ]]; then
         echo "$msg" >/dev/stderr
@@ -67,8 +77,6 @@ error_msg() {
         log_it
         log_it "$msg"
         log_it
-        #  display-message filters out \n
-        msg="$(echo "$msg" | tr '\n' ' ')"
         $do_display_message && display_message_hold "$plugin_name $msg"
     fi
     [[ "$exit_code" -gt -1 ]] && exit "$exit_code"
@@ -83,7 +91,16 @@ display_message_hold() {
     local msg="$1"
     local org_display_time
 
+    [[ -n "$TMUX" ]] || {
+        # tmux not running display-message cant be called
+        return
+    }
+
+    #  display-message filters out \n
+    msg="$(echo "$msg" | tr '\n' ' ')"
+
     if tmux_vers_compare 3.2; then
+        # message will remain until key-press
         $TMUX_BIN display-message -d 0 "$msg"
     else
         # Manually make the error msg stay on screen a long time
@@ -247,9 +264,6 @@ sql_current_loss() {
     [[ -z "$use_weighted" ]] && {
         error_msg "Call to sql_current_loss() without param"
     }
-    # normalize_bool_param "$a" &&
-    #     use_weighted=true || use_weighted=false
-    # error_msg "use_weighted [$use_weighted]"
 
     if $use_weighted; then
         #
@@ -411,7 +425,7 @@ normalize_bool_param() {
         #  In this case $2 must be given as the default value!
         #
         [[ -z "$2" ]] && {
-            error_msg "normalize_bool_param($param) - no default" 1 true
+            error_msg "normalize_bool_param($param) - no default"
         }
         _variable_name="$param"
         param="$(get_tmux_option "$param" "$2")"
@@ -440,7 +454,7 @@ normalize_bool_param() {
         else
             prefix="$param"
         fi
-        error_msg "$prefix - should be yes/true or no/false" 1 true
+        error_msg "$prefix - should be yes/true or no/false"
         ;;
 
     esac
@@ -797,5 +811,6 @@ main() {
 # cfg_log_file=""
 # log_interactive_to_stderr=true # doesnt seem to work on iSH
 # use_param_cache=false
+# do_pidfile_handler_logging=true
 
 main

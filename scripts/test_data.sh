@@ -21,8 +21,8 @@ tst_error() {
 
 insert_data() {
     [[ -f "$pidfile_monitor" ]] && {
-        echo "Terminated the monitor."
         "$scr_ctrl_monitor" stop
+        echo "Terminated the monitor."
     }
     echo "Monitor will be restarted automatically"
     echo "$db_max_age_mins minute(-s) after last db change."
@@ -36,12 +36,12 @@ insert_data() {
         sql="
             DELETE FROM t_loss ;
             DELETE FROM t_1_min ;
-            INSERT INTO t_loss (loss) VALUES ($loss);
+            INSDERT INTO t_loss (loss) VALUES ($loss);
             DELETE FROM t_stats;
             INSERT INTO t_stats (loss) VALUES ($history);"
     fi
     sqlite_transaction "$sql" || {
-        error_msg "sqlite3[$sqlite_exit_code] when running: $sql"
+        error_msg "sqlite3[$sqlite_exit_code] when running: $sql" 1 false
     }
 
     "$D_TPL_BASE_PATH"/scripts/all_data.sh show

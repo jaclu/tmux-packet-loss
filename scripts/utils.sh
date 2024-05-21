@@ -44,20 +44,8 @@ log_it() {
 
     #
     #  In order to not have date on every line, date is just printed
-    #  once/day
+    #  once/day in the end of monitor_packet_loss.sh
     #
-    today="$(date +%Y-%m-%d)"
-    last_log_date="$(cat "$f_log_date" 2>/dev/null)"
-    [[ "$last_log_date" != "$today" ]] && {
-        # since we got here $cfg_log_file is defined
-        (
-            echo
-            echo "===============  $today  ==============="
-            echo
-        ) >>"$cfg_log_file"
-        echo "$today" >"$f_log_date"
-    }
-
     printf "%s%s %s %s%*s%s\n" "$(date +%H:%M:%S)" "$socket" "$proc_id" \
         "$log_prefix" "$log_indent" "" "$@" >>"$cfg_log_file"
 }

@@ -303,6 +303,23 @@ while true; do
         log_it "Sleeping due to parse error"
         sleep 10
     }
+    [[ -n "$cfg_log_file" ]] && {
+        #
+        #  In order to not have date on every line, date is just printed
+        #  once/day
+        #
+        today="$(date +%Y-%m-%d)"
+        last_log_date="$(cat "$f_log_date" 2>/dev/null)"
+        [[ "$last_log_date" != "$today" ]] && {
+            # since we got here $cfg_log_file is defined
+            (
+                echo
+                echo "===============  $today  ==============="
+                echo
+            ) >>"$cfg_log_file"
+            echo "$today" >"$f_log_date"
+        }
+    }
 done
 
 pidfile_release "$pidfile_monitor"

@@ -295,6 +295,12 @@ sql_current_loss() {
 #
 #---------------------------------------------------------------
 parse_tmux_version() {
+    #
+    #  Variables provided:
+    #    v_maj
+    #    v_min
+    #    v_suffix
+    #
     local version="$1"
 
     v_maj=$(echo "$version" | cut -d. -f1)
@@ -318,12 +324,9 @@ tmux_vers_compare() {
     local v_comp="$1"
     local v_ref="$2" # "${2:-$tmux_vers}"
 
-    local comp_maj
-    local comp_min
-    local comp_suf
-    local ref_maj
-    local ref_min
-    local ref_suf
+    local comp_maj comp_min comp_suf
+    local ref_maj ref_min ref_suf
+    local v_maj v_min v_suffix # exposed from parse_tmux_version()
 
     parse_tmux_version "$v_comp"
     comp_maj=$v_maj
@@ -332,12 +335,12 @@ tmux_vers_compare() {
 
     if [[ -z "$v_ref" ]]; then
         if [[ -n "$cached_v_maj" ]]; then
-            log_it "using cached ref vers"
+            # log_it "><> using cached ref vers"
             ref_maj="$cached_v_maj"
             ref_min="$cached_v_min"
             ref_suf="$cached_v_suffix"
         else
-            log_it "using tmux_vers"
+            # log_it "><> using tmux_vers"
             v_ref="$tmux_vers"
         fi
     fi
@@ -348,9 +351,6 @@ tmux_vers_compare() {
         ref_min=$v_min
         ref_suf=$v_suffix
     fi
-    #echo "><> comp_maj[$comp_maj] comp_min[$comp_min]comp_suf[$comp_suf]" >/dev/stderr
-    #echo "><> ref_maj[$ref_maj] ref_min[$ref_min]ref_suf[$ref_suf]" > /dev/stderr
-    unset v_maj v_min v_suffix
 
     if [[ "$comp_maj" -lt "$ref_maj" ]]; then
         return 0

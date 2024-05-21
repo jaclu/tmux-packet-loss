@@ -10,7 +10,5 @@ if missing or obsolete. Also updates the triggers on each run
 - show_settings.sh - Can be called from the command line to inspect current
 settings
 - utils.sh - Common stuff
-- vers_check.sh - Does version comparaes, able to handle tmux mixture of
-numbers and letters
 
 All files can be run from the command-line

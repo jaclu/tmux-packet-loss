@@ -459,7 +459,6 @@ param_cache_write() {
 
     log_it "Generating param cache: $f_param_cache"
 
-    tmux_vers="$(tmux -V | cut -d' ' -f2)"
     #
     #  Cache current tmux version breakdown into components
     #  to speedup calls to tmux_vers_compare without 2nd param
@@ -517,6 +516,7 @@ get_settings() {
         source "$f_param_cache"
         return
     }
+    tmux_vers="$(tmux -V | cut -d' ' -f2)"
 
     cfg_ping_host="$(get_tmux_option "@packet-loss-ping_host" \
         "$default_ping_host")"

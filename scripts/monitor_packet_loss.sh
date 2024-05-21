@@ -104,6 +104,29 @@ compare_loss_parsers() {
     fi
 }
 
+display_date() {
+    #
+    #  In order to not have date on every line, date is just printed
+    #  once/day
+    #
+    local today
+    local last_log_date
+
+    [[ -z "$cfg_log_file" ]] && return
+
+    today="$(date +%Y-%m-%d)"
+    last_log_date="$(cat "$f_log_date" 2>/dev/null)"
+    [[ "$last_log_date" != "$today" ]] && {
+        # since we got here $cfg_log_file is defined
+        (
+            echo
+            echo "===============  $today  ==============="
+            echo
+        ) >>"$cfg_log_file"
+        echo "$today" >"$f_log_date"
+    }
+}
+
 #===============================================================
 #
 #   Main
@@ -175,6 +198,8 @@ $store_ping_issues && log_it "Will save ping issues in $d_ping_issues"
 err_count=0
 err_count_max=3 # terminate if this many errors have occured
 exit_msg="- exiting this process"
+
+display_date #  make sure it is displayed before any losses
 
 #
 #  Main loop
@@ -303,23 +328,7 @@ while true; do
         log_it "Sleeping due to parse error"
         sleep 10
     }
-    [[ -n "$cfg_log_file" ]] && {
-        #
-        #  In order to not have date on every line, date is just printed
-        #  once/day
-        #
-        today="$(date +%Y-%m-%d)"
-        last_log_date="$(cat "$f_log_date" 2>/dev/null)"
-        [[ "$last_log_date" != "$today" ]] && {
-            # since we got here $cfg_log_file is defined
-            (
-                echo
-                echo "===============  $today  ==============="
-                echo
-            ) >>"$cfg_log_file"
-            echo "$today" >"$f_log_date"
-        }
-    }
+    display_date
 done
 
 pidfile_release "$pidfile_monitor"

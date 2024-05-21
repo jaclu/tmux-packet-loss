@@ -649,7 +649,7 @@ main() {
     #  Setting a cfg_log_file here overrides tmux config, should only
     #  be used for debugging
     #
-    cfg_log_file="$HOME/tmp/${plugin_name}-dev.log"
+    # cfg_log_file="$HOME/tmp/${plugin_name}-dev.log"
 
     log_indent=1 # check pidfile_handler.sh to see how this is used
 

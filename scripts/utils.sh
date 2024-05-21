@@ -320,6 +320,16 @@ parse_tmux_version() {
     v_maj=$(echo "$version" | cut -d. -f1)
     v_min=$(echo "$version" | cut -d. -f2 | sed 's/[^0-9]//g')
     v_suffix=$(echo "$version" | cut -d. -f2 | sed 's/[0-9]//g')
+
+    #
+    #  Handle some odd versions, and fix the params that was incorrect
+    #
+    case "$version" in
+    3.1-rc) v_suffix="" ;; # asdf tmux 3.1 reports as this
+    next-3.4) v_maj=3 ;;   # Alpine 3.18 reports as this
+    *) ;;
+    esac
+
     if [[ -z "$v_min" ]]; then
         v_min=0
     fi
@@ -530,7 +540,7 @@ get_settings() {
         source "$f_param_cache"
         return
     }
-    tmux_vers="$(tmux -V | cut -d' ' -f2)"
+    tmux_vers="$($TMUX_BIN -V | cut -d' ' -f2)"
 
     cfg_ping_host="$(get_tmux_option "@packet-loss-ping_host" \
         "$default_ping_host")"

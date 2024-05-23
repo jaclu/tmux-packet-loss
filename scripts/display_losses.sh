@@ -55,6 +55,10 @@ db_seems_inactive() {
     #  seconds. If it hasnt happened for some minutes, it can be assumed
     #  that the monitor is no longer oprtating normally
     #
+    #  To allow for disabling the monitor shorter periods for example
+    #  when using scripts/test_data.sh, age of DB is checked instead
+    #  of $pidfile_monitor
+    #
     [[ -n "$(find "$sqlite_db" -mmin +"$db_max_age_mins")" ]]
 }
 

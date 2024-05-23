@@ -32,7 +32,7 @@ _pf_log() {
 is_pid_alive() {
     #
     #  Since this might run on iSH, and that platform does not do well
-    #  is ps is called too much, this is a safe workarround,
+    #  if ps is called too much, this is a safe workarround,
     #  and obviously Darwin doesnt have /proc, so it needs it's own
     #  workarround
     #
@@ -51,11 +51,25 @@ is_pid_alive() {
     return 0
 }
 
+# shellcheck disable=SC2120 # called with param from other modules...
+get_pidfile_process() {
+    #
+    #  Variables provided:
+    #    pidfile_proc - process in this pidfile
+    #
+    set_pidfile_name "$1"
+    pidfile_proc="$(cat "$pid_file")"
+    _pf_log "pid_file is now: [$pid_file] pidfile_proc is now: [$pidfile_proc]"
+}
+
 set_pidfile_name() {
     #
     #  Variables provided:
     #    pid_file - based on name of current script if nothing provided
     #
+    [[ -z "$1" ]] && [[ -z "$pid_file" ]] && {
+        error_msg "call to set_pidfile_name() whithout param and no default pid_file"
+    }
     pid_file="${1:-"$d_data/$this_app.pid"}"
 }
 
@@ -71,7 +85,7 @@ pidfile_is_live() {
     ((log_indent++)) # increase indent until this returns
 
     if [[ -f "$pid_file" ]]; then
-        pidfile_proc="$(cat "$pid_file")"
+        get_pidfile_process "$1"
         is_pid_alive "$pidfile_proc" && {
             _pf_log "[$pidfile_proc] still pressent"
             return 0
@@ -174,7 +188,9 @@ pidfile_release() {
     . "$D_TPL_BASE_PATH"/scripts/utils.sh
 }
 
+[[ -z "$do_pidfile_handler_logging" ]] && do_pidfile_handler_logging=false
+
 #
 # set to true to enable logging of pidfile tasks
 #
-[[ -z "$do_pidfile_handler_logging" ]] && do_pidfile_handler_logging=false
+# do_pidfile_handler_logging=true

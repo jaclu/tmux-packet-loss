@@ -31,7 +31,7 @@ log_it() {
         return
     }
 
-    if [[ "$log_ppid" = "true" ]]; then
+    if $log_ppid; then
         proc_id="$(tmux display -p "#{session_id}"):$PPID"
     else
         proc_id="$$"
@@ -178,11 +178,18 @@ posix_get_char() {
     stty "$old_stty_cfg"
 }
 
-#---------------------------------------------------------------
-#
-#   bool params
-#
-#---------------------------------------------------------------
+get_digits_from_string() {
+    # this is used to get "clean" integer version number. Examples:
+    # `tmux 1.9` => `19`
+    # `1.9a`     => `19`
+    local string="$1"
+    local only_digits no_leading_zero
+
+    only_digits="$(echo "$string" | tr -dC '[:digit:]')"
+    no_leading_zero=${only_digits#0}
+    # echo "get_digits_from_string($string) => $no_leading_zero" > /dev/stderr
+    echo "$no_leading_zero"
+}
 
 #---------------------------------------------------------------
 #
@@ -308,36 +315,14 @@ sql_current_loss() {
 #   tmux env handling
 #
 #---------------------------------------------------------------
-parse_tmux_version() {
+
+set_tmux_vers() {
     #
     #  Variables provided:
-    #    v_maj
-    #    v_min
-    #    v_suffix
+    #   tmux_vers - version of tmux used
     #
-    local version="$1"
-
-    v_maj=$(echo "$version" | cut -d. -f1)
-    v_min=$(echo "$version" | cut -d. -f2 | sed 's/[^0-9]//g')
-    v_suffix=$(echo "$version" | cut -d. -f2 | sed 's/[0-9]//g')
-
-    #
-    #  Handle some odd versions, and fix the params that was incorrect
-    #
-    case "$version" in
-    3.1-rc) v_suffix="" ;; # asdf tmux 3.1 reports as this
-    next-3.4) v_maj=3 ;;   # Alpine 3.18 reports as this
-    *) ;;
-    esac
-
-    if [[ -z "$v_min" ]]; then
-        v_min=0
-    fi
-    if [[ -n "$v_suffix" ]]; then
-        v_suffix=$(echo "$v_suffix" | tr '[:lower:]' '1-26')
-    else
-        v_suffix=0
-    fi
+    # log_it "set_tmux_vers()"
+    tmux_vers="$($TMUX_BIN -V | cut -d' ' -f2)"
 }
 
 tmux_vers_compare() {
@@ -346,72 +331,32 @@ tmux_vers_compare() {
     #  If only one param is given it is compared vs version of running tmux
     #
     local v_comp="$1"
-    local v_ref="$2" # "${2:-$tmux_vers}"
+    local v_ref="${2:-$tmux_vers}"
+    local i_comp i_ref
 
-    local comp_maj comp_min comp_suf
-    local ref_maj ref_min ref_suf
-    local v_maj v_min v_suffix # exposed from parse_tmux_version()
+    i_comp=$(get_digits_from_string "$v_comp")
+    i_ref=$(get_digits_from_string "$v_ref")
 
-    parse_tmux_version "$v_comp"
-    comp_maj=$v_maj
-    comp_min=$v_min
-    comp_suf=$v_suffix
-
-    if [[ -z "$v_ref" ]]; then
-        if [[ -n "$cached_v_maj" ]]; then
-            # log_it "><> using cached ref vers"
-            ref_maj="$cached_v_maj"
-            ref_min="$cached_v_min"
-            ref_suf="$cached_v_suffix"
-        else
-            # log_it "><> using tmux_vers"
-            v_ref="$tmux_vers"
-        fi
-    fi
-
-    if [[ -n "$v_ref" ]]; then
-        parse_tmux_version "$v_ref"
-        ref_maj=$v_maj
-        ref_min=$v_min
-        ref_suf=$v_suffix
-    fi
-
-    if [[ "$comp_maj" -lt "$ref_maj" ]]; then
-        return 0
-    elif [[ "$comp_maj" -gt "$ref_maj" ]]; then
-        return 1
-    fi
-
-    if [[ "$comp_min" -lt "$ref_min" ]]; then
-        return 0
-    elif [[ "$comp_min" -gt "$ref_min" ]]; then
-        return 1
-    fi
-
-    if [[ "$comp_suf" -le "$ref_suf" ]]; then
-        return 0
-    else
-        return 1
-    fi
+    [[ "$i_comp" -le "$i_ref" ]]
 }
 
 get_tmux_option() {
-    local gto_option="$1"
-    local gto_default="$2"
-    local gto_value
+    local opt="$1"
+    local def="$2"
+    local value
 
-    [[ -z "$gto_option" ]] && error_msg "get_tmux_option() param 1 empty!"
+    [[ -z "$opt" ]] && error_msg "get_tmux_option() param 1 empty!"
     [[ "$TMUX" = "" ]] && {
         # this is run standalone, just report the defaults
-        echo "$gto_default"
+        echo "$def"
         return
     }
 
-    gto_value="$($TMUX_BIN show-option -gqv "$gto_option")"
-    if [[ -z "$gto_value" ]]; then
-        echo "$gto_default"
+    value="$($TMUX_BIN show-option -gqv "$opt")"
+    if [[ -z "$value" ]]; then
+        echo "$def"
     else
-        echo "$gto_value"
+        echo "$value"
     fi
 }
 
@@ -423,9 +368,11 @@ normalize_bool_param() {
     #  normalize_bool_param "@menus_without_prefix" "$default_no_prefix" &&
     #      cfg_no_prefix=true || cfg_no_prefix=false
     #
+    local param="$1"
+    local var_name
+    local prefix
 
-    param="$1"
-    _variable_name=""
+    var_name=""
     # log_it "normalize_bool_param($param, $2)"
 
     [[ "${param%"${param#?}"}" = "@" ]] && {
@@ -437,7 +384,7 @@ normalize_bool_param() {
         [[ -z "$2" ]] && {
             error_msg "normalize_bool_param($param) - no default"
         }
-        _variable_name="$param"
+        var_name="$param"
         param="$(get_tmux_option "$param" "$2")"
     }
 
@@ -459,8 +406,8 @@ normalize_bool_param() {
         ;;
 
     *)
-        if [[ -n "$_variable_name" ]]; then
-            prefix="$_variable_name=$param"
+        if [[ -n "$var_name" ]]; then
+            prefix="$var_name=$param"
         else
             prefix="$param"
         fi
@@ -473,25 +420,42 @@ normalize_bool_param() {
     return 2
 }
 
+get_tmux_socket() {
+    #
+    #  returns name of tmux socket being used
+    #
+    if [[ -n "$TMUX" ]]; then
+        echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
+    else
+        echo "standalone"
+    fi
+}
+
+get_tmux_pid() {
+    local tmux_pid
+
+    tmux_pid=$(echo "$TMUX" | sed 's/,/ /g' | cut -d' ' -f 2)
+    [[ -z "$tmux_pid" ]] && error_msg \
+        "Failed to extract pid for tmux process!"
+    echo "$tmux_pid"
+}
+
+#---------------------------------------------------------------
+#
+#   param cache handling
+#
+#---------------------------------------------------------------
+
 param_cache_write() {
-    local v_maj
-    local v_min
-    local c_suffix
-    local cached_v_maj
-    local cached_v_min
-    local cached_v_suffix
+    # log_it "param_cache_write()"
+    $use_param_cache || {
+        log_it "param_cache_write() - aborted, not using param_cache"
+        return
+    }
 
-    log_it "Generating param cache: $f_param_cache"
+    mkdir -p "$(dirname "$f_param_cache")" # ensure it exists
 
-    #
-    #  Cache current tmux version breakdown into components
-    #  to speedup calls to tmux_vers_compare without 2nd param
-    #
-    parse_tmux_version "$tmux_vers"
-    cached_v_maj=$v_maj
-    cached_v_min=$v_min
-    cached_v_suffix=$v_suffix
-    unset v_maj v_min v_suffix
+    set_tmux_vers # always get the current
 
     #region conf cache file
     cat <<EOF >"$f_param_cache"
@@ -524,23 +488,60 @@ param_cache_write() {
     cfg_log_file="$cfg_log_file"
 
     tmux_vers="$tmux_vers"
-    cached_v_maj="$cached_v_maj"
-    cached_v_min="$cached_v_min"
-    cached_v_suffix="$cached_v_suffix"
 EOF
     #endregion
+
+    #  Ensure param cache is current
+    b_param_cache_written=true
+
 }
 
-get_settings() {
-    # log_it "get_settings()"
-    $use_param_cache && [[ -f "$f_param_cache" ]] && {
-        # log_it "using param cache"
+get_defaults() {
+    #
+    #  Defaults for config variables
+    #
+    #  Variables provided:
+    #    default_  variables
+    #
 
-        # shellcheck source=/dev/null
-        source "$f_param_cache"
-        return
-    }
-    tmux_vers="$($TMUX_BIN -V | cut -d' ' -f2)"
+    # log_it "get_defaults()"
+
+    default_ping_host="8.8.8.8" #  Default host to ping
+    default_ping_count=6        #  how often to report packet loss statistics
+    default_history_size=6      #  how many ping results to keep in the primary table
+
+    #  Use weighted average over averaging all data points
+    default_weighted_average=true
+    #  display ^/v prefix if value is increasing/decreasing
+    default_display_trend=false
+    default_hist_avg_display=false #  Display long term average
+
+    default_level_disp=1   #  display loss if this or higher
+    default_level_alert=17 #  this or higher triggers alert color
+    default_level_crit=40  #  this or higher triggers critical color
+
+    default_hist_avg_minutes=30 #  Minutes to keep historical average
+    default_hist_separator='~'  #  Separaor between current and hist data
+
+    default_color_alert="colour226" # bright yellow
+    default_color_crit="colour196"  # bright red
+    default_color_bg='black'        #  only used when displaying alert/crit
+
+    default_prefix='|'
+    default_suffix='|'
+
+    default_log_file=""
+}
+
+get_plugin_params() {
+    #  Variables provided:
+    #    cfg_  variables
+    #
+    get_defaults
+
+    # log_it "get_plugin_params()"
+
+    [[ -z "$tmux_vers" ]] && set_tmux_vers
 
     cfg_ping_host="$(get_tmux_option "@packet-loss-ping_host" \
         "$default_ping_host")"
@@ -554,6 +555,8 @@ get_settings() {
         cfg_weighted_average=true || cfg_weighted_average=false
     normalize_bool_param "@packet-loss-display_trend" "$default_display_trend" &&
         cfg_display_trend=true || cfg_display_trend=false
+    normalize_bool_param "@packet-loss-hist_avg_display" "$default_hist_avg_display" &&
+        cfg_hist_avg_display=true || cfg_hist_avg_display=false
 
     cfg_level_disp="$(get_tmux_option "@packet-loss-level_disp" \
         "$default_level_disp")"
@@ -561,8 +564,7 @@ get_settings() {
         "$default_level_alert")"
     cfg_level_crit="$(get_tmux_option "@packet-loss-level_crit" \
         "$default_level_crit")"
-    normalize_bool_param "@packet-loss-hist_avg_display" "$default_hist_avg_display" &&
-        cfg_hist_avg_display=true || cfg_hist_avg_display=false
+
     cfg_hist_avg_minutes="$(get_tmux_option "@packet-loss-hist_avg_minutes" \
         "$default_hist_avg_minutes")"
     cfg_hist_separator="$(get_tmux_option "@packet-loss-hist_separator" \
@@ -577,26 +579,78 @@ get_settings() {
     cfg_prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
     cfg_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
 
-    [[ -z "$cfg_log_file" ]] && {
+    [[ -z "$cfg_log_file" ]] && ! $skip_logging && {
         #
         #  would only be set in debug mode, in that case ignore
-        #  tmux setting and defuault
+        #  tmux setting
         #
         cfg_log_file="$(get_tmux_option "@packet-loss-log_file" "")"
     }
-
-    $use_param_cache && param_cache_write
 }
 
-get_tmux_socket() {
+generate_param_cache() {
     #
-    #  returns name of tmux socket being used
+    #  will also ensure current tmux conf is used, even if other
+    #  settings has already been sourced
     #
-    if [[ -n "$TMUX" ]]; then
-        echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
+    $use_param_cache || {
+        # log_it "generate_param_cache() - aborted, not using param_cache"
+        return
+    }
+    # log_it "generate_param_cache()"
+
+    get_plugin_params
+    param_cache_write
+}
+
+get_config() {
+    #
+    #  The plugin init .tmux script should NOT depend on this!
+    #
+    #  It should instead direcly call generate_param_cache to ensure
+    #  the cached configs match current tmux configuration
+    #
+    #  This is used by everything else sourcing utils.sh, then trusting
+    #  that the param cache is valid if found
+    #
+    local b_d_data_missing=false
+
+    # log_it "get_config()"
+
+    [[ -d "$d_data" ]] || b_d_data_missing=true
+
+    if $use_param_cache; then
+        # param_cache missing, create it
+        [[ -s "$f_param_cache" ]] || generate_param_cache
+
+        # shellcheck source=data/param_cache
+        source "$f_param_cache"
     else
-        echo "standalone"
+        get_plugin_params
+        # log_it "><> [$this_app] use_param_cache is false"
     fi
+
+    $b_d_data_missing && {
+        log_it "d_data was missing - $d_data"
+        mkdir -p "$d_data" # ensure it exists
+
+        #
+        #  If data dir was removed whilst a monitor was running,
+        #  the running monitor cant be killed via pidfile.
+        #  Do it manually.
+        #
+        stray_monitors="$(pgrep -f "$scr_monitor")"
+        [[ -n "$stray_monitors" ]] && {
+            echo "$stray_monitors" | xargs kill
+            log_it "Mannually killed stray monitor(-s)"
+        }
+
+    }
+    [[ ! -f "$sqlite_db" ]] &&
+        [[ "$this_app" != "$(basename "$scr_prepare_db")" ]] && {
+
+        $scr_prepare_db
+    }
 }
 
 #---------------------------------------------------------------
@@ -605,6 +659,10 @@ get_tmux_socket() {
 #
 #---------------------------------------------------------------
 is_busybox_ping() {
+    #
+    #  Variables provided:
+    #    this_is_busybox_ping
+    #
     [[ -z "$this_is_busybox_ping" ]] && {
         log_it "Checking if ping is a BusyBox one"
         #
@@ -669,13 +727,20 @@ main() {
 
     plugin_name="tmux-packet-loss"
 
-    #
-    #  Setting a cfg_log_file here overrides tmux config, should only
-    #  be used for debugging
-    #
-    # cfg_log_file="$HOME/tmp/${plugin_name}-dev.log"
-
-    log_indent=1 # check pidfile_handler.sh to see how this is used
+    #  Should have been set in the calling script
+    [[ -z "$D_TPL_BASE_PATH" ]] && {
+        echo
+        echo "ERROR: $plugin_name D_TPL_BASE_PATH is not defined!"
+        echo
+        exit 1
+    }
+    #  check one item to verify D_TPL_BASE_PATH
+    [[ -f "$D_TPL_BASE_PATH"/scripts/monitor_packet_loss.sh ]] || {
+        echo
+        echo "ERROR: $plugin_name D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"
+        echo
+        exit 1
+    }
 
     #
     #  Sanity check that DB structure is current, if not it will be replaced
@@ -691,14 +756,7 @@ main() {
     #
     db_max_age_mins=2
 
-    #
-    #  Debug help, should not normally be used
-    #
-
-    [[ -z $log_interactive_to_stderr ]] && log_interactive_to_stderr=false
-
-    # set to true if session-id & ppid should be displayed instead of pid
-    [[ -z "$log_ppid" ]] && log_ppid="false"
+    log_indent=1 # check pidfile_handler.sh to see how this is used
 
     #
     #  I use an env var TMUX_BIN to point at the current tmux, defined in my
@@ -710,24 +768,23 @@ main() {
     #
     [[ -z "$TMUX_BIN" ]] && TMUX_BIN="tmux"
 
-    #  Should have been set in the calling script
-    [[ -z "$D_TPL_BASE_PATH" ]] && error_msg "D_TPL_BASE_PATH is not defined!"
-
-    d_data="$D_TPL_BASE_PATH"/data # location for all runtime data
-    d_ping_issues="$d_data"/ping_issues
-
     #
     #  Currently running script
     #
     this_app="$(basename "$0")"
 
+    d_scripts="$D_TPL_BASE_PATH"/scripts
+    d_data="$D_TPL_BASE_PATH"/data # location for all runtime data
+    d_ping_issues="$d_data"/ping_issues
+
     #
     #  Shortands for some scripts that are called in various places
     #
-    scr_ctrl_monitor="$D_TPL_BASE_PATH"/scripts/ctrl_monitor.sh
-    scr_display_losses="$D_TPL_BASE_PATH"/scripts/display_losses.sh
-    scr_monitor="$D_TPL_BASE_PATH"/scripts/monitor_packet_loss.sh
-    scr_pidfile_handler="$D_TPL_BASE_PATH"/scripts/pidfile_handler.sh
+    scr_prepare_db="$d_scripts"/prepare_db.sh
+    scr_ctrl_monitor="$d_scripts"/ctrl_monitor.sh
+    scr_display_losses="$d_scripts"/display_losses.sh
+    scr_monitor="$d_scripts"/monitor_packet_loss.sh
+    scr_pidfile_handler="$d_scripts"/pidfile_handler.sh
 
     #
     #  These files are assumed to be in the directory data
@@ -746,27 +803,9 @@ main() {
     #  lists each time display_losses had to restart monitor
     db_restart_log="$d_data"/db_restarted.log
 
-    #  check one of the path items to verify D_TPL_BASE_PATH
-    [[ -f "$scr_monitor" ]] || {
-        error_msg "D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"
-    }
-
-    [[ -d "$d_data" ]] || {
-        #
-        #  If data dir was removed whilst a monitor was running,
-        #  the running monitor cant be killed via pidfile.
-        #  Do it manually.
-        #
-        stray_monitors="$(pgrep -f "$scr_monitor")"
-        [[ -n "$stray_monitors" ]] && {
-            echo "$stray_monitors" | xargs kill
-            log_it "Mannually killed stray monitor(-s)"
-        }
-
-        log_it "Creating $d_data"
-        mkdir -p "$d_data" # ensure it exists
-    }
-
+    #
+    #  Set to defaults unless overridden (mostly) for debug purposes
+    #
     [[ -z "$skip_time_elapsed" ]] && {
         # creates a lot of overhead so should normally be true
         skip_time_elapsed=true
@@ -774,37 +813,22 @@ main() {
     [[ -z "$use_param_cache" ]] && {
         use_param_cache=true # makes gathering the params a lot faster!
     }
+    [[ -z $log_interactive_to_stderr ]] && log_interactive_to_stderr=false
+    [[ -z "$skip_logging" ]] && {
+        # if true @packet-loss-log_file setting is ignored
+        skip_logging=false
+    }
+
+    # set to true if session-id & ppid should be displayed instead of pid
+    [[ -z "$log_ppid" ]] && log_ppid=false
 
     #
-    #  Defaults for config variables
+    #  at this point plugin_params is trusted if found, menus.tmux will
+    #  allways always replace it with current tmux conf during plugin init
     #
-    default_ping_host="8.8.8.8" #  Default host to ping
-    default_ping_count=6        #  how often to report packet loss statistics
-    default_history_size=6      #  how many ping results to keep in the primary table
+    get_config
 
-    #  Use weighted average over averaging all data points
-    default_weighted_average=true
-
-    #  display ^/v prefix if value is increasing/decreasing
-    default_display_trend=false
-
-    default_level_disp=1   #  display loss if this or higher
-    default_level_alert=17 #  this or higher triggers alert color
-    default_level_crit=40  #  this or higher triggers critical color
-
-    #  Display long term average
-    default_hist_avg_display=false
-    default_hist_avg_minutes=30 #  Minutes to keep historical average
-    default_hist_separator='~'  #  Separaor between current and hist data
-
-    default_color_alert="colour226" # bright yellow
-    default_color_crit="colour196"  # bright red
-    default_color_bg='black'        #  only used when displaying alert/crit
-
-    default_prefix='|'
-    default_suffix='|'
-
-    get_settings
+    [[ -f "$pidfile_tmux" ]] || get_tmux_pid >"$pidfile_tmux"
 }
 
 #
@@ -818,9 +842,12 @@ main() {
 #
 # override settings for easy debugging
 #
-# cfg_log_file=""
+# cfg_log_file="/Users/jaclu/tmp/tmux-packet-loss-t2.log"
+# skip_logging=true # enforce no logging desipte tmux conf
 # log_interactive_to_stderr=true # doesnt seem to work on iSH
 # use_param_cache=false
 # do_pidfile_handler_logging=true
+# log_ppid=true
 
 main
+# log_it "><> -----   utils done"

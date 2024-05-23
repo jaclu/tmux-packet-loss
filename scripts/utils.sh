@@ -187,7 +187,6 @@ get_digits_from_string() {
 
     only_digits="$(echo "$string" | tr -dC '[:digit:]')"
     no_leading_zero=${only_digits#0}
-    # echo "get_digits_from_string($string) => $no_leading_zero" > /dev/stderr
     echo "$no_leading_zero"
 }
 
@@ -228,8 +227,8 @@ sqlite_err_handling() {
             sqlite_exit_code=99 # repeated SQLITE_BUSY
         else
             #
-            #  Make the sleep somewhat random, in order to not have two processes
-            #  sleeping the same and coliding again
+            #  Make the sleep somewhat random, in order to not have two
+            #  processes sleeping the same and coliding again
             #
             sleep $((RANDOM % 4 + 2)) #  2-5 seconds
             ((recursion++))
@@ -362,8 +361,8 @@ get_tmux_option() {
 
 normalize_bool_param() {
     #
-    #  Take a boolean style text param and convert it into an actual boolean
-    #  that can be used in your code. Example of usage:
+    #  Take a boolean style text param and convert it into an actual
+    #  boolean that can be used in your code. Example of usage:
     #
     #  normalize_bool_param "@menus_without_prefix" "$default_no_prefix" &&
     #      cfg_no_prefix=true || cfg_no_prefix=false
@@ -508,8 +507,10 @@ get_defaults() {
     # log_it "get_defaults()"
 
     default_ping_host="8.8.8.8" #  Default host to ping
-    default_ping_count=6        #  how often to report packet loss statistics
-    default_history_size=6      #  how many ping results to keep in the primary table
+    #  how often to report packet loss statistics
+    default_ping_count=6
+    #  how many ping results to keep in the primary table
+    default_history_size=6
 
     #  Use weighted average over averaging all data points
     default_weighted_average=true
@@ -526,7 +527,7 @@ get_defaults() {
 
     default_color_alert="colour226" # bright yellow
     default_color_crit="colour196"  # bright red
-    default_color_bg='black'        #  only used when displaying alert/crit
+    default_color_bg='black'        #  only used for alert/crit
 
     default_prefix='|'
     default_suffix='|'
@@ -549,7 +550,10 @@ get_plugin_params() {
     cfg_history_size="$(get_tmux_option "@packet-loss-history_size" \
         "$default_history_size")"
 
-    # in order to assign a boolean to a variable this two line aproach is needed
+    #
+    #  In order to assign a boolean to a variable this two line aproach
+    #  is needed
+    #
     normalize_bool_param "@packet-loss-weighted_average" "$default_weighted_average" &&
         cfg_weighted_average=true || cfg_weighted_average=false
     normalize_bool_param "@packet-loss-display_trend" "$default_display_trend" &&
@@ -564,16 +568,17 @@ get_plugin_params() {
     cfg_level_crit="$(get_tmux_option "@packet-loss-level_crit" \
         "$default_level_crit")"
 
-    cfg_hist_avg_minutes="$(get_tmux_option "@packet-loss-hist_avg_minutes" \
-        "$default_hist_avg_minutes")"
-    cfg_hist_separator="$(get_tmux_option "@packet-loss-hist_separator" \
-        "$default_hist_separator")"
+    cfg_hist_avg_minutes="$(get_tmux_option \
+        "@packet-loss-hist_avg_minutes" "$default_hist_avg_minutes")"
+    cfg_hist_separator="$(get_tmux_option \
+        "@packet-loss-hist_separator" "$default_hist_separator")"
 
     cfg_color_alert="$(get_tmux_option "@packet-loss-color_alert" \
         "$default_color_alert")"
     cfg_color_crit="$(get_tmux_option "@packet-loss-color_crit" \
         "$default_color_crit")"
-    cfg_color_bg="$(get_tmux_option "@packet-loss-color_bg" "$default_color_bg")"
+    cfg_color_bg="$(get_tmux_option "@packet-loss-color_bg" \
+        "$default_color_bg")"
 
     cfg_prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
     cfg_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"

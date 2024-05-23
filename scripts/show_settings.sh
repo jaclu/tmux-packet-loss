@@ -18,7 +18,10 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="shw"
 
 #  shellcheck source=scripts/utils.sh
-. "$D_TPL_BASE_PATH"/scripts/utils.sh
+source "$D_TPL_BASE_PATH"/scripts/utils.sh
+
+#  shellcheck source=scripts/pidfile_handler.sh
+source "$scr_pidfile_handler"
 
 show_item() {
     local label="$1"
@@ -45,11 +48,24 @@ session="$(get_tmux_socket)"
 
 echo "=====   Config for  session: $session   ====="
 
-[[ "$session" = "standalone" ]] && {
+if [[ "$session" != "standalone" ]]; then
+    this_tmux_pid="$(get_tmux_pid)"
+    get_pidfile_process "$pidfile_tmux"
+    folder_tmux_pid="$pidfile_proc"
+
+    [[ "$this_tmux_pid" = "$folder_tmux_pid" ]] || {
+        echo
+        echo "ERROR: this is not the folder for the $plugin_name used by your tmux session"
+        echo "this tmux: [$this_tmux_pid] folders tmux pid [$folder_tmux_pid]"
+        echo
+        exit 1
+    }
+
+else
     echo
     echo "*** This is not inside any tmux session - only defaults will be displayed!"
     echo
-}
+fi
 
 show_item "headers"
 show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count"
@@ -93,4 +109,9 @@ show_item cfg_suffix "$cfg_suffix" "$default_suffix"
 [[ -n "$cfg_log_file" ]] && {
     echo
     echo "log_file in use: $cfg_log_file"
+}
+
+[[ -f "$pidfile_monitor" ]] && {
+    echo
+    echo "Monitor running: $(cat "$pidfile_monitor")"
 }

@@ -625,12 +625,11 @@ get_config() {
 
         # shellcheck source=data/param_cache
         source "$f_param_cache"
-
-        $skip_logging && unset cfg_log_file
     else
         get_plugin_params
         # log_it "><> [$this_app] use_param_cache is false"
     fi
+    $skip_logging && unset cfg_log_file
 
     $b_d_data_missing && {
         log_it "d_data was missing - $d_data"

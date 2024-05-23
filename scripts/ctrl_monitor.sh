@@ -40,10 +40,6 @@ monitor_terminate() {
 }
 
 monitor_launch() {
-    tmux_pid=$(echo "$TMUX" | sed 's/,/ /g' | cut -d' ' -f 2)
-    [[ -z "$tmux_pid" ]] && error_msg \
-        "Failed to extract pid for tmux process!"
-    echo "$tmux_pid" >"$pidfile_tmux"
 
     #
     #  Starting a fresh monitor

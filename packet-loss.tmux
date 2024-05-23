@@ -55,7 +55,6 @@ update_tmux_option() {
 D_TPL_BASE_PATH=$(dirname -- "$(realpath "$0")")
 log_prefix="plg" # plugin handler
 
-use_param_cache=false # one-off just for this souring
 #  shellcheck source=scripts/utils.sh
 source "$D_TPL_BASE_PATH"/scripts/utils.sh
 
@@ -65,11 +64,8 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 log_it
 log_it "$(date)"
 
-#
-#  Ensure (potentially) outdated param cache is first removed
-#  depending on other settings it will be re-created if needed
-#
-rm -f "$f_param_cache"
+#  Ensure a fresh param_cache has been created during plugin init
+$b_param_cache_written || generate_param_cache
 
 #
 #  Dependency check

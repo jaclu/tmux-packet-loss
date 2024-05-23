@@ -37,6 +37,7 @@ is_pid_alive() {
     #  workarround
     #
     local pid="$1"
+
     [[ -n "$pid" ]] && {
         if [[ "$(uname)" = "Darwin" ]]; then
             #
@@ -78,7 +79,6 @@ pidfile_is_live() {
     #  boolean
     #
     local log_indent=$log_indent
-    pidfile_proc=""
 
     set_pidfile_name "$1"
     _pf_log "pidfile_is_live($pid_file)"
@@ -107,12 +107,11 @@ pidfile_is_mine() {
 
     if pidfile_is_live "$pid_file" && [[ "$pidfile_proc" = "$$" ]]; then
         _pf_log "was mine"
-        _b=0
+        return 0
     else
         _pf_log "NOT my pidfile!"
-        _b=1
+        return 1
     fi
-    return "$_b"
 }
 
 pidfile_acquire() {
@@ -148,6 +147,7 @@ pidfile_release() {
     #  thereby indicate the process exited gracefully
     #
     local log_indent=$log_indent
+    local msg
 
     set_pidfile_name "$1"
     _pf_log "pidfile_release($pid_file)"
@@ -183,8 +183,7 @@ pidfile_release() {
 
     D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
     log_prefix="pid"
-
-    #  shellcheck source=scripts/utils.sh disable=SC1093
+    #  shellcheck source=scripts/utils.sh
     . "$D_TPL_BASE_PATH"/scripts/utils.sh
 }
 

@@ -66,6 +66,11 @@ log_it "$(date)"
 
 #  Ensure a fresh param_cache has been created during plugin init
 $b_param_cache_written || generate_param_cache
+    get_config # to ensure some custom stuff like skip_logging is applied
+}
+
+#  Ensure it points to current tmux
+get_tmux_pid >"$pidfile_tmux"
 
 #
 #  Dependency check

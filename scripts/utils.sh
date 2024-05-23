@@ -827,8 +827,6 @@ main() {
     #  allways always replace it with current tmux conf during plugin init
     #
     get_config
-
-    [[ -f "$pidfile_tmux" ]] || get_tmux_pid >"$pidfile_tmux"
 }
 
 #

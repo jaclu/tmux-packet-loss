@@ -843,7 +843,7 @@ main() {
 # override settings for easy debugging
 #
 # cfg_log_file="/Users/jaclu/tmp/tmux-packet-loss-t2.log"
-skip_logging=true # enforce no logging desipte tmux conf
+# skip_logging=true # enforce no logging desipte tmux conf
 # log_interactive_to_stderr=true # doesnt seem to work on iSH
 # use_param_cache=false
 # do_pidfile_handler_logging=true

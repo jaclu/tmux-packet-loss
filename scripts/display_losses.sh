@@ -67,6 +67,7 @@ verify_db_status() {
     #  Some sanity check, ensuring the monitor is running
     #
     local db_was_ok=true
+    local db_missing
 
     if [[ ! -s "$sqlite_db" ]]; then
         db_was_ok=false
@@ -102,17 +103,18 @@ get_current_loss() {
     #   current_loss
     #
     local sql
-    local msg
+    local current_loss_float
+    local sqlite_exit_code
 
     #  shellcheck disable=SC2086 # boolean - cant be quoted
     sql_current_loss $cfg_weighted_average
 
     # CAST seems to always round down...
-    f_current_loss="$(sqlite_err_handling "$sql")" || {
+    current_loss_float="$(sqlite_err_handling "$sql")" || {
         sqlite_exit_code="$?"
         error_msg "sqlite3[$sqlite_exit_code] when retrieving current losses"
     }
-    current_loss=$(printf "%.0f" "$f_current_loss") # float -> int
+    current_loss=$(printf "%.0f" "$current_loss_float") # float -> int
     display_time_elapsed "$t_start" "get_current_loss() - $current_loss"
 }
 
@@ -196,13 +198,13 @@ display_history() {
     #
     local sql
     local avg_loss_raw
-    local msg
     local avg_loss
 
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
     avg_loss_raw="$(sqlite_err_handling "$sql")" || {
         sqlite_exit_code="$?"
-        error_msg "sqlite3[$sqlite_exit_code] "when retrieving history"" -1 false
+        error_msg "sqlite3[$sqlite_exit_code] when retrieving history" \
+            -1 false
         return
     }
     if [[ "$avg_loss_raw" != "0" ]]; then

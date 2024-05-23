@@ -67,7 +67,6 @@ packet_loss_plugin_shutdown() {
     #  fresh content on next run
     #
     pidfile_release "$pidfile_tmux"
-    rm -f "$f_param_cache"
     rm -f "$f_previous_loss"
     rm -f "$db_restart_log"
     rm -f "$f_sqlite_errors"
@@ -107,7 +106,7 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 source "$scr_pidfile_handler"
 
 pidfile_acquire "$pidfile_ctrl_monitor" || {
-    error_msg "My pid_file is owned by process [$pidfile_proc]" 1 false
+    error_msg "$this_app is already running - process [$pidfile_proc]"
 }
 
 log_it # empty log line to make it easier to see where this starts

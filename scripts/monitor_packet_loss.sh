@@ -146,7 +146,7 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 source "$scr_pidfile_handler"
 
 pidfile_acquire "$pidfile_monitor" || {
-    error_msg "$pidfile_monitor - is owned by process [$pidfile_proc]"
+    error_msg "$this_app is already running - process [$pidfile_proc]"
 }
 
 pidfile_is_live "$pidfile_tmux" || error_msg "tmux pidfile not found!"
@@ -176,7 +176,7 @@ error_invalid_number=102
 error_unable_to_detect_loss=201
 
 #  Ensure DB and all triggers are vallid
-"$D_TPL_BASE_PATH"/scripts/prepare_db.sh
+$scr_prepare_db
 
 define_ping_cmd # we need the ping_cmd in kill_any_strays
 

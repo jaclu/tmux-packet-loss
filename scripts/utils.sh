@@ -529,8 +529,6 @@ get_defaults() {
 
     default_prefix='|'
     default_suffix='|'
-
-    default_log_file=""
 }
 
 get_plugin_params() {
@@ -803,6 +801,8 @@ main() {
     #  lists each time display_losses had to restart monitor
     db_restart_log="$d_data"/db_restarted.log
 
+    b_param_cache_written=false
+
     #
     #  Set to defaults unless overridden (mostly) for debug purposes
     #
@@ -850,4 +850,3 @@ main() {
 # log_ppid=true
 
 main
-# log_it "><> -----   utils done"

@@ -437,6 +437,7 @@ get_tmux_pid() {
     tmux_pid=$(echo "$TMUX" | sed 's/,/ /g' | cut -d' ' -f 2)
     [[ -z "$tmux_pid" ]] && error_msg \
         "Failed to extract pid for tmux process!"
+    # log_it "get_tmux_pid() - found $tmux_pid"
     echo "$tmux_pid"
 }
 
@@ -577,11 +578,7 @@ get_plugin_params() {
     cfg_prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
     cfg_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
 
-    [[ -z "$cfg_log_file" ]] && ! $skip_logging && {
-        #
-        #  would only be set in debug mode, in that case ignore
-        #  tmux setting
-        #
+    [[ -z "$cfg_log_file" ]] && {
         cfg_log_file="$(get_tmux_option "@packet-loss-log_file" "")"
     }
 }
@@ -623,6 +620,8 @@ get_config() {
 
         # shellcheck source=data/param_cache
         source "$f_param_cache"
+
+        $skip_logging && unset cfg_log_file
     else
         get_plugin_params
         # log_it "><> [$this_app] use_param_cache is false"
@@ -841,7 +840,7 @@ main() {
 # override settings for easy debugging
 #
 # cfg_log_file="/Users/jaclu/tmp/tmux-packet-loss-t2.log"
-# skip_logging=true # enforce no logging desipte tmux conf
+# skip_logging=true              # enforce no logging desipte tmux conf
 # log_interactive_to_stderr=true # doesnt seem to work on iSH
 # use_param_cache=false
 # do_pidfile_handler_logging=true

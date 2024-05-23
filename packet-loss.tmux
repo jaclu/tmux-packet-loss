@@ -65,7 +65,8 @@ log_it
 log_it "$(date)"
 
 #  Ensure a fresh param_cache has been created during plugin init
-$b_param_cache_written || generate_param_cache
+$b_param_cache_written || {
+    generate_param_cache
     get_config # to ensure some custom stuff like skip_logging is applied
 }
 

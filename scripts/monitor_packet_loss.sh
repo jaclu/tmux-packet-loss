@@ -332,3 +332,4 @@ while true; do
 done
 
 pidfile_release "$pidfile_monitor"
+log_it "monitor is shut down"

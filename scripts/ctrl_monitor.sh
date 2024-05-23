@@ -31,11 +31,11 @@ monitor_terminate() {
         pidfile_is_live "$pidfile_monitor" && {
             error_msg "Failed to terminate $db_monitor [$proc_id]" 1 false
         }
-        clear_losses_in_t_loss
         log_it "$db_monitor is shutdown"
         killed_monitor=true
     }
     pidfile_release "$pidfile_monitor"
+    clear_losses_in_t_loss
     rm -f "$f_previous_loss"
 }
 
@@ -45,7 +45,7 @@ monitor_launch() {
     #  Starting a fresh monitor
     #
     log_it "starting $db_monitor"
-    "$scr_monitor" >/dev/null 2>&1 &
+    $scr_monitor >/dev/null 2>&1 &
     sleep 1 # wait for monitor to start
 }
 
@@ -68,8 +68,9 @@ packet_loss_plugin_shutdown() {
     #
     pidfile_release "$pidfile_tmux"
     rm -f "$f_previous_loss"
-    rm -f "$db_restart_log"
     rm -f "$f_sqlite_errors"
+    rm -f "$db_restart_log"
+    rm -f "$pidfile_tmux"
     log_it "tmp files have been deleted"
     exit_script 0
 }

@@ -35,7 +35,6 @@ monitor_terminate() {
         killed_monitor=true
     }
     pidfile_release "$pidfile_monitor"
-    clear_losses_in_t_loss
     rm -f "$f_previous_loss"
 }
 
@@ -120,6 +119,7 @@ start | "")
 stop)
     killed_monitor=false
     monitor_terminate
+    clear_losses_in_t_loss # only do on explicit stop
     $killed_monitor || {
         log_it "Did not find any running instances of $scr_monitor"
     }

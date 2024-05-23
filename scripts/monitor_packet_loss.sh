@@ -137,13 +137,13 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="mon"
 
 #  shellcheck source=scripts/utils.sh
-. "$D_TPL_BASE_PATH"/scripts/utils.sh
+source "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 #
 #  Include pidfile handling
 #
 # shellcheck source=scripts/pidfile_handler.sh
-. "$scr_pidfile_handler"
+source "$scr_pidfile_handler"
 
 pidfile_acquire "$pidfile_monitor" || {
     error_msg "$pidfile_monitor - is owned by process [$pidfile_proc]"

@@ -242,7 +242,7 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="dsp"
 
 #  shellcheck source=scripts/utils.sh
-. "$D_TPL_BASE_PATH"/scripts/utils.sh
+source "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 log_loss_changes=false # set to false to reduce logging from this module
 result=""              # indicating no losses

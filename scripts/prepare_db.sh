@@ -152,7 +152,7 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="prp"
 
 # shellcheck source=scripts/utils.sh
-. "$D_TPL_BASE_PATH"/scripts/utils.sh
+source "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 #
 #  Create fresh database if it is missing or obsolete

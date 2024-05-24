@@ -359,7 +359,7 @@ while true; do
         log_it "Sleeping due to parse error"
         sleep 10
     }
-    log_it "><> main loop has completed"
+    # log_it "><> main loop has completed"
 done
 
 pidfile_release "$pidfile_monitor"

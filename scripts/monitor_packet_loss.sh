@@ -220,13 +220,13 @@ err_count=0
 err_count_max=3 # terminate if this many errors have occured
 exit_msg="- exiting this process"
 
-display_date #  make sure it is displayed before any losses
-
 #
 #  Main loop
 #
 log_it "Starting the monitoring loop"
 while true; do
+    display_date #  make sure it is displayed before any losses
+
     percent_loss=""
     parse_error=false
     [[ "$err_count" -ge "$err_count_max" ]] && {
@@ -356,7 +356,6 @@ while true; do
         log_it "Sleeping due to parse error"
         sleep 10
     }
-    display_date
 done
 
 pidfile_release "$pidfile_monitor"

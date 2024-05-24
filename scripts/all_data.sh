@@ -38,7 +38,7 @@ tables=(t_stats t_1_min t_loss)
 
 for table in "${tables[@]}"; do
     echo "--------  Table: $table  --------"
-    [[ -n "$cmd" ]] && sqlite3 "$sqlite_db" "$cmd FROM $table;"
+    [[ -n "$cmd" ]] && sqlite3 "$f_sqlite_db" "$cmd FROM $table;"
 
     #
     #  Display averages - and for t_loss also weighted avg

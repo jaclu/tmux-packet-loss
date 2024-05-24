@@ -60,7 +60,7 @@ db_seems_inactive() {
     #  when using scripts/test_data.sh, age of DB is checked instead
     #  of $pidfile_monitor
     #
-    [[ -n "$(find "$sqlite_db" -mmin +"$db_max_age_mins")" ]]
+    [[ -n "$(find "$f_sqlite_db" -mmin +"$db_max_age_mins")" ]]
 }
 
 verify_db_status() {
@@ -69,7 +69,7 @@ verify_db_status() {
     #
     local db_was_ok=true
 
-    if [[ ! -s "$sqlite_db" ]]; then
+    if [[ ! -s "$f_sqlite_db" ]]; then
         local db_missing="DB missing or broken"
 
         db_was_ok=false
@@ -78,9 +78,9 @@ verify_db_status() {
         #  If DB is missing, try to start the monitor
         #
         restart_monitor
-        log_it "$db_missing - monitor is restarted"
+        log_it "$db_missing - monitor was restarted"
 
-        [[ -s "$sqlite_db" ]] || {
+        [[ -s "$f_sqlite_db" ]] || {
             error_msg "$db_missing - after monitor restart - aborting"
         }
     elif db_seems_inactive; then

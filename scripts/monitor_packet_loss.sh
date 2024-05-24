@@ -235,13 +235,13 @@ while true; do
     }
 
     # [[ ! -d "$d_data" ]] ||
-    [[ ! -s "$sqlite_db" ]] && {
+    [[ ! -s "$f_sqlite_db" ]] && {
         #
         #  If DB was removed, then a (failed) sql action was attempted
         #  this would lead to an empty DB, by removing such next call
         #  to display_losses will recreate it and restart monitoring
         #
-        # rm -f "$sqlite_db"
+        # rm -f "$f_sqlite_db"
         error_msg "database file gone $exit_msg" -1 false
         #  next call to $scr_display_losses will start a new monitor
         break

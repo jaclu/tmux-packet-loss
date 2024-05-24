@@ -16,8 +16,8 @@
 #   11 - Added minute_trigger
 #
 create_db() {
-    [[ -f "$sqlite_db" ]] && {
-        rm -f "$sqlite_db"
+    [[ -f "$f_sqlite_db" ]] && {
+        rm -f "$f_sqlite_db"
         log_it "old_db removed"
     }
     #

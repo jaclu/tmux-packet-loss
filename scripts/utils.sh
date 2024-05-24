@@ -31,12 +31,6 @@ log_it() {
         return
     }
 
-    if $log_ppid; then
-        proc_id="$(tmux display -p "#{session_id}"):$PPID"
-    else
-        proc_id="$$"
-    fi
-
     #  needs leading space for compactness in the printf if empty
     socket=" $(get_tmux_socket)"
     #  only show socket name if not default
@@ -220,7 +214,7 @@ sqlite_err_handling() {
             "sqlite_err_handling(): recursion param not int [$recursion]"
     }
 
-    sqlite3 "$sqlite_db" "$sql" 2>>"$f_sqlite_errors"
+    sqlite3 "$f_sqlite_db" "$sql" 2>>"$f_sqlite_errors"
     sqlite_exit_code=$?
 
     case "$sqlite_exit_code" in
@@ -241,14 +235,14 @@ sqlite_err_handling() {
         fi
         ;;
     *)
-        [[ ! -s "$sqlite_db" ]] && [[ -f "$sqlite_db" ]] && {
+        [[ ! -s "$f_sqlite_db" ]] && [[ -f "$f_sqlite_db" ]] && {
             #
             #  If DB was removed, then a sql action would fail but lead
             #  to an empty DB. By removing such, next call to
             #  display_losses will recreate it and restart monitoring
             #
             error_msg "sqlite_err_handling() - Removing empty DB" -1 false
-            rm -f "$sqlite_db"
+            rm -f "$f_sqlite_db"
         }
         ;;
     esac
@@ -509,7 +503,7 @@ EOF
     #endregion
 
     #  Ensure param cache is current
-    b_param_cache_written=true
+    param_cache_written=true
 
 }
 
@@ -647,9 +641,9 @@ get_config() {
         get_plugin_params
         # log_it "><> [$this_app] use_param_cache is false"
     fi
+
     $skip_logging && unset cfg_log_file
 
-    # this calls scr_prepare_db, so make sure we avoid recursion!
     $b_d_data_missing && {
         local stray_monitors
 
@@ -796,7 +790,7 @@ main() {
     f_previous_loss="$d_data"/previous_loss
     f_sqlite_errors="$d_data"/sqlite.err
 
-    sqlite_db="$d_data"/packet_loss.sqlite
+    f_sqlite_db="$d_data"/packet_loss.sqlite
 
     pidfile_ctrl_monitor="$d_data"/ctrl_monitor.pid
     pidfile_monitor="$d_data"/monitor.pid
@@ -805,7 +799,7 @@ main() {
     #  lists each time display_losses had to restart monitor
     db_restart_log="$d_data"/db_restarted.log
 
-    b_param_cache_written=false
+    param_cache_written=false
 
     #
     #  Set to defaults unless overridden (mostly) for debug purposes
@@ -822,9 +816,6 @@ main() {
         # if true @packet-loss-log_file setting is ignored
         skip_logging=false
     }
-
-    # set to true if session-id & ppid should be displayed instead of pid
-    [[ -z "$log_ppid" ]] && log_ppid=false
 
     #
     #  at this point plugin_params is trusted if found, menus.tmux will
@@ -844,11 +835,22 @@ main() {
 #
 # override settings for easy debugging
 #
-# cfg_log_file="/Users/jaclu/tmp/tmux-packet-loss-t2.log"
-# skip_logging=true              # enforce no logging desipte tmux conf
-# do_pidfile_handler_logging=true
-# log_interactive_to_stderr=true # doesnt seem to work on iSH
+
+#
+#  Setting it here will allow for debugging utils setting up the env.
+#  Not needed for normal usage of logging.
+#
+# cfg_log_file="$HOME/tmp/tmux-packet-loss-t2.log"
+
+# skip_logging=true # enforce no logging desipte tmux conf
+# do_pidfile_handler_logging=true  # will create ridiculous ammounts of logs
 # use_param_cache=false
-# log_ppid=true
+
+#
+#  When this is used, a cfg_log_file must still be defined, since
+#  log_it aborts if no cfg_log_file is defined.
+#  Further non-interactive tasks will always use cfg_log_file
+#
+# log_interactive_to_stderr=true
 
 main

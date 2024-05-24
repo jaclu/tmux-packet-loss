@@ -70,9 +70,6 @@ $param_cache_written || {
     get_config # to ensure some custom stuff like skip_logging is applied
 }
 
-#  Ensure it points to current tmux
-get_tmux_pid >"$pidfile_tmux"
-
 #
 #  Dependency check
 #
@@ -80,11 +77,11 @@ command -v sqlite3 >/dev/null 2>&1 || {
     error_msg "Missing dependency sqlite3"
 }
 
+#  Ensure it points to current tmux
+get_tmux_pid >"$pidfile_tmux"
+
 #
-#  stop any running monitor instances
-#  create DB if needed
-#  update triggers baesd on tmux plgin config
-#  start monitoring
+#  Start monitor
 #
 log_it #  if log is used, create a LF to better isolate init
 log_it "starting monitor"

@@ -120,27 +120,64 @@ pidfile_is_mine() {
 }
 
 pidfile_acquire() {
+    #
+    #  An optional second param indicates how many times to try to
+    #  aquire the pidfile, between each attempt, a randomized
+    #  sleep 1-5 seconds is done
+    #
     local log_indent=$log_indent
+    local attempts="${2:-1}"
+    local is_live=false
+    local i
 
     set_pidfile_name "$1"
+
+    [[ -n "$attempts" ]] && ! is_int "$attempts" && {
+        error_msg "pidfile_acquire() 2nd param must be int - got [$attempts]"
+    }
+
     _pf_log "pidfile_acquire($pid_file)"
     ((log_indent++)) # increase indent until this returns
 
-    pidfile_is_live "$pid_file" && {
-        # Could be called by many different tasks, let them decide
-        # if there is a need to document this failure
-        return 1
-    }
+    pid_basename="$(basename "$pid_file")"
+
+    for ((i = 1; i <= "$attempts"; i++)); do
+        local msg
+
+        pidfile_is_live "$pid_file" || {
+            is_live=true
+            [[ "$i" -gt 1 ]] && {
+                log_it "     $pid_basename available on attempt $i/$attempts"
+            }
+            #
+            break
+        }
+
+        #  dont wait if last attempt failed
+        [[ "$i" -ge "$attempts" ]] && break
+
+        msg="     pidfile_acquire() waiting for $pid_basename "
+        msg+="to become available..."
+        log_it "$msg"
+        sleep $((RANDOM % 4 + 1)) #  1-5 seconds
+    done
+    $is_live || return 1 # pid_file was in use
+
+    # pidfile_is_live "$pid_file" && {
+    #     # Could be called by many different tasks, let them decide
+    #     # if there is a need to document this failure
+    #     return 1
+    # }
     echo $$ 2>/dev/null >"$pid_file" || {
         error_msg "Failed to write pid_file: [$pid_file]" 0 false
-        return 1
+        return 2
     }
 
     _pf_log "pid_file created"
 
     pidfile_is_mine "$pid_file" || {
         error_msg "Failed to create pid_file: [$pid_file]" 0 false
-        return 1
+        return 3
     }
     _pf_log "Aquire successfull"
     return 0

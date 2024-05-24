@@ -50,17 +50,23 @@ echo "=====   Config for  session: $session   ====="
 
 if [[ "$session" != "standalone" ]]; then
     this_tmux_pid="$(get_tmux_pid)"
-    get_pidfile_process "$pidfile_tmux"
-    folder_tmux_pid="$pidfile_proc"
+    folder_tmux_pid="$(show_pidfile_process "$pidfile_tmux")"
 
-    [[ "$this_tmux_pid" = "$folder_tmux_pid" ]] || {
+    if [[ -n "$folder_tmux_pid" ]]; then
+        [[ "$this_tmux_pid" = "$folder_tmux_pid" ]] || {
+            echo
+            echo "***  ERROR: This is not the folder for the $plugin_name"
+            echo "***         used by your tmux session"
+            echo "***         this tmux: [$this_tmux_pid] folders tmux pid [$folder_tmux_pid]"
+            echo
+            exit 1
+        }
+    else
         echo
-        echo "ERROR: this is not the folder for the $plugin_name used by your tmux session"
-        echo "this tmux: [$this_tmux_pid] folders tmux pid [$folder_tmux_pid]"
+        echo "***  WARNING:  Failed to verify if this is the $plugin_name"
+        echo "***            folder for your tmux session"
         echo
-        exit 1
-    }
-
+    fi
 else
     echo
     echo "*** This is not inside any tmux session - only defaults will be displayed!"

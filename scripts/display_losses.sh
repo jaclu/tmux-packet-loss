@@ -24,26 +24,6 @@ script_exit() {
     exit 0
 }
 
-safe_now() {
-    #
-    #  This one is in utils, but since it is called before sourcing utils
-    #  it needs to be duplicated here
-    #
-    #  MacOS date only counts whole seconds, if gdate (GNU-date) is
-    #  installed, it can  display times with more precission
-    #
-    if [[ "$(uname)" = "Darwin" ]]; then
-        if [[ -n "$(command -v gdate)" ]]; then
-            gdate +%s.%N
-        else
-            date +%s
-        fi
-    else
-        #  On Linux the native date suports sub second precission
-        date +%s.%N
-    fi
-}
-
 restart_monitor() {
     log_it "restarting monitor"
     $scr_ctrl_monitor start || error_msg "ctrl_monitor gave error on restart"
@@ -67,12 +47,10 @@ verify_db_status() {
     #
     #  Some sanity check, ensuring the monitor is running
     #
-    local db_was_ok=true
 
     if [[ ! -s "$f_sqlite_db" ]]; then
         local db_missing="DB missing or broken"
 
-        db_was_ok=false
         error_msg "$db_missing" -1 false
         #
         #  If DB is missing, try to start the monitor
@@ -84,7 +62,6 @@ verify_db_status() {
             error_msg "$db_missing - after monitor restart - aborting"
         }
     elif db_seems_inactive; then
-        db_was_ok=false
         log_it "DB is over $db_max_age_mins minutes old"
         #
         #  If DB is over a minute old,
@@ -95,7 +72,6 @@ verify_db_status() {
         error_msg "DB incorrect user_version: " -1 false
         restart_monitor
     fi
-    display_time_elapsed "$t_start" "verify_db_status() - was ok: $db_was_ok"
 }
 
 get_current_loss() {
@@ -116,7 +92,6 @@ get_current_loss() {
         error_msg "sqlite3[$sqlite_exit_code] when retrieving current losses"
     }
     current_loss=$(printf "%.0f" "$current_loss_float") # float -> int
-    display_time_elapsed "$t_start" "get_current_loss() - $current_loss"
 }
 
 get_prev_loss() {
@@ -167,7 +142,6 @@ show_trend() {
             result="-$current_loss"
         fi
     fi
-    display_time_elapsed "$t_start" "show_trend($result)"
 }
 
 colorize_high_numbers() {
@@ -187,7 +161,6 @@ colorize_high_numbers() {
         item="#[fg=$cfg_color_alert,bg=$cfg_color_bg]${item}#[default]"
     fi
     echo "$item"
-    display_time_elapsed "$t_start" "colorize_high_numbers()"
 }
 
 display_history() {
@@ -219,7 +192,6 @@ display_history() {
         result="${result}${cfg_hist_separator}${avg_loss}"
         s_log_result="$s_log_result   avg: $avg_loss_raw"
     fi
-    display_time_elapsed "$t_start" "display_history($avg_loss_raw)"
 }
 
 #===============================================================
@@ -232,15 +204,7 @@ display_history() {
 #  Prevent tmux from running this every couple of seconds,
 #  convenient during debugging
 #
-# [[ "$1" != "hepp" ]] && exit 0
-
-#
-#  Banchmark debug utility, if skip_time_elapsed is set to false, time
-#  elapsed since t_start can be logged by calling display_time_elapsed,
-#  in order to see how long this script takes to complete various tasks.
-#
-# skip_time_elapsed=false
-$skip_time_elapsed || t_start="$(safe_now)"
+[[ "$1" != "hepp" ]] && exit 0
 
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="dsp"
@@ -250,11 +214,6 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 log_loss_changes=false # set to false to reduce logging from this module
 result=""              # indicating no losses
-
-$skip_time_elapsed || {
-    log_it
-    display_time_elapsed "$t_start" "script initialized"
-}
 
 verify_db_status
 
@@ -283,7 +242,5 @@ if [[ "$current_loss" -gt 0 ]]; then
 fi
 
 $cfg_display_trend && set_prev_loss
-
-display_time_elapsed "$t_start" "display_losses.sh"
 
 # log_it "$this_app - completed"

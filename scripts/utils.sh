@@ -673,46 +673,6 @@ get_config() {
 #
 #---------------------------------------------------------------
 
-safe_now() {
-    #
-    #  This one is in utils, but since it is called before sourcing utils
-    #  it needs to be duplicated here
-    #
-    #  MacOS date only counts whole seconds, if gdate (GNU-date) is
-    #  installed, it can  display times with more precission
-    #
-    if [[ "$(uname)" = "Darwin" ]]; then
-        if [[ -n "$(command -v gdate)" ]]; then
-            gdate +%s.%N
-        else
-            date +%s
-        fi
-    else
-        #  On Linux the native date suports sub second precission
-        date +%s.%N
-    fi
-}
-
-display_time_elapsed() {
-    $skip_time_elapsed && return # quick abort if not used
-
-    local t_start="$1"
-    local label="$2"
-    local duration
-
-    [[ -z "$t_start" ]] && {
-        error_msg "display_time_elapsed() t_start unset"
-    }
-    duration="$(echo "$(safe_now) - $t_start" | bc)"
-    log_it "Since start: $(printf "%.2f" "$duration") $label"
-}
-
-#===============================================================
-#
-#   Main
-#
-#===============================================================
-
 main() {
     #
     #  For actions in utils log_prefix gets an u- prefix

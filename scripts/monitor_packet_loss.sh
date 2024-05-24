@@ -127,6 +127,27 @@ display_date() {
     }
 }
 
+is_busybox_ping() {
+    #
+    #  NOT Variables provided:
+    #    this_is_busybox_ping
+    #
+    local this_is_busybox_ping
+
+    [[ -z "$this_is_busybox_ping" ]] && {
+        log_it "Checking if ping is a BusyBox one"
+        #
+        #  By saving state, this check only needs to be done once
+        #
+        if realpath "$(command -v ping)" | grep -qi busybox; then
+            this_is_busybox_ping=true
+        else
+            this_is_busybox_ping=false
+        fi
+    }
+    $this_is_busybox_ping #  return status
+}
+
 #===============================================================
 #
 #   Main
@@ -149,7 +170,7 @@ pidfile_acquire "$pidfile_monitor" || {
     error_msg "$this_app is already running - process [$pidfile_proc]"
 }
 
-pidfile_is_live "$pidfile_tmux" || error_msg "tmux pidfile not found!"
+# pidfile_is_live "$pidfile_tmux" || error_msg "tmux pidfile not found!"
 
 # If true, output of pings with issues will be saved
 store_ping_issues=false
@@ -213,8 +234,15 @@ while true; do
         break
     }
 
-    [[ -s "$sqlite_db" ]] || {
-        error_msg "database file gone $exit_msg" -1
+    # [[ ! -d "$d_data" ]] ||
+    [[ ! -s "$sqlite_db" ]] && {
+        #
+        #  If DB was removed, then a (failed) sql action was attempted
+        #  this would lead to an empty DB, by removing such next call
+        #  to display_losses will recreate it and restart monitoring
+        #
+        # rm -f "$sqlite_db"
+        error_msg "database file gone $exit_msg" -1 false
         #  next call to $scr_display_losses will start a new monitor
         break
     }
@@ -272,14 +300,16 @@ while true; do
 
     sqlite_transaction "INSERT INTO t_loss (loss) VALUES ($percent_loss)" || {
         [[ "$sqlite_exit_code" = 5 ]] || {
-            error_msg "sqlite3[$sqlite_exit_code] when adding a loss" -1
+            error_msg "sqlite3[$sqlite_exit_code] when adding a loss" -1 false
             ((err_count++))
         }
         continue
     }
 
+    log_it "stored in DB: $percent_loss"
+
     [[ "$percent_loss" != 0 ]] && {
-        log_it "stored in DB: $percent_loss"
+        # log_it "stored in DB: $percent_loss"
 
         $store_ping_issues &&
             ! $parse_error &&

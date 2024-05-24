@@ -89,7 +89,6 @@ display_message_hold() {
     #  trigger recursion
     #
     local msg="$1"
-    local org_display_time
 
     [[ -n "$TMUX" ]] || {
         # tmux not running display-message cant be called
@@ -103,6 +102,8 @@ display_message_hold() {
         # message will remain until key-press
         $TMUX_BIN display-message -d 0 "$msg"
     else
+        local org_display_time
+
         # Manually make the error msg stay on screen a long time
         org_display_time="$($TMUX_BIN show-option -gv display-time)"
         $TMUX_BIN set -g display-time 120000 >/dev/null
@@ -172,6 +173,7 @@ posix_get_char() {
     #  restoring the terminal and returning the char
     #
     local old_stty_cfg
+
     old_stty_cfg=$(stty -g)
     stty raw -echo
     dd bs=1 count=1 2>/dev/null
@@ -221,7 +223,9 @@ sqlite_err_handling() {
     sqlite3 "$sqlite_db" "$sql" 2>>"$f_sqlite_errors"
     sqlite_exit_code=$?
 
-    [[ "$sqlite_exit_code" = 5 ]] && { #  SQLITE_BUSY
+    case "$sqlite_exit_code" in
+    0) ;;
+    5)
         if [[ "$recursion" -gt 2 ]]; then
             log_it "attempt $recursion also got SQLITE_BUSY - giving up"
             sqlite_exit_code=99 # repeated SQLITE_BUSY
@@ -235,7 +239,20 @@ sqlite_err_handling() {
             log_it "SQLITE_BUSY - attempt: $recursion"
             sqlite_err_handling "$sql" "$recursion"
         fi
-    }
+        ;;
+    *)
+        [[ ! -s "$sqlite_db" ]] && [[ -f "$sqlite_db" ]] && {
+            #
+            #  If DB was removed, then a sql action would fail but lead
+            #  to an empty DB. By removing such, next call to
+            #  display_losses will recreate it and restart monitoring
+            #
+            error_msg "Removing empty DB" -1 false
+            rm -f "$sqlite_db"
+        }
+        ;;
+    esac
+
     return "$sqlite_exit_code"
 }
 
@@ -534,6 +551,7 @@ get_defaults() {
 }
 
 get_plugin_params() {
+    #
     #  Variables provided:
     #    cfg_  variables
     #
@@ -631,26 +649,27 @@ get_config() {
     fi
     $skip_logging && unset cfg_log_file
 
+    # this calls scr_prepare_db, so make sure we avoid recursion!
     $b_d_data_missing && {
-        log_it "d_data was missing - $d_data"
-        mkdir -p "$d_data" # ensure it exists
+        local stray_monitors
+
+        log_it "data/ was missing"
+
+        get_tmux_pid >"$pidfile_tmux"
 
         #
         #  If data dir was removed whilst a monitor was running,
+        #  there is a risk running monitors will mess things up,
         #  the running monitor cant be killed via pidfile.
         #  Do it manually.
         #
         stray_monitors="$(pgrep -f "$scr_monitor")"
         [[ -n "$stray_monitors" ]] && {
             echo "$stray_monitors" | xargs kill
-            log_it "Mannually killed stray monitor(-s)"
+            log_it "Mannually killed stray monitors[$stray_monitors]"
         }
 
-    }
-    [[ ! -f "$sqlite_db" ]] &&
-        [[ "$this_app" != "$(basename "$scr_prepare_db")" ]] && {
-
-        $scr_prepare_db
+        log_it "data/ is restored"
     }
 }
 
@@ -659,24 +678,6 @@ get_config() {
 #   Other
 #
 #---------------------------------------------------------------
-is_busybox_ping() {
-    #
-    #  Variables provided:
-    #    this_is_busybox_ping
-    #
-    [[ -z "$this_is_busybox_ping" ]] && {
-        log_it "Checking if ping is a BusyBox one"
-        #
-        #  By saving state, this check only needs to be done once
-        #
-        if realpath "$(command -v ping)" | grep -qi busybox; then
-            this_is_busybox_ping=true
-        else
-            this_is_busybox_ping=false
-        fi
-    }
-    $this_is_busybox_ping
-}
 
 safe_now() {
     #
@@ -845,9 +846,9 @@ main() {
 #
 # cfg_log_file="/Users/jaclu/tmp/tmux-packet-loss-t2.log"
 # skip_logging=true              # enforce no logging desipte tmux conf
+# do_pidfile_handler_logging=true
 # log_interactive_to_stderr=true # doesnt seem to work on iSH
 # use_param_cache=false
-# do_pidfile_handler_logging=true
 # log_ppid=true
 
 main

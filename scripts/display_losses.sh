@@ -67,11 +67,11 @@ verify_db_status() {
     #  Some sanity check, ensuring the monitor is running
     #
     local db_was_ok=true
-    local db_missing
 
     if [[ ! -s "$sqlite_db" ]]; then
+        local db_missing="DB missing or broken"
+
         db_was_ok=false
-        db_missing="DB missing"
         error_msg "$db_missing" -1 false
         #
         #  If DB is missing, try to start the monitor
@@ -104,14 +104,14 @@ get_current_loss() {
     #
     local sql
     local current_loss_float
-    local sqlite_exit_code
 
     #  shellcheck disable=SC2086 # boolean - cant be quoted
     sql_current_loss $cfg_weighted_average
 
     # CAST seems to always round down...
     current_loss_float="$(sqlite_err_handling "$sql")" || {
-        sqlite_exit_code="$?"
+        local sqlite_exit_code="$?"
+
         error_msg "sqlite3[$sqlite_exit_code] when retrieving current losses"
     }
     current_loss=$(printf "%.0f" "$current_loss_float") # float -> int
@@ -198,7 +198,6 @@ display_history() {
     #
     local sql
     local avg_loss_raw
-    local avg_loss
 
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
     avg_loss_raw="$(sqlite_err_handling "$sql")" || {
@@ -208,6 +207,8 @@ display_history() {
         return
     }
     if [[ "$avg_loss_raw" != "0" ]]; then
+        local avg_loss
+
         #
         #  If stats is over trigger levels, display in appropriate color
         #

@@ -89,12 +89,11 @@ show_item cfg_history_size "$cfg_history_size" "$default_history_size"
 
 show_item cfg_weighted_average "$cfg_weighted_average" "$default_weighted_average"
 show_item cfg_display_trend "$cfg_display_trend" "$default_display_trend"
+show_item cfg_hist_avg_display "$cfg_hist_avg_display" "$default_hist_avg_display"
 
 show_item cfg_level_disp "$cfg_level_disp" "$default_level_disp"
 show_item cfg_level_alert "$cfg_level_alert" "$default_level_alert"
 show_item cfg_level_crit "$cfg_level_crit" "$default_level_crit"
-
-show_item cfg_hist_avg_display "$cfg_hist_avg_display" "$default_hist_avg_display"
 
 show_item cfg_hist_avg_minutes "$cfg_hist_avg_minutes" "$default_hist_avg_minutes"
 show_item cfg_hist_separator "$cfg_hist_separator" "$default_hist_separator"

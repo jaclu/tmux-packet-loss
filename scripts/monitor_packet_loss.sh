@@ -306,10 +306,8 @@ while true; do
         continue
     }
 
-    log_it "stored in DB: $percent_loss"
-
     [[ "$percent_loss" != 0 ]] && {
-        # log_it "stored in DB: $percent_loss"
+        log_it "stored in DB: $percent_loss"
 
         $store_ping_issues &&
             ! $parse_error &&

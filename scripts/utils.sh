@@ -444,7 +444,7 @@ get_tmux_socket() {
 get_tmux_pid() {
     local tmux_pid
 
-    tmux_pid=$(echo "$TMUX" | sed 's/,/ /g' | cut -d' ' -f 2)
+    tmux_pid=$(echo "$TMUX" | cut -d',' -f 2)
     [[ -z "$tmux_pid" ]] && error_msg \
         "Failed to extract pid for tmux process!"
     # log_it "get_tmux_pid() - found $tmux_pid"
@@ -757,6 +757,12 @@ main() {
 
     pidfile_ctrl_monitor="$d_data"/ctrl_monitor.pid
     pidfile_monitor="$d_data"/monitor.pid
+
+    #
+    #  This one is just kept for show_settings.sh, in order to verify
+    #  that the process running it is using the "right" tmux-packet-loss
+    #  folder, if not an error is displayed.
+    #
     pidfile_tmux="$d_data"/tmux.pid
 
     #  lists each time display_losses had to restart monitor

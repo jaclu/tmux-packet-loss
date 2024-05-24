@@ -247,7 +247,7 @@ sqlite_err_handling() {
             #  to an empty DB. By removing such, next call to
             #  display_losses will recreate it and restart monitoring
             #
-            error_msg "Removing empty DB" -1 false
+            error_msg "sqlite_err_handling() - Removing empty DB" -1 false
             rm -f "$sqlite_db"
         }
         ;;

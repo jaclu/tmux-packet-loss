@@ -20,6 +20,7 @@ script_exit() {
         # param check
         error_msg "script_exit() got 2nd unexpected param[$2]"
     }
+    # log_it "script_exit() - $this_app - completed"
     exit 0
 }
 
@@ -284,3 +285,5 @@ fi
 $cfg_display_trend && set_prev_loss
 
 display_time_elapsed "$t_start" "display_losses.sh"
+
+# log_it "$this_app - completed"

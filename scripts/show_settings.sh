@@ -28,17 +28,16 @@ show_item() {
     local value="$2"
     local default="$3"
     if [[ "$label" = "headers" ]]; then
-        echo "     default  user setting config vairable"
-        echo "------------  ------------ ---------------"
+        echo "     default  user setting  config vairable"
+        echo "------------  ------------  ---------------"
 
     else
-        msg="$label [$value]"
         if [[ "$value" = "$default" ]]; then
-            msg="$(printf "%13s              %-20s" \
-                "[$value]" "$label")"
+            msg="$(printf "%13s               %-20s" \
+                "$value" "$label")"
         else
-            msg="$(printf "%13s %12s %-20s" \
-                "[$default]" "[$value]" "$label")"
+            msg="$(printf "%13s %12s  %-20s" \
+                "$default" "$value" "$label")"
         fi
         echo "$msg"
     fi
@@ -47,6 +46,7 @@ show_item() {
 session="$(get_tmux_socket)"
 
 echo "=====   Config for  session: $session   ====="
+echo
 
 if [[ "$session" != "standalone" ]]; then
     this_tmux_pid="$(get_tmux_pid)"
@@ -92,22 +92,22 @@ to be: $req_interval  currently is: $status_interval
 
 show_item cfg_ping_host "$cfg_ping_host" "$default_ping_host"
 show_item cfg_history_size "$cfg_history_size" "$default_history_size"
-
+echo
 show_item cfg_weighted_average "$cfg_weighted_average" "$default_weighted_average"
 show_item cfg_display_trend "$cfg_display_trend" "$default_display_trend"
 show_item cfg_hist_avg_display "$cfg_hist_avg_display" "$default_hist_avg_display"
-
+echo
 show_item cfg_level_disp "$cfg_level_disp" "$default_level_disp"
 show_item cfg_level_alert "$cfg_level_alert" "$default_level_alert"
 show_item cfg_level_crit "$cfg_level_crit" "$default_level_crit"
-
+echo
 show_item cfg_hist_avg_minutes "$cfg_hist_avg_minutes" "$default_hist_avg_minutes"
 show_item cfg_hist_separator "$cfg_hist_separator" "$default_hist_separator"
-
+echo
 show_item cfg_color_alert "$cfg_color_alert" "$default_color_alert"
 show_item cfg_color_crit "$cfg_color_crit" "$default_color_crit"
 show_item cfg_color_bg "$cfg_color_bg" "$default_color_bg"
-
+echo
 show_item cfg_prefix "$cfg_prefix" "$default_prefix"
 show_item cfg_suffix "$cfg_suffix" "$default_suffix"
 

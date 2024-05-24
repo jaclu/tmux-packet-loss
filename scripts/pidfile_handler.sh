@@ -59,8 +59,13 @@ get_pidfile_process() {
     #    pidfile_proc - process in this pidfile
     #
     set_pidfile_name "$1"
-    pidfile_proc="$(cat "$pid_file")"
+    pidfile_proc="$(cat "$pid_file" 2>/dev/null)"
     _pf_log "pid_file is now: [$pid_file] pidfile_proc is now: [$pidfile_proc]"
+}
+
+show_pidfile_process() {
+    get_pidfile_process "$1"
+    echo "$pidfile_proc"
 }
 
 set_pidfile_name() {

@@ -40,7 +40,7 @@ log_it() {
     #  In order to not have date on every line, date is just printed
     #  once/day in the end of monitor_packet_loss.sh
     #
-    printf "%s%s %s %s%*s%s\n" "$(date +%H:%M:%S)" "$socket" "$proc_id" \
+    printf "%s%s %s %s%*s%s\n" "$(date +%H:%M:%S)" "$socket" "$$" \
         "$log_prefix" "$log_indent" "" "$@" >>"$cfg_log_file"
 }
 
@@ -635,7 +635,8 @@ get_config() {
         # param_cache missing, create it
         [[ -s "$f_param_cache" ]] || generate_param_cache
 
-        # shellcheck source=data/param_cache
+        # the SC1091 is needed to pass linting when use_param_cache is off
+        # shellcheck source=data/param_cache disable=SC1091
         source "$f_param_cache"
     else
         get_plugin_params
@@ -648,6 +649,8 @@ get_config() {
         local stray_monitors
 
         log_it "data/ was missing"
+
+        mkdir -p "$d_data"
 
         get_tmux_pid >"$pidfile_tmux"
 
@@ -784,6 +787,12 @@ main() {
     get_config
 }
 
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
 #
 #  Identifies the script triggering a log entry.
 #  Since it is set outside main() this will remain in effect for
@@ -792,9 +801,11 @@ main() {
 #
 [[ -z "$log_prefix" ]] && log_prefix="???"
 
+#---------------------------------------------
 #
-# override settings for easy debugging
+#   debugging overrides
 #
+#---------------------------------------------
 
 #
 #  Setting it here will allow for debugging utils setting up the env.
@@ -802,15 +813,19 @@ main() {
 #
 # cfg_log_file="$HOME/tmp/tmux-packet-loss-t2.log"
 
-# skip_logging=true # enforce no logging desipte tmux conf
-# do_pidfile_handler_logging=true  # will create ridiculous ammounts of logs
-# use_param_cache=false
-
 #
 #  When this is used, a cfg_log_file must still be defined, since
 #  log_it aborts if no cfg_log_file is defined.
 #  Further non-interactive tasks will always use cfg_log_file
 #
 # log_interactive_to_stderr=true
+
+# do_pidfile_handler_logging=true  # will create ridiculous ammounts of logs
+# skip_logging=true # enforce no logging desipte tmux conf
+
+#
+#  Disable caching
+#
+# use_param_cache=false
 
 main

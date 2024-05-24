@@ -29,7 +29,7 @@ monitor_terminate() {
         done
         [[ "$i" -gt 0 ]] && log_it "after loop: [$i]"
         pidfile_is_live "$pidfile_monitor" && {
-            error_msg "Failed to terminate $db_monitor [$proc_id]" 1 false
+            error_msg "Failed to terminate $db_monitor" 1 false
         }
         log_it "$db_monitor is shutdown"
         killed_monitor=true

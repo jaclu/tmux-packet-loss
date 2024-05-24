@@ -23,7 +23,6 @@ define_ping_cmd() {
     local timeout_help
     local timeout_parameter
 
-    is_busybox_ping && log_it "system useses BusyBox ping"
     #
     #  Selecting the right timeout option
     #
@@ -140,6 +139,7 @@ is_busybox_ping() {
         #  By saving state, this check only needs to be done once
         #
         if realpath "$(command -v ping)" | grep -qi busybox; then
+            log_it "This system uses a busybox ping"
             this_is_busybox_ping=true
         else
             this_is_busybox_ping=false

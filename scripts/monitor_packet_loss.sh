@@ -166,7 +166,7 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 # shellcheck source=scripts/pidfile_handler.sh
 source "$scr_pidfile_handler"
 
-pidfile_acquire "$pidfile_monitor" || {
+pidfile_acquire "$pidfile_monitor" 3 || {
     error_msg "$this_app is already running - process [$pidfile_proc]"
 }
 
@@ -216,13 +216,14 @@ fi
 log_it "Checking losses using: $(basename "$loss_check")"
 $store_ping_issues && log_it "Will save ping issues in $d_ping_issues"
 
-err_count=0
-err_count_max=3 # terminate if this many errors have occured
-exit_msg="- exiting this process"
+tmux_socket="$(echo "$TMUX" | cut -d',' -f1)"
 
 #
 #  Main loop
 #
+err_count=0
+err_count_max=3 # terminate if this many errors have occured
+exit_msg="- exiting this process"
 log_it "Starting the monitoring loop"
 while true; do
     display_date #  make sure it is displayed before any losses
@@ -338,16 +339,18 @@ while true; do
         break
     }
 
-    pidfile_is_live "$pidfile_tmux" || {
-        log_it "tmux has exited $exit_msg"
+    if [[ "$(uname)" = "Darwin" ]]; then
+        # macOS uses a different format for stat
+        group_exec_permission=$(stat -F "$tmux_socket" | cut -c 7)
+    else
+        # Assume Linux
+        group_exec_permission=$(stat -c "%A" "$tmux_socket" | cut -c 7)
+    fi
 
-        #
-        #  By calling this in the background, this process can kill itself
-        #  reducing risk of iSH craching
-        #
-        $scr_ctrl_monitor shutdown &
+    if [[ "$group_exec_permission" != "x" ]]; then
+        log_it "tmux is no longer running - $tmux_socket"
         break
-    }
+    fi
     $parse_error && {
         #
         #  in order not to constantly loop and potentially
@@ -356,6 +359,7 @@ while true; do
         log_it "Sleeping due to parse error"
         sleep 10
     }
+    log_it "><> main loop has completed"
 done
 
 pidfile_release "$pidfile_monitor"

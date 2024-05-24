@@ -113,5 +113,5 @@ show_item cfg_suffix "$cfg_suffix" "$default_suffix"
 
 [[ -f "$pidfile_monitor" ]] && {
     echo
-    echo "Monitor running: $(cat "$pidfile_monitor")"
+    echo "Monitor running: $(show_pidfile_process "$pidfile_monitor")"
 }

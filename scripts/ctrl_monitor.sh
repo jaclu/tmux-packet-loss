@@ -34,6 +34,7 @@ monitor_terminate() {
         log_it "$db_monitor is shutdown"
         killed_monitor=true
     }
+    log_it "pid release [$(show_pidfile_process "$pidfile_monitor")] $pidfile_monitor"
     pidfile_release "$pidfile_monitor"
     rm -f "$f_previous_loss"
 }
@@ -44,6 +45,10 @@ monitor_launch() {
     #  Starting a fresh monitor
     #
     log_it "starting $db_monitor"
+
+    #  recreate if missing
+    [[ -f "$pidfile_tmux" ]] || get_tmux_pid >"$pidfile_tmux"
+
     $scr_monitor >/dev/null 2>&1 &
     sleep 1 # wait for monitor to start
 }
@@ -65,6 +70,7 @@ packet_loss_plugin_shutdown() {
     #  remove some stat files that will be generated with
     #  fresh content on next run
     #
+    log_it "pid release [$(show_pidfile_process "$pidfile_tmux")] $pidfile_tmux"
     pidfile_release "$pidfile_tmux"
     rm -f "$f_previous_loss"
     rm -f "$f_sqlite_errors"
@@ -80,6 +86,7 @@ exit_script() {
     #
     local exit_code="${1:-0}"
 
+    log_it "pid release [$(show_pidfile_process "$pidfile_ctrl_monitor")] $pidfile_ctrl_monitor"
     pidfile_release "$pidfile_ctrl_monitor"
     msg="$this_app - completed"
     [[ "$exit_code" -ne 0 ]] && msg+=" exit code:$exit_code"

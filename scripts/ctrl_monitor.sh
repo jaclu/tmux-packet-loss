@@ -34,9 +34,9 @@ monitor_terminate() {
         log_it "$db_monitor is shutdown"
         killed_monitor=true
     }
+
     log_it "pid release [$(show_pidfile_process "$pidfile_monitor")] $pidfile_monitor"
     pidfile_release "$pidfile_monitor"
-    rm -f "$f_previous_loss"
 }
 
 monitor_launch() {
@@ -46,38 +46,17 @@ monitor_launch() {
     #
     log_it "starting $db_monitor"
 
+    #  Clear out env, some status files that will be created when needed
+    rm -f "$f_previous_loss"
+    rm -f "$f_sqlite_errors"
+    rm -f "$db_restart_log"
+    log_it "tmp files have been deleted"
+
     #  recreate if missing
     [[ -f "$pidfile_tmux" ]] || get_tmux_pid >"$pidfile_tmux"
 
     $scr_monitor >/dev/null 2>&1 &
     sleep 1 # wait for monitor to start
-}
-
-packet_loss_plugin_shutdown() {
-    # tmux has exited, do a cleanup
-
-    pidfile_is_live "$pidfile_tmux" && {
-        error_msg "$this_app shutdown called when tmux is running" 1 false
-    }
-
-    sleep 1 #  monitor should have exited by now
-    pidfile_is_live "$pidfile_monitor" && {
-        error_msg \
-            "$this_app shutdown failed - monitor still running" 1 false
-    }
-
-    #
-    #  remove some stat files that will be generated with
-    #  fresh content on next run
-    #
-    log_it "pid release [$(show_pidfile_process "$pidfile_tmux")] $pidfile_tmux"
-    pidfile_release "$pidfile_tmux"
-    rm -f "$f_previous_loss"
-    rm -f "$f_sqlite_errors"
-    rm -f "$db_restart_log"
-    rm -f "$pidfile_tmux"
-    log_it "tmp files have been deleted"
-    exit_script 0
 }
 
 exit_script() {
@@ -112,7 +91,7 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 # shellcheck source=scripts/pidfile_handler.sh
 source "$scr_pidfile_handler"
 
-pidfile_acquire "$pidfile_ctrl_monitor" || {
+pidfile_acquire "$pidfile_ctrl_monitor" 5 || {
     error_msg "$this_app is already running - process [$pidfile_proc]"
 }
 
@@ -132,10 +111,8 @@ stop)
     }
     exit_script 0
     ;;
-shutdown) packet_loss_plugin_shutdown ;;
-
 *)
-    msg="Valid params: [None/start|stop|shutdown] - got [$1]"
+    msg="Valid params: [None/start|stop] - got [$1]"
     echo "$msg"
     error_msg "$msg"
     ;;

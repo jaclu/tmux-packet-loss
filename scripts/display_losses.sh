@@ -18,7 +18,7 @@ script_exit() {
 
     [[ -n "$2" ]] && {
         # param check
-        error_msg "script_exit() got 2nd unexpected param[$2]"
+        error_msg "script_exit() got 2nd unexpected param: [$2]"
     }
     # log_it "script_exit() - $this_app - completed"
     exit 0
@@ -26,7 +26,7 @@ script_exit() {
 
 restart_monitor() {
     log_it "restarting monitor"
-    $scr_ctrl_monitor start || error_msg "ctrl_monitor gave error on restart"
+    $scr_ctrl_monitor start || error_msg "ctrl_monitor gave error on start"
     date >>"$db_restart_log" # log current time
 }
 
@@ -88,8 +88,11 @@ get_current_loss() {
     # CAST seems to always round down...
     current_loss_float="$(sqlite_err_handling "$sql")" || {
         local sqlite_exit_code="$?"
+        local msg
 
-        error_msg "sqlite3[$sqlite_exit_code] when retrieving current losses"
+        msg="sqlite3 exited with: $sqlite_exit_code \n "
+        msg+=" when retrieving current losses"
+        error_msg "$msg"
     }
     current_loss=$(printf "%.0f" "$current_loss_float") # float -> int
 }
@@ -175,7 +178,8 @@ display_history() {
 
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
     avg_loss_raw="$(sqlite_err_handling "$sql")" || {
-        sqlite_exit_code="$?"
+        local sqlite_exit_code="$?"
+
         error_msg "sqlite3[$sqlite_exit_code] when retrieving history" \
             -1 false
         return

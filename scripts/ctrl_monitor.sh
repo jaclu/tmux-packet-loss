@@ -9,8 +9,11 @@
 clear_losses_in_t_loss() {
     log_it "Clearing losses - to ensure plugin isnt stuck alerting"
     sqlite_err_handling "DELETE FROM t_loss WHERE loss != 0" || {
-        error_msg \
-            "sqlite3[$sqlite_exit_code] in clear_losses_in_t_loss()" 1 false
+        local msg
+
+        msg="sqlite3 exited with: $sqlite_exit_code \n "
+        msg+=" when retrieving Clearing losses for table t_loss"
+        error_msg "$msg"
     }
 }
 
@@ -29,22 +32,18 @@ monitor_terminate() {
         done
         [[ "$i" -gt 0 ]] && log_it "after loop: [$i]"
         pidfile_is_live "$pidfile_monitor" && {
-            error_msg "Failed to terminate $db_monitor" 1 false
+            error_msg "Failed to terminate $db_monitor"
         }
         log_it "$db_monitor is shutdown"
         killed_monitor=true
     }
 
-    log_it "pid release [$(show_pidfile_process "$pidfile_monitor")] $pidfile_monitor"
-    pidfile_release "$pidfile_monitor"
+    pidfile_release "$pidfile_monitor" || {
+        error_msg "pidfile_releae($pidfile_monitor) reported error: [$?]"
+    }
 }
 
 monitor_launch() {
-
-    #
-    #  Starting a fresh monitor
-    #
-    log_it "starting $db_monitor"
 
     #  Clear out env, some status files that will be created when needed
     rm -f "$f_previous_loss"
@@ -52,11 +51,36 @@ monitor_launch() {
     rm -f "$db_restart_log"
     log_it "tmp files have been deleted"
 
-    #  recreate if missing
+    #  recreate if missing - helper for show_settings.sh
     [[ -f "$pidfile_tmux" ]] || get_tmux_pid >"$pidfile_tmux"
 
+    log_it "starting $db_monitor"
     $scr_monitor >/dev/null 2>&1 &
     sleep 1 # wait for monitor to start
+}
+
+handle_param() {
+    case "$1" in
+    start | "")
+        monitor_terminate # First kill any running instance
+        monitor_launch
+        ;;
+    stop)
+        killed_monitor=false
+        monitor_terminate
+        clear_losses_in_t_loss # only do on explicit stop
+        $killed_monitor || {
+            log_it "Did not find any running instances of $scr_monitor"
+        }
+        exit_script 0
+        ;;
+    *)
+        msg="Valid params: [None/start|stop] - got [$1]"
+        echo "$msg"
+        error_msg "$msg"
+        ;;
+
+    esac
 }
 
 exit_script() {
@@ -64,8 +88,8 @@ exit_script() {
     #  Terminate script doing cleanup
     #
     local exit_code="${1:-0}"
+    local msg
 
-    log_it "pid release [$(show_pidfile_process "$pidfile_ctrl_monitor")] $pidfile_ctrl_monitor"
     pidfile_release "$pidfile_ctrl_monitor"
     msg="$this_app - completed"
     [[ "$exit_code" -ne 0 ]] && msg+=" exit code:$exit_code"
@@ -92,31 +116,12 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 source "$scr_pidfile_handler"
 
 pidfile_acquire "$pidfile_ctrl_monitor" 5 || {
-    error_msg "$this_app is already running - process [$pidfile_proc]"
+    msg="Could not acquire: $(show_pidfile_short "$pidfile_ctrl_monitor")"
+    error_msg "$msg"
 }
 
 log_it # empty log line to make it easier to see where this starts
 
-case "$1" in
-start | "")
-    monitor_terminate # First kill any running instance
-    monitor_launch
-    ;;
-stop)
-    killed_monitor=false
-    monitor_terminate
-    clear_losses_in_t_loss # only do on explicit stop
-    $killed_monitor || {
-        log_it "Did not find any running instances of $scr_monitor"
-    }
-    exit_script 0
-    ;;
-*)
-    msg="Valid params: [None/start|stop] - got [$1]"
-    echo "$msg"
-    error_msg "$msg"
-    ;;
-
-esac
+handle_param "$1"
 
 exit_script

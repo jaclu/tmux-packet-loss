@@ -46,67 +46,66 @@ log_it() {
 
 error_msg() {
     #
-    #  Display $1 as an error message in log and as a tmux display-message
+    #  Display $1 as an error message in log and in a scrollback buffer
     #  unless do_display_message is false
-    #
-    #  exit_code defaults to 0, which might seem odd for an error exit,
-    #  but in combination with display-message it makes sense.
-    #  If the script exits with something else than 0, the current pane
-    #  will be temporary replaced by an error message mentioning the exit
-    #  code. Wich is both redundant and much less informative than the
-    #  display-message that is also printed.
-    #  If display-message is not desired it would make sense to use a more
-    #  normal positive exit_code to indicate error, making the 2 & 3
-    #  params be something like: 1 false
     #
     #  If exit_code is set to -1, process is not exited
     #
-    local msg="ERROR: $1"
-    local exit_code="${2:-0}"
+    local msg="$1"
+    local exit_code="${2:-1}"
     local do_display_message=${3:-true}
 
     if $log_interactive_to_stderr && [[ -t 0 ]]; then
-        echo "$msg" >/dev/stderr
+        echo "ERROR: $msg" >/dev/stderr
     else
+        local err_display
+
         log_it
-        log_it "$msg"
+        log_it "ERROR: $msg"
         log_it
-        $do_display_message && display_message_hold "$plugin_name $msg"
+        [[ -n "$TMUX" ]] && {
+            err_display="\nplugin: $plugin_name:$this_app [$$] - ERROR:\n\n"
+            err_display+="$msg\n\nPress ESC to close this display"
+            $do_display_message && $TMUX_BIN run-shell "printf '$err_display'"
+
+            # $do_display_message && display_message_hold "$plugin_name $msg"
+        }
     fi
     [[ "$exit_code" -gt -1 ]] && exit "$exit_code"
 }
 
-display_message_hold() {
-    #
-    #  Display a message and hold until key-press
-    #  Can't use tmux_error_handler in this func, since that could
-    #  trigger recursion
-    #
-    local msg="$1"
+# display_message_hold() {
+#     #
+#     #  Display a message and hold until key-press
+#     #  Can't use tmux_error_handler in this func, since that could
+#     #  trigger recursion
+#     #
+#     log_it "display_message_hold()"
+#     local msg="$1"
 
-    [[ -n "$TMUX" ]] || {
-        # tmux not running display-message cant be called
-        return
-    }
+#     [[ -n "$TMUX" ]] || {
+#         # tmux not running display-message cant be called
+#         return
+#     }
 
-    #  display-message filters out \n
-    msg="$(echo "$msg" | tr '\n' ' ')"
+#     #  display-message filters out \n
+#     msg="$(echo "$msg" | tr '\n' ' ')"
 
-    if tmux_vers_compare 3.2; then
-        # message will remain until key-press
-        $TMUX_BIN display-message -d 0 "$msg"
-    else
-        local org_display_time
+#     if tmux_vers_compare 3.2; then
+#         # message will remain until key-press
+#         $TMUX_BIN display-message -d 0 "$msg"
+#     else
+#         local org_display_time
 
-        # Manually make the error msg stay on screen a long time
-        org_display_time="$($TMUX_BIN show-option -gv display-time)"
-        $TMUX_BIN set -g display-time 120000 >/dev/null
-        $TMUX_BIN display-message "$msg"
+#         # Manually make the error msg stay on screen a long time
+#         org_display_time="$($TMUX_BIN show-option -gv display-time)"
+#         $TMUX_BIN set -g display-time 120000 >/dev/null
+#         $TMUX_BIN display-message "$msg"
 
-        posix_get_char >/dev/null # wait for keypress
-        $TMUX_BIN set -g display-time "$org_display_time" >/dev/null
-    fi
-}
+#         posix_get_char >/dev/null # wait for keypress
+#         $TMUX_BIN set -g display-time "$org_display_time" >/dev/null
+#     fi
+# }
 
 save_ping_issue() {
     #
@@ -381,6 +380,7 @@ normalize_bool_param() {
     local param="$1"
     local var_name
     local prefix
+    local msg
 
     var_name=""
     # log_it "normalize_bool_param($param, $2)"
@@ -421,7 +421,9 @@ normalize_bool_param() {
         else
             prefix="$param"
         fi
-        error_msg "$prefix - should be yes/true or no/false"
+        msg="normalize_bool_param($param) \n"
+        msg+="$prefix - should be yes/true or no/false"
+        error_msg "$msg"
         ;;
 
     esac
@@ -652,7 +654,7 @@ get_config() {
 
         mkdir -p "$d_data"
 
-        get_tmux_pid >"$pidfile_tmux"
+        get_tmux_pid >"$pidfile_tmux" # helper for show_settings.sh
 
         #
         #  If data dir was removed whilst a monitor was running,

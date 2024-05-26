@@ -41,7 +41,9 @@ insert_data() {
             INSERT INTO t_stats (loss) VALUES ($history);"
     fi
     sqlite_transaction "$sql" || {
-        error_msg "sqlite3[$sqlite_exit_code] when running: $sql" 1 false
+        msg="sqlite3 exited with: $sqlite_exit_code \n "
+        msg+=" when running \n$sql"
+        error_msg "$msg"
     }
 
     "$D_TPL_BASE_PATH"/scripts/all_data.sh show

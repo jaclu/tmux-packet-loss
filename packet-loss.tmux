@@ -78,7 +78,7 @@ command -v sqlite3 >/dev/null 2>&1 || {
 }
 
 #  Ensure it points to current tmux
-get_tmux_pid >"$pidfile_tmux"
+get_tmux_pid >"$pidfile_tmux" # helper for show_settings.sh
 
 #
 #  Start monitor

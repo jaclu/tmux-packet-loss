@@ -46,7 +46,9 @@ create_db() {
     PRAGMA user_version = $db_version;  -- replace DB if out of date
     "
     sqlite_transaction "$sql" || {
-        error_msg "sqlite3[$sqlite_exit_code] when creating the DB"
+        msg="sqlite3 exited with: $sqlite_exit_code \n "
+        msg+=" when creating the DB"
+        error_msg "$msg"
     }
     log_it "Created DB - user_version: $db_version"
 }
@@ -64,7 +66,9 @@ update_triggers() {
     DROP TRIGGER IF EXISTS new_minute
     "
     sqlite_transaction "$sql" || {
-        error_msg "sqlite3[$sqlite_exit_code] when dropping triggers"
+        msg="sqlite3 exited with: $sqlite_exit_code \n "
+        msg+=" when dropping triggers"
+        error_msg "$msg"
     }
 
     #
@@ -136,7 +140,9 @@ update_triggers() {
     END;
     "
     sqlite_transaction "$sql" || {
-        error_msg "sqlite3[$sqlite_exit_code] when creating triggers"
+        msg="sqlite3 exited with: $sqlite_exit_code \n "
+        msg+=" when creating triggers"
+        error_msg "$msg"
     }
     log_it "Created db-triggers"
 }

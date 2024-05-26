@@ -47,20 +47,25 @@ for table in "${tables[@]}"; do
         sql_current_loss true
         weighted="$(sqlite_err_handling "$sql")" || {
             sqlite_exit_code="$?"
-            error_msg "sqlite3[$sqlite_exit_code] when retrieving current weighted losses" 1 false
+            msg="sqlite3 exited with: $sqlite_exit_code \n "
+            msg+=" when retrieving current weighted losses for table $table"
+            error_msg "$msg"
         }
         sql_current_loss false
         avg="$(sqlite_err_handling "$sql")" || {
             sqlite_exit_code="$?"
-            error_msg "sqlite3[$sqlite_exit_code] when retrieving current avg losses" 1 false
+            msg="sqlite3 exited with: $sqlite_exit_code \n "
+            msg+=" when retrieving current avg losses for table $table"
+            error_msg "$msg"
         }
         printf "average: %5.1f  weighted: %5.1f\n" "$avg" "$weighted"
     else
         sql="SELECT round(avg(loss),1) FROM $table;"
         avg="$(sqlite_err_handling "$sql")" || {
             sqlite_exit_code="$?"
-            error_msg "sqlite3[$sqlite_exit_code] when retrieving current avg losses" 1 false
-            printf "average: %-6s  weighted: %-6s\n" "$avg" "$ weighted"
+            msg="sqlite3 exited with: $sqlite_exit_code \n "
+            msg+=" when retrieving current avg losses for table $table"
+            error_msg "$msg"
         }
         printf "average: %5.1f\n" "$avg"
     fi

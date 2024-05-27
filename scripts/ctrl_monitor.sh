@@ -39,7 +39,7 @@ monitor_terminate() {
     }
 
     pidfile_release "$pidfile_monitor" || {
-        error_msg "pidfile_releae($pidfile_monitor) reported error: [$?]"
+        error_msg "pidfile_releae($pid_file_short) reported error: [$?]"
     }
 }
 
@@ -51,8 +51,7 @@ monitor_launch() {
     rm -f "$db_restart_log"
     log_it "tmp files have been deleted"
 
-    #  recreate if missing - helper for show_settings.sh
-    [[ -f "$pidfile_tmux" ]] || get_tmux_pid >"$pidfile_tmux"
+    get_tmux_pid >"$pidfile_tmux" # helper for show_settings.sh
 
     log_it "starting $db_monitor"
     $scr_monitor >/dev/null 2>&1 &
@@ -115,9 +114,8 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 # shellcheck source=scripts/pidfile_handler.sh
 source "$scr_pidfile_handler"
 
-pidfile_acquire "$pidfile_ctrl_monitor" 5 || {
-    msg="Could not acquire: $(show_pidfile_short "$pidfile_ctrl_monitor")"
-    error_msg "$msg"
+pidfile_acquire "$pidfile_ctrl_monitor" 3 || {
+    error_msg "Could not acquire: $pid_file_short"
 }
 
 log_it # empty log line to make it easier to see where this starts

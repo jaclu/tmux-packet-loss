@@ -22,116 +22,9 @@
 #   pidfile_proc - process owning the pid_file or ""
 #
 
-_pf_log() {
-    #
-    #  Uses log_it() after checking $do_pidfile_handler_logging
-    #
-    $do_pidfile_handler_logging && log_it "pf> ${*}"
-}
-
-random_sleep() {
-    #
-    #  Function to generate a random sleep time with improved randomness
-    #
-    #  When multiple processes start at the same time using something like
-    #    sleep $((RANDOM % 4 + 1))
-    #  it tends to leave them sleeping for the same amount of seconds
-    #
-    # Parameters:
-    #   $1: max_sleep - maximum seconds of sleep, can be fractional
-    #   $2: min_sleep - min seconds of sleep, default: 0.5
-    #
-    # Example usage:
-    #   # Sleep for a random duration between 0.5 and 5 seconds
-    #   random_sleep 5
-    #
-    local max_sleep="$1"
-    local min_sleep="${2:-0.5}"
-    local pid=$$
-    local rand_from_random rand_from_urandom random_integer sleep_time
-
-    # multiply ny hundred, round to int
-    min_sleep=$(printf "%.0f" "$(echo "$min_sleep * 100" | bc)")
-    max_sleep=$(printf "%.0f" "$(echo "$max_sleep * 100" | bc)")
-
-    # Generate random numbers
-    rand_from_random=$((RANDOM % 100))
-    rand_from_urandom=$(od -An -N2 -i /dev/urandom | awk '{print $1}')
-
-    # log_it "rand_from_random[$rand_from_random] rand_from_urandom[$rand_from_urandom]"
-
-    # Calculate random number between min_sleep and max_sleep with two decimal places
-    random_integer=$(((rand_from_random + rand_from_urandom + pid) % (max_sleep - min_sleep + 1) + min_sleep))
-
-    # Calculate the sleep time with two decimal places
-    sleep_time=$(printf "%.2f" "$(echo "scale=2; $random_integer / 100" | bc)")
-
-    # log_it "><> Sleeping for $sleep_time seconds"
-    sleep "$sleep_time"
-}
-
-is_pid_alive() {
-    #
-    #  Since this might run on iSH, and that platform does not do well
-    #  if ps is called too much, this is a safe workarround,
-    #  and obviously Darwin doesnt have /proc, so it needs it's own
-    #  workarround
-    #
-    local pid="$1"
-
-    [[ -z "$pid" ]] && {
-        error_msg "is_pid_alive() called withot a parameter"
-    }
-
-    if [[ "$(uname)" = "Darwin" ]]; then
-        #
-        #  kill -0 doesnt kill, it just reports if the process is
-        #  still arround
-        #
-        kill -0 "$pid" 2>/dev/null || return 1
-    else
-        [[ -d /proc/"$pid" ]] || return 1
-    fi
-    return 0
-}
-
-# shellcheck disable=SC2120 # called with param from other modules...
-get_pidfile_process() {
-    #
-    #  Variables provided:
-    #    pidfile_proc - process in this pidfile
-    #
-    set_pidfile_name "$1"
-    pidfile_proc="$(cat "$pid_file" 2>/dev/null)"
-    _pf_log "pid_file is now: [$pid_file] pidfile_proc is now: [$pidfile_proc]"
-}
-
-show_pidfile_process() {
-    get_pidfile_process "$1"
+pidfile_show_process() {
+    set_pidfile_env "$1"
     echo "$pidfile_proc"
-}
-
-show_pidfile_short() {
-    set_pidfile_name "$1"
-    echo "$pid_file_short"
-}
-
-set_pidfile_name() {
-    #
-    #  Variables provided:
-    #    pid_file - based on name of current script if nothing provided
-    #
-    [[ -z "$1" ]] && [[ -z "$pid_file" ]] && {
-        msg="call to set_pidfile_name() whithout param \n "
-        msg+="and no default pid_file already set"
-        error_msg "$msg"
-    }
-    # [[ -n "$pid_file" ]] && {
-    #     # was already set
-    #     return
-    # }
-    pid_file="${1:-"$d_data/$this_app.pid"}"
-    pid_file_short="${pid_file#"$D_TPL_BASE_PATH"/}"
 }
 
 pidfile_is_live() {
@@ -139,41 +32,58 @@ pidfile_is_live() {
     #  boolean
     #
     local log_indent=$log_indent
+    local was_alive=false
 
-    set_pidfile_name "$1"
-    _pf_log "pidfile_is_live($pid_file)"
+    _pf_log "pidfile_is_live($1)"
     ((log_indent++)) # increase indent until this returns
+    set_pidfile_env "$1"
 
     if [[ -f "$pid_file" ]]; then
-        get_pidfile_process "$pid_file"
+        _pf_log "><> pidfile_proc[$pidfile_proc]"
         [[ -n "$pidfile_proc" ]] && {
-            is_pid_alive "$pidfile_proc" && {
-                _pf_log "[$pidfile_proc] still pressent"
+            if [[ "$(uname)" = "Darwin" ]]; then
+                #
+                #  kill -0 doesnt kill, it just reports if the process is
+                #  still arround
+                #
+                kill -0 "$pidfile_proc" 2>/dev/null && was_alive=true
+            else
+                [[ -d /proc/"$pidfile_proc" ]] && was_alive=true
+            fi
+            $was_alive && {
+                _pf_log "found process: $pidfile_proc"
                 return 0
             }
         }
         _pf_log "pid_file was abandoned"
+        return 1
     else
         _pf_log "no such pid_file"
+        return 2
     fi
-    # dont delete it right away, owerwrite if you want to claim it.
-    return 1
 }
 
 pidfile_is_mine() {
+    #
+    #  Returns true if this process is owning the pidfile, or if it
+    #  is an abandoned pidfile
+    #
     local log_indent=$log_indent
 
-    set_pidfile_name "$1"
-    _pf_log "pidfile_is_mine($pid_file)"
+    _pf_log "pidfile_is_mine($1)"
     ((log_indent++)) # increase indent until this returns
+    set_pidfile_env "$1"
 
-    if pidfile_is_live "$pid_file" && [[ "$pidfile_proc" = "$$" ]]; then
+    pidfile_is_live "$pid_file" && {
+        [[ "$pidfile_proc" != "$$" ]] && {
+            _pf_log "NOT my pidfile - owner: $pidfile_proc"
+            return 1
+        }
         _pf_log "was mine"
         return 0
-    else
-        _pf_log "NOT my pidfile!"
-        return 1
-    fi
+    }
+    _pf_log "no such pidfile"
+    return 2
 }
 
 pidfile_acquire() {
@@ -187,10 +97,19 @@ pidfile_acquire() {
     local i
     local msg
 
-    # First attempting early grab
-    [[ -n "$1" ]] && [[ ! -f "$1" ]] && {
-        echo $$ 2>/dev/null >"$1" || {
-            set_pidfile_name "$1"
+    _pf_log "pidfile_acquire($1)"
+    ((log_indent++)) # increase indent until this returns
+    set_pidfile_env "$1"
+
+    [[ -n "$pid_file" ]] && [[ ! -f "$pid_file" ]] && {
+        #
+        #  First attempting early grab, at this point it doesnt matter if
+        #  if multiple parallell processes over-wrote each other, since
+        #  the content of the file will be verified, and if the owner
+        #  doesnt match, this instance will wait and retry until success
+        #  or running out of attempts.
+        #
+        echo $$ 2>/dev/null >"$pid_file" || {
             msg="pidfile_acquire($pid_file) \n "
             msg+="Early grab failed to write pid_file"
             error_msg "$msg" -1
@@ -198,10 +117,6 @@ pidfile_acquire() {
         }
         _pf_log "Early aquire successfull"
     }
-
-    set_pidfile_name "$1"
-    _pf_log "pidfile_acquire($pid_file)"
-    ((log_indent++)) # increase indent until this returns
 
     ! is_int "$attempts" && {
         msg="pidfile_acquire($pid_file) \n "
@@ -241,7 +156,7 @@ pidfile_acquire() {
     #  Final verification
     pidfile_is_mine "$pid_file" || {
         msg="pidfile_acquire($pid_file) - Failed \n "
-        msg+="it is used by process: $(show_pidfile_process "$pid_file")"
+        msg+="it is used by process: $pidfile_proc"
         error_msg "$msg:" -1
         return 3
     }
@@ -252,25 +167,26 @@ pidfile_acquire() {
 pidfile_release() {
     #
     #  Calling this is optional, but it will remove the pid_file and
-    #  thereby indicate the process exited gracefully
+    #  thereby indicate the process exited gracefully.
+    #
+    #  It can be used to remove pid_files now owned by the running
+    #  process if they are abandoned.
     #
     local log_indent=$log_indent
     local msg
 
-    set_pidfile_name "$1"
-    _pf_log "pidfile_release($pid_file)"
+    _pf_log "pidfile_release($1)"
     ((log_indent++)) # increase indent until this returns
+    set_pidfile_env "$1"
 
-    pidfile_is_mine "$pid_file" || {
-        pidfile_is_live "$pid_file" && {
+    pidfile_is_live "$pid_file" && {
+        pidfile_is_mine "$pid_file" || {
             msg="pidfile_release($pid_file) failed \n "
-            msg+="still in use by [$pidfile_proc]"
+            msg+="in use by process: $pidfile_proc"
             error_msg "$msg" -1
             return 1
         }
-        _pf_log "pid_file was a left-over"
     }
-
     [[ -f "$pid_file" ]] && {
         [[ -O "$pid_file" ]] || {
             error_msg "pidfile_release($pid_file) - not writeable" -1
@@ -283,6 +199,51 @@ pidfile_release() {
         _pf_log "Release successful"
     }
     return 0
+}
+
+#---------------------------------------------------------------
+#
+#   Other
+#
+#---------------------------------------------------------------
+
+_pf_log() {
+    #
+    #  Uses log_it() after checking $do_pidfile_handler_logging
+    #
+    $do_pidfile_handler_logging && log_it "pf> ${*}"
+}
+
+set_pidfile_env() {
+    #
+    #  Variables provided:
+    #    pid_file - based on name of current script name if nothing provided
+    #    pid_file_short - shortened path without location of plugin
+    #    pidfile_proc - process indicated in pidfile if file exists
+    #
+    # _pf_log "set_pidfile_env($1) pid_file: $pid_file"
+    if [[ -n "$1" ]]; then
+        pid_file="$1"
+    elif [[ -z "$pid_file" ]]; then
+        pid_file="$d_data/${this_app}.pid"
+    fi
+    #
+    #  Handle plugin prefix
+    #
+    if [[ "${pid_file:0:1}" = "/" ]]; then
+        pid_file_short="${pid_file#"$D_TPL_BASE_PATH"/}"
+    else
+        # log_it "><> relative pidfile"
+        pid_file_short="$pid_file"
+        pid_file="$d_data/$pid_file"
+    fi
+    if [[ -f "$pid_file" ]]; then
+        pidfile_proc="$(cat "$pid_file" 2>/dev/null)"
+    else
+        pidfile_proc=""
+    fi
+    # log_it "><> pid_file[$pid_file]"
+    # log_it "><> pid_file_short[$pid_file_short]"
 }
 
 #===============================================================

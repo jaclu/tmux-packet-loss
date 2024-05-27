@@ -50,7 +50,7 @@ echo
 
 if [[ "$session" != "standalone" ]]; then
     this_tmux_pid="$(get_tmux_pid)"
-    folder_tmux_pid="$(show_pidfile_process "$pidfile_tmux")"
+    folder_tmux_pid="$(pidfile_show_process "$pidfile_tmux")"
 
     if [[ -n "$folder_tmux_pid" ]]; then
         [[ "$this_tmux_pid" = "$folder_tmux_pid" ]] || {
@@ -118,5 +118,5 @@ show_item cfg_suffix "$cfg_suffix" "$default_suffix"
 
 [[ -f "$pidfile_monitor" ]] && {
     echo
-    echo "Monitor running: $(show_pidfile_process "$pidfile_monitor")"
+    echo "Monitor running: $(pidfile_show_process "$pidfile_monitor")"
 }

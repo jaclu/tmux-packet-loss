@@ -49,17 +49,17 @@ verify_db_status() {
     #
 
     if [[ ! -s "$f_sqlite_db" ]]; then
-        local db_missing="DB missing or broken"
+        local db_issue="DB missing or broken"
 
-        error_msg "$db_missing" -1 false
+        error_msg "$db_issue" -1 false
         #
         #  If DB is missing, try to start the monitor
         #
         restart_monitor
-        log_it "$db_missing - monitor was restarted"
+        log_it "$db_issue - monitor was restarted"
 
         [[ -s "$f_sqlite_db" ]] || {
-            error_msg "$db_missing - after monitor restart - aborting"
+            error_msg "$db_issue - after monitor restart - aborting"
         }
     elif db_seems_inactive; then
         log_it "DB is over $db_max_age_mins minutes old"

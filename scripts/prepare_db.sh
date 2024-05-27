@@ -86,7 +86,7 @@ update_triggers() {
     #  all tables have data, add one to compensate for this.
     #
     ignore_first_items=$(echo "1 + 30 / $cfg_ping_count" | bc)
-    log_it "ignore_first_items: $ignore_first_items"
+    log_it "first checks not stored in loss history: $ignore_first_items"
 
     sql="
     CREATE TRIGGER IF NOT EXISTS new_loss

@@ -223,11 +223,7 @@ sqlite_err_handling() {
             log_it "attempt $recursion also got SQLITE_BUSY - giving up"
             sqlite_exit_code=99 # repeated SQLITE_BUSY
         else
-            #
-            #  Make the sleep somewhat random, in order to not have two
-            #  processes sleeping the same and coliding again
-            #
-            sleep $((RANDOM % 4 + 2)) #  2-5 seconds
+            random_sleep 2
             ((recursion++))
             log_it "SQLITE_BUSY - attempt: $recursion"
             sqlite_err_handling "$sql" "$recursion"
@@ -678,6 +674,49 @@ get_config() {
 #
 #---------------------------------------------------------------
 
+random_sleep() {
+    #
+    #  Function to generate a random sleep time with improved randomness
+    #
+    #  When multiple processes start at the same time using something like
+    #    sleep $((RANDOM % 4 + 1))
+    #  it tends to leave them sleeping for the same amount of seconds
+    #
+    # Parameters:
+    #   $1: max_sleep - maximum seconds of sleep, can be fractional
+    #   $2: min_sleep - min seconds of sleep, default: 0.5
+    #
+    # Example usage:
+    #   # Sleep for a random duration between 0.5 and 5 seconds
+    #   random_sleep 5
+    #
+    local max_sleep="$1"
+    local min_sleep="${2:-0.5}"
+    local pid=$$
+    local rand_from_random rand_from_urandom random_integer sleep_time
+
+    _pf_log "random_sleep($max_sleep, $min_sleep)"
+
+    # multiply ny hundred, round to int
+    min_sleep=$(printf "%.0f" "$(echo "$min_sleep * 100" | bc)")
+    max_sleep=$(printf "%.0f" "$(echo "$max_sleep * 100" | bc)")
+
+    # Generate random numbers
+    rand_from_random=$((RANDOM % 100))
+    rand_from_urandom=$(od -An -N2 -i /dev/urandom | awk '{print $1}')
+
+    # log_it "rand_from_random[$rand_from_random] rand_from_urandom[$rand_from_urandom]"
+
+    # Calculate random number between min_sleep and max_sleep with two decimal places
+    random_integer=$(((rand_from_random + rand_from_urandom + pid) % (max_sleep - min_sleep + 1) + min_sleep))
+
+    # Calculate the sleep time with two decimal places
+    sleep_time=$(printf "%.2f" "$(echo "scale=2; $random_integer / 100" | bc)")
+
+    # log_it "><> Sleeping for $sleep_time seconds"
+    sleep "$sleep_time"
+}
+
 main() {
     #
     #  For actions in utils log_prefix gets an u- prefix
@@ -828,7 +867,7 @@ main() {
 #
 # log_interactive_to_stderr=true
 
-# do_pidfile_handler_logging=true  # will create ridiculous ammounts of logs
+# do_pidfile_handler_logging=true # will create ridiculous ammounts of logs
 # skip_logging=true # enforce no logging desipte tmux conf
 
 #

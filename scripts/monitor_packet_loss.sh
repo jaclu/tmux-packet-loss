@@ -153,11 +153,10 @@ abort_conditions() {
     #  Some checks to reduce the risk of having old instances that
     #  keep running in the background.
     #
-
-    [[ -f "$pidfile_monitor" ]] || {
-        log_it "*** pidfile has dissapeard $exit_msg"
-        return 1
-    }
+    #  Will return true if everything seems fine
+    #
+    local group_exec_permission
+    local msg
 
     pidfile_is_mine "$pidfile_monitor" || {
         #
@@ -168,9 +167,19 @@ abort_conditions() {
         #  One reason could be if somebody accidentally manually
         #  removed the pidfile
         #
-        error_msg "pidfile now belongs to [$(cat "$pidfile_monitor")] $exit_msg"
+        if [[ -n "$pidfile_proc" ]]; then
+            msg="pidfile: $pid_file\nnow belongs to process: $pidfile_proc"
+            error_msg "$msg \n$exit_msg"
+        else
+            # self healing, eventually monitor will be restarted
+            error_msg "pidfile disappeared: $pid_file_short - $exit_msg" \
+                1 false
+        fi
     }
 
+    #
+    #  Check TMUX socket, to verify tmux server is still running
+    #
     if [[ "$(uname)" = "Darwin" ]]; then
         # macOS uses a different format for stat
         group_exec_permission=$(stat -F "$tmux_socket" | cut -c 7)
@@ -183,6 +192,7 @@ abort_conditions() {
         log_it "tmux is no longer running - $tmux_socket"
         return 2
     fi
+
     $parse_error && {
         #
         #  in order not to constantly loop and potentially
@@ -293,6 +303,7 @@ do_monitor_loop() {
         fi
 
         abort_conditions || break
+
         # log_it "><> main loop has completed"
     done
 }
@@ -316,8 +327,7 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 source "$scr_pidfile_handler"
 
 pidfile_acquire "$pidfile_monitor" 3 || {
-    msg="Could not acquire: $(show_pidfile_short "$pidfile_monitor")"
-    error_msg "$msg"
+    error_msg "Could not acquire: $pid_file_short"
 }
 
 # If true, output of pings with issues will be saved

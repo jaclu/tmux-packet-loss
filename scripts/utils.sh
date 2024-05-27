@@ -66,6 +66,7 @@ error_msg() {
         [[ -n "$TMUX" ]] && {
             err_display="\nplugin: $plugin_name:$this_app [$$] - ERROR:\n\n"
             err_display+="$msg\n\nPress ESC to close this display"
+            # trigger a full pane scroll back area for error msgs
             $do_display_message && $TMUX_BIN run-shell "printf '$err_display'"
 
             # $do_display_message && display_message_hold "$plugin_name $msg"

@@ -872,7 +872,7 @@ main() {
 # skip_logging=true # enforce no logging desipte tmux conf
 
 #
-#  Disable caching
+#  Disable caching, slows down display_losses.sh by 4-5 times...
 #
 # use_param_cache=false
 

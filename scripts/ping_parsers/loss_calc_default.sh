@@ -54,7 +54,6 @@ case $(echo "$avg_loss" | awk -F'.' '{ print length($2) }') in
     ;;
 *) # only use one digit
     rounded_loss="$(echo "$avg_loss" | awk '{printf "%.1f", $0}')"
-    # log_it "odd avg loss, got [$avg_loss] expected [$rounded_loss]"
     avg_loss="$rounded_loss"
     ;;
 esac

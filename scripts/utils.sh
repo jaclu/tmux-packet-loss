@@ -690,7 +690,6 @@ get_config() {
         source "$f_param_cache"
     else
         get_plugin_params
-        # log_it "><> [$this_app] use_param_cache is false"
     fi
 
     $skip_logging && unset cfg_log_file
@@ -757,15 +756,13 @@ random_sleep() {
     rand_from_random=$((RANDOM % 100))
     rand_from_urandom=$(od -An -N2 -i /dev/urandom | awk '{print $1}')
 
-    # log_it "rand_from_random[$rand_from_random] rand_from_urandom[$rand_from_urandom]"
-
     # Calculate random number between min_sleep and max_sleep with two decimal places
     random_integer=$(((rand_from_random + rand_from_urandom + pid) % (max_sleep - min_sleep + 1) + min_sleep))
 
     # Calculate the sleep time with two decimal places
     sleep_time=$(printf "%.2f" "$(echo "scale=2; $random_integer / 100" | bc)")
 
-    # log_it "><> Sleeping for $sleep_time seconds"
+    # log_it "Sleeping for $sleep_time seconds"
     sleep "$sleep_time"
 }
 

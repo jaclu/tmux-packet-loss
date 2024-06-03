@@ -61,7 +61,7 @@ if [[ "$recieved_packets" -gt "$cfg_ping_count" ]]; then
     #  on iSH Deb10 ping sometimes reports more non DUP pings recieved
     #  than was actually sent, assume no losses in such cases
     #
-    log_it "got $recieved_packets pkts, expected $cfg_ping_count"
+    # log_it "got $recieved_packets pkts, expected $cfg_ping_count"
     save_ping_issue "$ping_output"
     echo 0.0
 else

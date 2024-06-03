@@ -388,13 +388,27 @@ tmux_vers_compare() {
     #  If only one param is given it is compared vs version of running tmux
     #
     local v_comp="$1"
-    local v_ref="${2:-$tmux_vers}"
+    local v_ref
     local i_comp i_ref
 
+    # log_it "tmux_vers_compare($1,$2) tmux_vers[$tmux_vers]"
+    [[ -z "$2" ]] && [[ -z "$tmux_vers" ]] && {
+        local msg
+
+        msg="tmux_vers_compare() called with neither \$2 or \$tmux_vers set"
+        error_msg "$msg" -1
+        return 1
+    }
+
+    v_ref="${2:-$tmux_vers}"
     i_comp=$(get_digits_from_string "$v_comp")
     i_ref=$(get_digits_from_string "$v_ref")
 
     [[ "$i_comp" -le "$i_ref" ]]
+}
+
+is_tmux_option_defined() {
+    $TMUX_BIN show-options -g | grep -q "^$1"
 }
 
 get_tmux_option() {
@@ -409,12 +423,34 @@ get_tmux_option() {
         return
     }
 
-    value="$($TMUX_BIN show-option -gqv "$opt")"
-    if [[ -z "$value" ]]; then
-        echo "$def"
+    if value="$($TMUX_BIN show-options -gv "$opt" 2>/dev/null)"; then
+        #
+        #  I havent figured out if it is my asdf builds that have issues
+        #  or something else, since I never heard of this issue before.
+        #  On the other side, I dont think I have ever tried to assign ""
+        #  to a user-option that has a non-empty default, so it might be
+        #  an actual bug in tmux 3.0 - 3.2a
+        #
+        #  The problem is that with these versions tmux will will not
+        #  report an error if show-options -gv is used on an undefined
+        #  option starting with the char "@" as you should with
+        #  user-options. For options starting with other chars,
+        #  the normal error is displayed also with theese versions.
+        #
+        [[ -z "$value" ]] && ! is_tmux_option_defined "$opt" && {
+            #
+            #  This is a workarround, checking if the variable is defined
+            #  before assigning the default, preserving intentional
+            #  "" assignments
+            #
+            value="$def"
+        }
     else
-        echo "$value"
+        #  All other versions correctly fails on unassigned @options
+        value="$def"
     fi
+
+    echo "$value"
 }
 
 normalize_bool_param() {

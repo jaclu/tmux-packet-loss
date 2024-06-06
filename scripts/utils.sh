@@ -55,104 +55,57 @@ error_msg() {
     local exit_code="${2:-1}"
     local do_display_message=${3:-true}
 
-    # with no tmux env, dumping it to stderr is the only option
-    [[ -z "$TMUX" ]] && log_interactive_to_stderr=true
-
     if $log_interactive_to_stderr && [[ -t 0 ]]; then
-        [[ -z "$TMUX" ]] && {
-            (
-                echo
-                echo "***  This does not seem to be running in a tmux env  ***"
-                echo
-            ) >/dev/stderr
-        }
         echo "ERROR: $msg" >/dev/stderr
     else
         local err_display
 
         log_it
-        log_it "$msg"
+        log_it "ERROR: $msg"
         log_it
+        [[ -n "$TMUX" ]] && {
+            err_display="\nplugin: $plugin_name:$this_app [$$] - ERROR:\n\n"
+            err_display+="$msg\n\nPress ESC to close this display"
+            $do_display_message && $TMUX_BIN run-shell "printf '$err_display'"
 
-        $do_display_message && {
-            # shellcheck disable=SC1012
-            if [[ "${#msg}" -gt 50 ]] || has_substring "$msg" \n; then
-                # line is long or contains \n
-                error_msg_formated "$msg"
-            else
-                display_message_hold "$plugin_name ERR: $msg"
-            fi
+            # $do_display_message && display_message_hold "$plugin_name $msg"
         }
     fi
     [[ "$exit_code" -gt -1 ]] && exit "$exit_code"
 }
 
-# shellcheck disable=SC2154
-error_msg_formated() {
-    #
-    #  Display an error in its own frame, supporting longer messages
-    #  and also those formated with LFs
-    #
-    #  Cant use error_msg() here - it could lead to recursion.
-    #
-    local err_msg="$1"
-    local msg
+# display_message_hold() {
+#     #
+#     #  Display a message and hold until key-press
+#     #  Can't use tmux_error_handler in this func, since that could
+#     #  trigger recursion
+#     #
+#     log_it "display_message_hold()"
+#     local msg="$1"
 
-    log_it "error_msg_formated($err_msg)"
+#     [[ -n "$TMUX" ]] || {
+#         # tmux not running display-message cant be called
+#         return
+#     }
 
-    msg="$(
-        echo "ERROR in plugin: $plugin_name:$this_app [$$]"
-        echo
-        echo "$err_msg"
-    )"
+#     #  display-message filters out \n
+#     msg="$(echo "$msg" | tr '\n' ' ')"
 
-    # msg="$(
-    #     echo "$msg"
-    #     echo
-    #     echo "Press ESC to close this display"
-    #     )"
-    # if tmux_vers_check 3.3; then # using full pane display view
-    #     # subpar cuts of long lines
-    #     $TMUX_BIN run-shell "echo '$msg'"
-    # elif tmux_vers_check 3.2; then # using display-popup
-    #     # subpar prevents checking other panes or windows
-    #     $TMUX_BIN display-popup -h 90% -w 95% "echo '$msg'"
-    # else # works on all versions -display in a tmp window
-    msg="$(
-        echo "$msg"
-        echo
-        echo "Scroll-mode: <prefix> ["
-        echo "Press Ctrl-C to close this temporary window"
-    )"
-    # posix way to wait forever - MacOS doesnt have: sleep infinity
-    $TMUX_BIN new-window -n "tmux-error" \
-        "echo '$msg' ; tail -f /dev/null "
-    # fi
-}
+#     if tmux_vers_compare 3.2; then
+#         # message will remain until key-press
+#         $TMUX_BIN display-message -d 0 "$msg"
+#     else
+#         local org_display_time
 
-display_message_hold() {
-    #
-    #  Display a message and hold until key-press
-    #
-    log_it "display_message_hold()"
-    local msg="$1"
+#         # Manually make the error msg stay on screen a long time
+#         org_display_time="$($TMUX_BIN show-option -gv display-time)"
+#         $TMUX_BIN set -g display-time 120000 >/dev/null
+#         $TMUX_BIN display-message "$msg"
 
-    if tmux_vers_compare 3.2; then
-        # message will remain until key-press
-        $TMUX_BIN display-message -d 0 "$msg"
-    else
-        local org_display_time
-
-        # Manually make the error msg stay on screen a long time
-        org_display_time="$($TMUX_BIN show-option -gv display-time)"
-        $TMUX_BIN set -g display-time 120000 >/dev/null
-        $TMUX_BIN display-message "$msg"
-
-        posix_get_char >/dev/null # wait for keypress
-        $TMUX_BIN set -g display-time "$org_display_time" >/dev/null
-    fi
-    return 0
-}
+#         posix_get_char >/dev/null # wait for keypress
+#         $TMUX_BIN set -g display-time "$org_display_time" >/dev/null
+#     fi
+# }
 
 save_ping_issue() {
     #
@@ -230,10 +183,6 @@ get_digits_from_string() {
     only_digits="$(echo "$string" | tr -dC '[:digit:]')"
     no_leading_zero=${only_digits#0}
     echo "$no_leading_zero"
-}
-
-has_substring() {
-    [[ "$1" == *"$2"* ]]
 }
 
 #---------------------------------------------------------------
@@ -379,7 +328,6 @@ set_tmux_vers() {
     #
     # log_it "set_tmux_vers()"
     tmux_vers="$($TMUX_BIN -V | cut -d' ' -f2)"
-    [[ -n "$tmux_vers" ]] || error_msg "Failed to get tmux version" 1 false
 }
 
 tmux_vers_compare() {
@@ -388,19 +336,9 @@ tmux_vers_compare() {
     #  If only one param is given it is compared vs version of running tmux
     #
     local v_comp="$1"
-    local v_ref
+    local v_ref="${2:-$tmux_vers}"
     local i_comp i_ref
 
-    # log_it "tmux_vers_compare($1,$2) tmux_vers[$tmux_vers]"
-    [[ -z "$2" ]] && [[ -z "$tmux_vers" ]] && {
-        local msg
-
-        msg="tmux_vers_compare() called with neither \$2 or \$tmux_vers set"
-        error_msg "$msg" -1
-        return 1
-    }
-
-    v_ref="${2:-$tmux_vers}"
     i_comp=$(get_digits_from_string "$v_comp")
     i_ref=$(get_digits_from_string "$v_ref")
 
@@ -805,7 +743,7 @@ random_sleep() {
     # Calculate the sleep time with two decimal places
     sleep_time=$(printf "%.2f" "$(echo "scale=2; $random_integer / 100" | bc)")
 
-    # log_it "Sleeping for $sleep_time seconds"
+    # log_it "><> Sleeping for $sleep_time seconds"
     sleep "$sleep_time"
 }
 
@@ -963,7 +901,7 @@ main() {
 # skip_logging=true # enforce no logging desipte tmux conf
 
 #
-#  Disable caching, slows down display_losses.sh by 4-5 times...
+#  Disable caching
 #
 # use_param_cache=false
 

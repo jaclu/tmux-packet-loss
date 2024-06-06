@@ -110,7 +110,8 @@ show_item cfg_color_bg "$cfg_color_bg" "$default_color_bg"
 echo
 show_item cfg_prefix "$cfg_prefix" "$default_prefix"
 show_item cfg_suffix "$cfg_suffix" "$default_suffix"
-
+echo
+show_item cfg_hook_idx "$cfg_hook_idx" "$default_hook_idx"
 [[ -n "$cfg_log_file" ]] && {
     echo
     echo "log_file in use: $cfg_log_file"

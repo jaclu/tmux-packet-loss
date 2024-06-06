@@ -6,6 +6,40 @@
 #   Part of https://github.com/jaclu/tmux-packet-loss
 #
 
+hook_handler() {
+    local action="$1"
+    local hook_name
+
+    [[ "$cfg_hook_idx" = "-1" ]] && {
+        log_it "session-closed hook not used, due to cfg_hook_idx=-1"
+        return
+    }
+
+    # log_it "hook_handler($action)"
+    if tmux_vers_compare 3.0a; then
+        hook_name="session-closed[$cfg_hook_idx]"
+    elif tmux_vers_compare 2.4; then
+        hook_name="session-closed"
+    else
+        local msg="WARNING: previous to tmux 2.4 session-closed hook is "
+        msg+="not available, so tmux socket will be monitored instead."
+        log_it "$msg"
+    fi
+
+    [[ -n "$hook_name" ]] && {
+        if [[ "$action" = "set" ]]; then
+            $TMUX_BIN set-hook -g "$hook_name" \
+                "run $D_TPL_BASE_PATH/scripts/no_sessions_shutdown.sh"
+            log_it "binding $db_monitor shutdown to: $hook_name"
+        elif [[ "$action" = "clear" ]]; then
+            $TMUX_BIN set-hook -ug "$hook_name" >/dev/null
+            log_it "releasing hook: $hook_name"
+        else
+            error_msg "hook_handler must be called with param set or clear!"
+        fi
+    }
+}
+
 clear_losses_in_t_loss() {
     log_it "Clearing losses - to ensure plugin isnt stuck alerting"
     sqlite_err_handling "DELETE FROM t_loss WHERE loss != 0" || {
@@ -19,6 +53,8 @@ clear_losses_in_t_loss() {
 
 monitor_terminate() {
     local i
+
+    hook_handler clear
 
     db_monitor="$(basename "$scr_monitor")"
 
@@ -56,6 +92,12 @@ monitor_launch() {
     log_it "starting $db_monitor"
     $scr_monitor >/dev/null 2>&1 &
     sleep 1 # wait for monitor to start
+
+    #
+    #  When last session terminates, shut down monitor process in order
+    #  not to leave any trailing processes once tmux is shut down.
+    #
+    hook_handler set
 }
 
 handle_param() {

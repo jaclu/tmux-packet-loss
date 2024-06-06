@@ -177,21 +177,28 @@ abort_conditions() {
         fi
     }
 
-    #
-    #  Check TMUX socket, to verify tmux server is still running
-    #
-    if [[ "$(uname)" = "Darwin" ]]; then
-        # macOS uses a different format for stat
-        group_exec_permission=$(stat -F "$tmux_socket" | cut -c 7)
-    else
-        # Assume Linux
-        group_exec_permission=$(stat -c "%A" "$tmux_socket" | cut -c 7)
-    fi
+    $check_socket_for_exit && {
+        #
+        #  Check TMUX socket, to verify tmux server is still running
+        #
+        if [[ "$(uname)" = "Darwin" ]]; then
+            # macOS uses a different format for stat
+            group_exec_permission=$(stat -F "$tmux_socket" | cut -c 7)
+        else
+            # Assume Linux
+            group_exec_permission=$(stat -c "%A" "$tmux_socket" | cut -c 7)
+        fi
 
-    if [[ "$group_exec_permission" != "x" ]]; then
-        log_it "tmux is no longer running - $tmux_socket"
-        return 2
-    fi
+        if [[ "$group_exec_permission" != "x" ]]; then
+
+            if pidfile_is_live "$pidfile_tmux"; then
+                log_it "No clients connected to tmux server"
+            else
+                log_it "tmux is no longer running"
+            fi
+            return 2
+        fi
+    }
 
     $parse_error && {
         #
@@ -332,6 +339,15 @@ pidfile_acquire "$pidfile_monitor" 3 || {
 
 # If true, output of pings with issues will be saved
 store_ping_issues=false
+
+if [[ "$cfg_hook_idx" = "-1" ]] || ! tmux_vers_compare 2.4; then
+    log_it "socket indicating no clients will be used to shutdown monitor"
+    check_socket_for_exit=true
+else
+    # if tmux is 2.4 or higher a hook is used to shutdown when tmux exits
+    check_socket_for_exit=false
+    log_it "session-closed hook will be used to terminate monitor"
+fi
 
 #
 #  Since loss is always <=100, indicate errors with results over 100

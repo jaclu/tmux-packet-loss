@@ -582,6 +582,8 @@ param_cache_write() {
     cfg_prefix="$cfg_prefix"
     cfg_suffix="$cfg_suffix"
 
+    cfg_hook_idx="$cfg_hook_idx"
+
     cfg_log_file="$cfg_log_file"
 
     tmux_vers="$tmux_vers"
@@ -628,6 +630,9 @@ get_defaults() {
 
     default_prefix='|'
     default_suffix='|'
+
+    default_hook_idx=41 #  array idx for session-closed hook
+
 }
 
 get_plugin_params() {
@@ -680,6 +685,8 @@ get_plugin_params() {
 
     cfg_prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
     cfg_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
+
+    cfg_hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_hook_idx")"
 
     [[ -z "$cfg_log_file" ]] && {
         cfg_log_file="$(get_tmux_option "@packet-loss-log_file" "")"

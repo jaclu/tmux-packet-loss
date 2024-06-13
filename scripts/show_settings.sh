@@ -96,6 +96,7 @@ echo
 show_item cfg_weighted_average "$cfg_weighted_average" "$default_weighted_average"
 show_item cfg_display_trend "$cfg_display_trend" "$default_display_trend"
 show_item cfg_hist_avg_display "$cfg_hist_avg_display" "$default_hist_avg_display"
+show_item cfg_run_disconnected "$cfg_run_disconnected" "$default_run_disconnected"
 echo
 show_item cfg_level_disp "$cfg_level_disp" "$default_level_disp"
 show_item cfg_level_alert "$cfg_level_alert" "$default_level_alert"
@@ -110,8 +111,6 @@ show_item cfg_color_bg "$cfg_color_bg" "$default_color_bg"
 echo
 show_item cfg_prefix "$cfg_prefix" "$default_prefix"
 show_item cfg_suffix "$cfg_suffix" "$default_suffix"
-echo
-show_item cfg_hook_idx "$cfg_hook_idx" "$default_hook_idx"
 [[ -n "$cfg_log_file" ]] && {
     echo
     echo "log_file in use: $cfg_log_file"

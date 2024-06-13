@@ -238,6 +238,7 @@ sqlite_err_handling() {
             #
             error_msg "sqlite_err_handling() - Removing empty DB" -1 false
             rm -f "$f_sqlite_db"
+            rm -f "$f_monitor_suspended_no_clients"
         }
         ;;
     esac
@@ -505,6 +506,7 @@ param_cache_write() {
     cfg_weighted_average="$cfg_weighted_average"
     cfg_display_trend="$cfg_display_trend"
     cfg_hist_avg_display="$cfg_hist_avg_display"
+    cfg_run_disconnected="$cfg_run_disconnected"
 
     cfg_level_disp="$cfg_level_disp"
     cfg_level_alert="$cfg_level_alert"
@@ -520,7 +522,7 @@ param_cache_write() {
     cfg_prefix="$cfg_prefix"
     cfg_suffix="$cfg_suffix"
 
-    cfg_hook_idx="$cfg_hook_idx"
+    cfg_run_disconnected="$cfg_run_disconnected"
 
     cfg_log_file="$cfg_log_file"
 
@@ -554,6 +556,7 @@ get_defaults() {
     #  display ^/v prefix if value is increasing/decreasing
     default_display_trend=false
     default_hist_avg_display=false #  Display long term average
+    default_run_disconnected=false #  continue to run when no client is connected
 
     default_level_disp=1   #  display loss if this or higher
     default_level_alert=17 #  this or higher triggers alert color
@@ -568,8 +571,6 @@ get_defaults() {
 
     default_prefix='|'
     default_suffix='|'
-
-    default_hook_idx=41 #  array idx for session-closed hook
 
 }
 
@@ -601,6 +602,8 @@ get_plugin_params() {
         cfg_display_trend=true || cfg_display_trend=false
     normalize_bool_param "@packet-loss-hist_avg_display" "$default_hist_avg_display" &&
         cfg_hist_avg_display=true || cfg_hist_avg_display=false
+    normalize_bool_param "@packet-loss-run_disconnected" "$default_run_disconnected" &&
+        cfg_run_disconnected=true || cfg_run_disconnected=false
 
     cfg_level_disp="$(get_tmux_option "@packet-loss-level_disp" \
         "$default_level_disp")"
@@ -623,8 +626,6 @@ get_plugin_params() {
 
     cfg_prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
     cfg_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
-
-    cfg_hook_idx="$(get_tmux_option "@packet-loss-hook_idx" "$default_hook_idx")"
 
     [[ -z "$cfg_log_file" ]] && {
         cfg_log_file="$(get_tmux_option "@packet-loss-log_file" "")"
@@ -823,7 +824,7 @@ main() {
     f_param_cache="$d_data"/param_cache
     f_previous_loss="$d_data"/previous_loss
     f_sqlite_errors="$d_data"/sqlite.err
-
+    f_monitor_suspended_no_clients="$d_data"/no_clients
     f_sqlite_db="$d_data"/packet_loss.sqlite
 
     pidfile_ctrl_monitor="$d_data"/ctrl_monitor.pid

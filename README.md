@@ -60,14 +60,6 @@ Ensure you have the following dependencies installed:
 - `sqlite3`
 - `bash`
 
-## Tmux Compatibility
-
-| Version    | Notice                                                                                               |
-| ---------- | ---------------------------------------------------------------------------------------------------- |
-| 3.0 >=     | The background process is shut down when Tmux exits using a session-closed hook with an array suffix. |
-| 2.4 - 2.9  | Will shut down the background process, but since hooks don't support arrays, binding to session-closed might interfere with other stuff using the same hook. |
-| 1.9 - 2.3  | session-closed hook not available. The monitoring process is checking the tmux socket. If no clients are connected, the monitor will shut down. When a client reconnects, the monitor will be restarted. |
-
 ## Verified Environments
 
 Tmux-Packet-Loss has been tested and verified to work in the following environments:
@@ -122,6 +114,7 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 | @packet-loss-weighted_average | yes           | `yes` Use weighted average focusing on the latest data points.<br> `no` Average over all data points. |
 | @packet-loss-display_trend    | no            | `yes` Display trend with `+` prefix for higher levels and `-` prefix for lower levels.<br> `no` Do not indicate change since the previous loss level. |
 | @packet-loss-hist_avg_display | no            | `yes` Show historical average when displaying current losses.<br> `no` Do not show historical average. |
+| @packet-loss-run_disconnected | no            | `yes` monitor only exits when tmux is shut down.<br>`no` monitor exits if no clients are connected and restarts when a client re-connects. |
 | @packet-loss-level_disp       | 1             | Display loss if at or higher than this level. |
 | @packet-loss-level_alert      | 17            | Color loss with `color_alert` if at or above this level.<br>Suggestion: set it one higher than the percentage representing one loss in one update to avoid single packet loss triggering an alert initially. |
 | @packet-loss-level_crit       | 40            | Color loss with `color_crit` if at or above this level. |
@@ -136,7 +129,6 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 | @packet-loss-prefix           | '\|'          | Prefix for status when displayed. |
 | @packet-loss-suffix           | '\|'          | Suffix for status when displayed. |
 |                               |               | |
-| @packet-loss-hook_idx         | 41            | Index for session-closed hook. Change if it collides with other usages of session-closed using this index.<br><br>If you do not want to use session-closed hook - set this to `-1`<br> In such cases the monitor will be suspended if no clients are connected, and resumed when a client connects again. This will reduce backround tasks, and might be beneficial if performance is a concern. |
 | @packet-loss-log_file         |               | If defined this file will be used for logging. |
 
 ## My config

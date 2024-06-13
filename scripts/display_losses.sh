@@ -25,7 +25,7 @@ script_exit() {
 }
 
 restart_monitor() {
-    log_it "restarting monitor"
+    log_it "restarting monitor $1"
     $scr_ctrl_monitor start || error_msg "ctrl_monitor gave error on start"
     date >>"$db_restart_log" # log current time
 }
@@ -55,22 +55,23 @@ verify_db_status() {
         #
         #  If DB is missing, try to start the monitor
         #
-        restart_monitor
+        restart_monitor "$db_issue"
         log_it "$db_issue - monitor was restarted"
 
         [[ -s "$f_sqlite_db" ]] || {
             error_msg "$db_issue - after monitor restart - aborting"
         }
     elif db_seems_inactive; then
-        log_it "DB is over $db_max_age_mins minutes old"
         #
         #  If DB is over a minute old,
         #  assume the monitor is not running, so (re-)start it
         #
-        restart_monitor
+        restart_monitor "DB is over $db_max_age_mins minutes old"
     elif [[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]]; then
         error_msg "DB incorrect user_version: " -1 false
         restart_monitor
+    elif [[ -f "$f_monitor_suspended_no_clients" ]]; then
+        restart_monitor "- was suspended due to no clients"
     fi
 }
 

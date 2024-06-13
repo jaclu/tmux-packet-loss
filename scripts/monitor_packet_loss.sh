@@ -189,7 +189,13 @@ abort_conditions() {
     fi
 
     if [[ "$group_exec_permission" != "x" ]]; then
-        log_it "tmux is no longer running - $tmux_socket"
+        if pidfile_is_live "$pidfile_tmux"; then
+            $cfg_run_disconnected && return 0 # continue to run
+            touch "$f_monitor_suspended_no_clients"
+            log_it "No clients connected to tmux server"
+        else
+            log_it "tmux is no longer running"
+        fi
         return 2
     fi
 

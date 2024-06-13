@@ -39,7 +39,6 @@ pidfile_is_live() {
     set_pidfile_env "$1"
 
     if [[ -f "$pid_file" ]]; then
-        _pf_log "><> pidfile_proc[$pidfile_proc]"
         [[ -n "$pidfile_proc" ]] && {
             if [[ "$(uname)" = "Darwin" ]]; then
                 #
@@ -233,7 +232,6 @@ set_pidfile_env() {
     if [[ "${pid_file:0:1}" = "/" ]]; then
         pid_file_short="${pid_file#"$D_TPL_BASE_PATH"/}"
     else
-        # log_it "><> relative pidfile"
         pid_file_short="$pid_file"
         pid_file="$d_data/$pid_file"
     fi
@@ -242,8 +240,6 @@ set_pidfile_env() {
     else
         pidfile_proc=""
     fi
-    # log_it "><> pid_file[$pid_file]"
-    # log_it "><> pid_file_short[$pid_file_short]"
 }
 
 #===============================================================

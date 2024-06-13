@@ -4,7 +4,8 @@ Tmux-Packet-Loss is a plugin for Tmux that displays the percentage of packet los
 
 ## Recent changes
 
-- Losses are displayed, but no stats are saved for the first 30 seconds. This avoids getting initial errors before the network is re-established during a laptop resume saved into the history.
+- New opiton @packet-loss-run_disconnected
+- Losses are displayed, but no stats are saved for the first 30 seconds. This avoids getting initial errors before the network is re-established saved into the history during a laptop resume.
 - Fixed boolean parameter handling to allow for yes/no or true/false options.
 - Renamed variables and defaults to match the Tmux option names.
 - Refactored code into more task-isolated modules.
@@ -36,11 +37,19 @@ If `@packet-loss-display_trend` is yes, change since the previous check is indic
 
 ## Operation
 
-This plugin runs a background process using repeated runs of ping to determine % package loss. The loss level is calculated as a weighted average of the stored data points by default, making the latest checks stand out.
+This plugin runs a background process using repeated runs of ping to
+determine % package loss. The loss level is calculated as a weighted
+average of the stored data points by default, making the latest checks
+stand out.
 
-### Termination on Tmux Exit
+### Termination of background monitor
 
-The background process terminates if the tmux main process is no longer running.
+Unless `@packet-loss-run_disconnected` is `yes`, the background monitor
+terminates if no clients are connected. It will resume as soon as any
+client re-connects.
+
+The background process monitors the tmux server pid, and terminates if
+the tmux server exits.
 
 ### ping issues
 
@@ -114,6 +123,7 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 | @packet-loss-weighted_average | yes           | `yes` Use weighted average focusing on the latest data points.<br> `no` Average over all data points. |
 | @packet-loss-display_trend    | no            | `yes` Display trend with `+` prefix for higher levels and `-` prefix for lower levels.<br> `no` Do not indicate change since the previous loss level. |
 | @packet-loss-hist_avg_display | no            | `yes` Show historical average when displaying current losses.<br> `no` Do not show historical average. |
+| @packet-loss-run_disconnected | no            | `yes` monitor only exits when tmux is shut down.<br>`no` monitor exits if no clients are connected and restarts when a client re-connects. |
 | @packet-loss-level_disp       | 1             | Display loss if at or higher than this level. |
 | @packet-loss-level_alert      | 17            | Color loss with `color_alert` if at or above this level.<br>Suggestion: set it one higher than the percentage representing one loss in one update to avoid single packet loss triggering an alert initially. |
 | @packet-loss-level_crit       | 40            | Color loss with `color_crit` if at or above this level. |

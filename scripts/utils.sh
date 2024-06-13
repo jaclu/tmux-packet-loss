@@ -66,7 +66,6 @@ error_msg() {
         [[ -n "$TMUX" ]] && {
             err_display="\nplugin: $plugin_name:$this_app [$$] - ERROR:\n\n"
             err_display+="$msg\n\nPress ESC to close this display"
-            # trigger a full pane scroll back area for error msgs
             $do_display_message && $TMUX_BIN run-shell "printf '$err_display'"
 
             # $do_display_message && display_message_hold "$plugin_name $msg"
@@ -239,6 +238,7 @@ sqlite_err_handling() {
             #
             error_msg "sqlite_err_handling() - Removing empty DB" -1 false
             rm -f "$f_sqlite_db"
+            rm -f "$f_monitor_suspended_no_clients"
         }
         ;;
     esac
@@ -346,6 +346,10 @@ tmux_vers_compare() {
     [[ "$i_comp" -le "$i_ref" ]]
 }
 
+is_tmux_option_defined() {
+    $TMUX_BIN show-options -g | grep -q "^$1"
+}
+
 get_tmux_option() {
     local opt="$1"
     local def="$2"
@@ -358,12 +362,34 @@ get_tmux_option() {
         return
     }
 
-    value="$($TMUX_BIN show-option -gqv "$opt")"
-    if [[ -z "$value" ]]; then
-        echo "$def"
+    if value="$($TMUX_BIN show-options -gv "$opt" 2>/dev/null)"; then
+        #
+        #  I havent figured out if it is my asdf builds that have issues
+        #  or something else, since I never heard of this issue before.
+        #  On the other side, I dont think I have ever tried to assign ""
+        #  to a user-option that has a non-empty default, so it might be
+        #  an actual bug in tmux 3.0 - 3.2a
+        #
+        #  The problem is that with these versions tmux will will not
+        #  report an error if show-options -gv is used on an undefined
+        #  option starting with the char "@" as you should with
+        #  user-options. For options starting with other chars,
+        #  the normal error is displayed also with theese versions.
+        #
+        [[ -z "$value" ]] && ! is_tmux_option_defined "$opt" && {
+            #
+            #  This is a workarround, checking if the variable is defined
+            #  before assigning the default, preserving intentional
+            #  "" assignments
+            #
+            value="$def"
+        }
     else
-        echo "$value"
+        #  All other versions correctly fails on unassigned @options
+        value="$def"
     fi
+
+    echo "$value"
 }
 
 normalize_bool_param() {
@@ -480,6 +506,7 @@ param_cache_write() {
     cfg_weighted_average="$cfg_weighted_average"
     cfg_display_trend="$cfg_display_trend"
     cfg_hist_avg_display="$cfg_hist_avg_display"
+    cfg_run_disconnected="$cfg_run_disconnected"
 
     cfg_level_disp="$cfg_level_disp"
     cfg_level_alert="$cfg_level_alert"
@@ -494,6 +521,8 @@ param_cache_write() {
 
     cfg_prefix="$cfg_prefix"
     cfg_suffix="$cfg_suffix"
+
+    cfg_run_disconnected="$cfg_run_disconnected"
 
     cfg_log_file="$cfg_log_file"
 
@@ -527,6 +556,7 @@ get_defaults() {
     #  display ^/v prefix if value is increasing/decreasing
     default_display_trend=false
     default_hist_avg_display=false #  Display long term average
+    default_run_disconnected=false #  continue to run when no client is connected
 
     default_level_disp=1   #  display loss if this or higher
     default_level_alert=17 #  this or higher triggers alert color
@@ -541,6 +571,7 @@ get_defaults() {
 
     default_prefix='|'
     default_suffix='|'
+
 }
 
 get_plugin_params() {
@@ -571,6 +602,8 @@ get_plugin_params() {
         cfg_display_trend=true || cfg_display_trend=false
     normalize_bool_param "@packet-loss-hist_avg_display" "$default_hist_avg_display" &&
         cfg_hist_avg_display=true || cfg_hist_avg_display=false
+    normalize_bool_param "@packet-loss-run_disconnected" "$default_run_disconnected" &&
+        cfg_run_disconnected=true || cfg_run_disconnected=false
 
     cfg_level_disp="$(get_tmux_option "@packet-loss-level_disp" \
         "$default_level_disp")"
@@ -639,7 +672,6 @@ get_config() {
         source "$f_param_cache"
     else
         get_plugin_params
-        # log_it "><> [$this_app] use_param_cache is false"
     fi
 
     $skip_logging && unset cfg_log_file
@@ -705,8 +737,6 @@ random_sleep() {
     # Generate random numbers
     rand_from_random=$((RANDOM % 100))
     rand_from_urandom=$(od -An -N2 -i /dev/urandom | awk '{print $1}')
-
-    # log_it "rand_from_random[$rand_from_random] rand_from_urandom[$rand_from_urandom]"
 
     # Calculate random number between min_sleep and max_sleep with two decimal places
     random_integer=$(((rand_from_random + rand_from_urandom + pid) % (max_sleep - min_sleep + 1) + min_sleep))
@@ -794,7 +824,7 @@ main() {
     f_param_cache="$d_data"/param_cache
     f_previous_loss="$d_data"/previous_loss
     f_sqlite_errors="$d_data"/sqlite.err
-
+    f_monitor_suspended_no_clients="$d_data"/no_clients
     f_sqlite_db="$d_data"/packet_loss.sqlite
 
     pidfile_ctrl_monitor="$d_data"/ctrl_monitor.pid
@@ -872,7 +902,7 @@ main() {
 # skip_logging=true # enforce no logging desipte tmux conf
 
 #
-#  Disable caching, slows down display_losses.sh by 4-5 times...
+#  Disable caching
 #
 # use_param_cache=false
 

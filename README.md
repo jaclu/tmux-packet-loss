@@ -4,7 +4,8 @@ Tmux-Packet-Loss is a plugin for Tmux that displays the percentage of packet los
 
 ## Recent changes
 
-- Losses are displayed, but no stats are saved for the first 30 seconds. This avoids getting initial errors before the network is re-established during a laptop resume saved into the history.
+- New opiton @packet-loss-run_disconnected
+- Losses are displayed, but no stats are saved for the first 30 seconds. This avoids getting initial errors before the network is re-established saved into the history during a laptop resume.
 - Fixed boolean parameter handling to allow for yes/no or true/false options.
 - Renamed variables and defaults to match the Tmux option names.
 - Refactored code into more task-isolated modules.
@@ -36,11 +37,19 @@ If `@packet-loss-display_trend` is yes, change since the previous check is indic
 
 ## Operation
 
-This plugin runs a background process using repeated runs of ping to determine % package loss. The loss level is calculated as a weighted average of the stored data points by default, making the latest checks stand out.
+This plugin runs a background process using repeated runs of ping to
+determine % package loss. The loss level is calculated as a weighted
+average of the stored data points by default, making the latest checks
+stand out.
 
-### Termination on Tmux Exit
+### Termination of background monitor
 
-The background process terminates if the tmux main process is no longer running.
+Unless `@packet-loss-run_disconnected` is `yes`, the background monitor
+terminates if no clients are connected. It will resume as soon as any
+client re-connects.
+
+The background process monitors the tmux server pid, and terminates if
+the tmux server exits.
 
 ### ping issues
 

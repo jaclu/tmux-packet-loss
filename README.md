@@ -108,9 +108,9 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 
 ## Supported Format Strings
 
-| Code           | Action                                             |
-| -------------- | -------------------------------------------------- |
-| `#{packet_loss}` | Displays packet loss % if at or above `@packet-loss-level_disp`<br>Otherwise nothing|
+| Code           | Action |
+| -------------- | ------ |
+| `#{packet_loss}` | Displays packet loss if at or above `@packet-loss-level_disp` <br>Otherwise nothing |
 
 ## Configuration Variables
 
@@ -194,7 +194,7 @@ If set to no, the average of all samples is always displayed.
 Depending on the ping count, it is suggested to set an alert,
 so that a single lost packet won't show up as an alert.
 
-| pings | one higher than<br>a single loss % | history size<br>for aprox 30s |
+| pings | one higher than <br>a single loss % | history size <br>for aprox 30s |
 |-|-|-|
 | 10 | 11 |  3 (27) 4 (36) |
 |  9 | 12 |  4 (32) |
@@ -214,7 +214,7 @@ There are three tables
 | t_1_min   | Keeps all samples from the last minute, to feed one-minute averages to the t_stats table |
 | t_stats  | Keeps one-minute averages for the last @packet-loss-hist_avg_minutes minutes |
 
-Each table contains two fields, time_stamp, and value. The time_stamp field is only used to purge old data.
+Each table contains two fields, time_stamp, and value. The time_stamp field is used to purge old records.
 
 ### Simulating losses
 
@@ -225,7 +225,7 @@ Run it without params to get a help summary
 ./scripts/test_data.sh
 ```
 
-The monitor will be automatically restarted one minute after the last update.
+The monitor will be automatically restarted two minutes after the last run of `test_data`.
 
 ## Contributing
 

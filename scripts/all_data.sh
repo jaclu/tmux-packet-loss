@@ -29,7 +29,7 @@ clear)
     log_it "DB will be cleared"
     ;;
 *)
-    echo "usage: $this_app show/avgs/clear"
+    echo "usage: $current_script show/avgs/clear"
     exit 1
     ;;
 esac

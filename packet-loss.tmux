@@ -98,4 +98,4 @@ pkt_loss_command="#($scr_display_losses)"
 #
 update_tmux_option "status-left"
 update_tmux_option "status-right"
-log_it "$this_app - completed"
+log_it "$current_script - completed"

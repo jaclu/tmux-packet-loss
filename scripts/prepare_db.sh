@@ -179,4 +179,4 @@ update_triggers
 # a lot of DB related code depends on there being at least one record
 sqlite_transaction "INSERT INTO t_loss (loss) VALUES (0)"
 
-log_it "$this_app - completed"
+log_it "$current_script - completed"

@@ -224,7 +224,7 @@ set_pidfile_env() {
     if [[ -n "$1" ]]; then
         pid_file="$1"
     elif [[ -z "$pid_file" ]]; then
-        pid_file="$d_data/${this_app}.pid"
+        pid_file="$d_data/${current_script}.pid"
     fi
     #
     #  Handle plugin prefix

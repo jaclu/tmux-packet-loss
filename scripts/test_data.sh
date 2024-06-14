@@ -56,7 +56,7 @@ insert_data() {
 #===============================================================
 
 [[ -z "$1" ]] && {
-    echo "Usage: $this_app [--keep] tst_loss [history_loss]
+    echo "Usage: $current_script [--keep] tst_loss [history_loss]
 
 Purpose: checking how statusbar displays various states.
 Suspends monitor process and inserts given data.
@@ -65,9 +65,9 @@ order to observe falloff, the recomendation is to first run this once
 without keep, in order to start with an empty DB.
 
 Sample usages:
-  $this_app 33.3      Simulate 33.3% loss with no average loss
-  $this_app 33.3 5.4  Simulate 33.3% loss with 5.4% average loss
-  $this_app --keep 10 Append a new 10% loss, keeping the DB"
+  $current_script 33.3      Simulate 33.3% loss with no average loss
+  $current_script 33.3 5.4  Simulate 33.3% loss with 5.4% average loss
+  $current_script --keep 10 Append a new 10% loss, keeping the DB"
 
     exit 0
 }

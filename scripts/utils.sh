@@ -64,7 +64,7 @@ error_msg() {
         log_it "ERROR: $msg"
         log_it
         [[ -n "$TMUX" ]] && {
-            err_display="\nplugin: $plugin_name:$this_app [$$] - ERROR:\n\n"
+            err_display="\nplugin: $plugin_name:$current_script [$$] - ERROR:\n\n"
             err_display+="$msg\n\nPress ESC to close this display"
             $do_display_message && $TMUX_BIN run-shell "printf '$err_display'"
 
@@ -800,10 +800,14 @@ main() {
     [[ -z "$TMUX_BIN" ]] && TMUX_BIN="tmux"
 
     #
-    #  Currently running script
+    #  Convert script name to full actual path notation the path is used
+    #  for caching, so save it to a variable as well
     #
-    this_app="$(basename "$0")"
+    current_script="$(basename "$0")" # name without path
+    d_current_script="$(realpath -- "$(dirname -- "$0")")"
+    f_current_script="$d_current_script/$current_script"
 
+    
     d_scripts="$D_TPL_BASE_PATH"/scripts
     d_data="$D_TPL_BASE_PATH"/data # location for all runtime data
     d_ping_issues="$d_data"/ping_issues

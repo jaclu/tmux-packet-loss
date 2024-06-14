@@ -91,7 +91,7 @@ exit_script() {
     local msg
 
     pidfile_release "$pidfile_ctrl_monitor"
-    msg="$this_app - completed"
+    msg="$current_script - completed"
     [[ "$exit_code" -ne 0 ]] && msg+=" exit code:$exit_code"
     log_it "$msg"
     exit "$exit_code"

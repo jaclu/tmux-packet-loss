@@ -160,6 +160,8 @@ log_prefix="prp"
 # shellcheck source=scripts/utils.sh
 source "$D_TPL_BASE_PATH"/scripts/utils.sh
 
+# log_it "+++++   Starting script: $(relative_path "$f_current_script"))   +++++"
+
 #
 #  Create fresh database if it is missing or obsolete
 #

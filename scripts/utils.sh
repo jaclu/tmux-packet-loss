@@ -66,6 +66,7 @@ error_msg() {
         [[ -n "$TMUX" ]] && {
             err_display="\nplugin: $plugin_name:$current_script [$$] - ERROR:\n\n"
             err_display+="$msg\n\nPress ESC to close this display"
+            log_it "><> do_display_message: $do_display_message"
             $do_display_message && $TMUX_BIN run-shell "printf '$err_display'"
 
             # $do_display_message && display_message_hold "$plugin_name $msg"
@@ -230,13 +231,15 @@ sqlite_err_handling() {
         fi
         ;;
     *)
+        #  log error but leave handling error up to caller
+        error_msg "sqlite_err_handling($sql) - error: $sqlite_exit_code" -1 false
         [[ ! -s "$f_sqlite_db" ]] && [[ -f "$f_sqlite_db" ]] && {
             #
             #  If DB was removed, then a sql action would fail but lead
             #  to an empty DB. By removing such, next call to
             #  display_losses will recreate it and restart monitoring
             #
-            error_msg "sqlite_err_handling() - Removing empty DB" -1 false
+            error_msg "sqlite_err_handling($sql) - Removing empty DB" 1 false
             rm -f "$f_sqlite_db"
             rm -f "$f_monitor_suspended_no_clients"
         }
@@ -707,6 +710,15 @@ get_config() {
 #
 #---------------------------------------------------------------
 
+relative_path() {
+    # remove D_TPL_BASE_PATH prefix
+
+    # log_it "relative_path($1)"
+
+    #  shellcheck disable=SC2001
+    echo "$1" | sed "s|^$D_TPL_BASE_PATH/||"
+}
+
 random_sleep() {
     #
     #  Function to generate a random sleep time with improved randomness
@@ -807,7 +819,6 @@ main() {
     d_current_script="$(realpath -- "$(dirname -- "$0")")"
     f_current_script="$d_current_script/$current_script"
 
-    
     d_scripts="$D_TPL_BASE_PATH"/scripts
     d_data="$D_TPL_BASE_PATH"/data # location for all runtime data
     d_ping_issues="$d_data"/ping_issues

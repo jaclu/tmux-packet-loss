@@ -55,6 +55,16 @@ insert_data() {
 #
 #===============================================================
 
+#
+#  Only source utils if params are valid, to avoid so
+#
+
+D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
+log_prefix="tst"
+
+#  shellcheck source=scripts/utils.sh
+source "$D_TPL_BASE_PATH"/scripts/utils.sh
+
 [[ -z "$1" ]] && {
     echo "Usage: $current_script [--keep] tst_loss [history_loss]
 
@@ -71,16 +81,6 @@ Sample usages:
 
     exit 0
 }
-
-#
-#  Only source utils if params are valid, to avoid so
-#
-
-D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
-log_prefix="tst"
-
-#  shellcheck source=scripts/utils.sh
-source "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 keep_db=false
 [[ "$1" = "--keep" ]] && {

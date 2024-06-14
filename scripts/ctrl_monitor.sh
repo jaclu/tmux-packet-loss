@@ -8,19 +8,15 @@
 
 clear_losses_in_t_loss() {
     log_it "Clearing losses - to ensure plugin isnt stuck alerting"
-    sqlite_err_handling "DELETE FROM t_loss WHERE loss != 0" || {
-        local msg
-
-        msg="sqlite3 exited with: $sqlite_exit_code \n "
-        msg+=" when retrieving Clearing losses for table t_loss"
+    sqlite_transaction "DELETE FROM t_loss WHERE loss != 0" || {
+        local msg="sqlite3 exited with: $sqlite_exit_code \n "
+        msg+=" when clearing losses for table t_loss"
         error_msg "$msg"
     }
 }
 
 monitor_terminate() {
     local i
-
-    db_monitor="$(basename "$scr_monitor")"
 
     pidfile_is_live "$pidfile_monitor" && {
         log_it "Will kill [$pidfile_proc] $db_monitor"
@@ -44,7 +40,6 @@ monitor_terminate() {
 }
 
 monitor_launch() {
-
     #  Clear out env, some status files that will be created when needed
     rm -f "$f_previous_loss"
     rm -f "$f_sqlite_errors"
@@ -63,7 +58,7 @@ handle_param() {
     case "$1" in
     start | "")
         monitor_terminate # First kill any running instance
-        monitor_launch
+        monitor_launch || error_msg "Failed to launch monitor"
         ;;
     stop)
         killed_monitor=false
@@ -109,11 +104,15 @@ log_prefix="ctr"
 #  shellcheck source=scripts/utils.sh
 source "$D_TPL_BASE_PATH"/scripts/utils.sh
 
+# log_it "+++++   Starting script: $(relative_path "$f_current_script"))   +++++"
+
 #
 #  Include pidfile handling
 #
 # shellcheck source=scripts/pidfile_handler.sh
 source "$scr_pidfile_handler"
+
+db_monitor="$(basename "$scr_monitor")"
 
 pidfile_acquire "$pidfile_ctrl_monitor" 3 || {
     error_msg "Could not acquire: $pid_file_short"

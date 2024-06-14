@@ -14,6 +14,20 @@ float_drop_digits() {
     echo "$1" | sed 's/\./ /' | cut -d' ' -f 1
 }
 
+clear_out_old_losses() {
+    # log_it "><> clear_out_old_losses()"
+    local max_age
+    local sql
+
+    max_age="$(echo "$cfg_ping_count * $cfg_history_size" | bc)"
+    sql="
+        -- Remove old items remaining after a suspend-resume
+        DELETE FROM t_loss
+        WHERE time_stamp <= datetime('now', '-$max_age seconds');
+        "
+    sqlite_transaction "$sql" || error_msg "SQL Error in clear_out_old_losses() - sql: $sql"
+}
+
 define_ping_cmd() {
     #
     #  Figuring out the nature of the available ping cmd
@@ -332,6 +346,8 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 # shellcheck source=scripts/pidfile_handler.sh
 source "$scr_pidfile_handler"
 
+# log_it "+++++   Starting script: $(relative_path "$f_current_script"))   +++++"
+
 pidfile_acquire "$pidfile_monitor" 3 || {
     error_msg "Could not acquire: $pid_file_short"
 }
@@ -360,13 +376,15 @@ error_invalid_number=102
 #  parsing output gave empty result, unlikely to self correct
 error_unable_to_detect_loss=201
 
+scr_loss_default="$D_TPL_BASE_PATH"/scripts/ping_parsers/loss_calc_default.sh
+scr_loss_ish_deb10="$D_TPL_BASE_PATH"/scripts/ping_parsers/loss_calc_ish_deb10.sh
+
 #  Ensure DB and all triggers are vallid
 $scr_prepare_db
 
-define_ping_cmd # we need the ping_cmd in kill_any_strays
+clear_out_old_losses
 
-scr_loss_default="$D_TPL_BASE_PATH"/scripts/ping_parsers/loss_calc_default.sh
-scr_loss_ish_deb10="$D_TPL_BASE_PATH"/scripts/ping_parsers/loss_calc_ish_deb10.sh
+define_ping_cmd # we need the ping_cmd in kill_any_strays
 
 #
 #  Check if special handling of output is needed

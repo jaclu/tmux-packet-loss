@@ -66,7 +66,6 @@ error_msg() {
         [[ -n "$TMUX" ]] && {
             err_display="\nplugin: $plugin_name:$current_script [$$] - ERROR:\n\n"
             err_display+="$msg\n\nPress ESC to close this display"
-            log_it "><> do_display_message: $do_display_message"
             $do_display_message && $TMUX_BIN run-shell "printf '$err_display'"
 
             # $do_display_message && display_message_hold "$plugin_name $msg"

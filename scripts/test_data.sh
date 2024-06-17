@@ -46,7 +46,7 @@ insert_data() {
         error_msg "$msg"
     }
 
-    "$D_TPL_BASE_PATH"/scripts/all_data.sh show
+    # "$D_TPL_BASE_PATH"/scripts/all_data.sh show
 }
 
 #===============================================================

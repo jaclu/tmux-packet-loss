@@ -15,7 +15,7 @@ float_drop_digits() {
 }
 
 clear_out_old_losses() {
-    # log_it "><> clear_out_old_losses()"
+    # log_it clear_out_old_losses()"
     local max_age
     local sql
 
@@ -329,6 +329,8 @@ pidfile_acquire "$pidfile_monitor" 3 || {
     error_msg "Could not acquire: $pid_file_short"
 }
 
+tmux_socket="$(echo "$TMUX" | cut -d',' -f1)"
+
 # If true, output of pings with issues will be saved
 store_ping_issues=false
 
@@ -359,8 +361,6 @@ scr_loss_ish_deb10="$D_TPL_BASE_PATH"/scripts/ping_parsers/loss_calc_ish_deb10.s
 #  Ensure DB and all triggers are vallid
 $scr_prepare_db
 
-clear_out_old_losses
-
 define_ping_cmd # we need the ping_cmd in kill_any_strays
 
 #
@@ -375,7 +375,7 @@ fi
 log_it "Checking losses using: $(basename "$loss_check")"
 $store_ping_issues && log_it "Will save ping issues in $d_ping_issues"
 
-tmux_socket="$(echo "$TMUX" | cut -d',' -f1)"
+clear_out_old_losses
 
 do_monitor_loop
 

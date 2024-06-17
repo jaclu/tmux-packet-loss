@@ -43,6 +43,19 @@ db_seems_inactive() {
     [[ -n "$(find "$f_sqlite_db" -mmin +"$db_max_age_mins")" ]]
 }
 
+wrong_db_version() {
+    local current_db_vers
+
+    current_db_vers="$(sqlite_err_handling "PRAGMA user_version")"
+
+    # [[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]]
+    [[ "$current_db_vers" != "$db_version" ]] && {
+        error_msg "DB incorrect user_version: $current_db_vers" -1 false
+        return 0 # True
+    }
+    return 1 # False
+}
+
 verify_db_status() {
     #
     #  Some sanity check, ensuring the monitor is running
@@ -69,9 +82,9 @@ verify_db_status() {
         [[ -s "$f_sqlite_db" ]] || {
             error_msg "$db_issue - DB could not be created - aborting"
         }
-    elif [[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]]; then
-        log_date_change
-        error_msg "DB incorrect user_version: " -1 false
+    elif wrong_db_version; then
+        # [[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]]; then
+        log_date_change "incorrect user_version"
         restart_monitor
     elif [[ -f "$f_monitor_suspended_no_clients" ]]; then
         restart_monitor "- was suspended due to no clients"

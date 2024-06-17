@@ -25,6 +25,7 @@ script_exit() {
 }
 
 restart_monitor() {
+    log_date_change
     log_it "restarting monitor $1"
     $scr_ctrl_monitor start || error_msg "ctrl_monitor gave error on start"
     date >>"$db_restart_log" # log current time
@@ -33,12 +34,11 @@ restart_monitor() {
 db_seems_inactive() {
     #
     #  New records should normally be written to the DB every cfg_ping_count
-    #  seconds. If it hasnt happened for some minutes, it can be assumed
-    #  that the monitor is no longer oprtating normally
-    #
+    #  seconds. If it hasnt happened, it can be assumed that the monitor
+    #  is no longer oprtating normally.
     #  To allow for disabling the monitor shorter periods for example
-    #  when using scripts/test_data.sh, age of DB is checked instead
-    #  of $pidfile_monitor
+    #  when using scripts/test_data.sh, wait a couple of minutes before
+    #  restart.
     #
     [[ -n "$(find "$f_sqlite_db" -mmin +"$db_max_age_mins")" ]]
 }
@@ -49,8 +49,15 @@ verify_db_status() {
     #
 
     if [[ ! -s "$f_sqlite_db" ]]; then
+        #
+        #  Since if the DB doesnt exist and a read is being done, an
+        #  empty DB is created. This makes a check for existance of the
+        #  DB invalid. The -s check ensures it is of size > 0 thus would
+        #  catch empty DBs having been created by a read
+        #
         local db_issue="DB missing or broken"
 
+        log_date_change
         error_msg "$db_issue" -1 false
         #
         #  If DB is missing, try to start the monitor
@@ -59,19 +66,20 @@ verify_db_status() {
         log_it "$db_issue - monitor was restarted"
 
         [[ -s "$f_sqlite_db" ]] || {
-            error_msg "$db_issue - after monitor restart - aborting"
+            error_msg "$db_issue - DB could not be created - aborting"
         }
+    elif [[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]]; then
+        log_date_change
+        error_msg "DB incorrect user_version: " -1 false
+        restart_monitor
+    elif [[ -f "$f_monitor_suspended_no_clients" ]]; then
+        restart_monitor "- was suspended due to no clients"
     elif db_seems_inactive; then
         #
         #  If DB is over a minute old,
         #  assume the monitor is not running, so (re-)start it
         #
         restart_monitor "DB is over $db_max_age_mins minutes old"
-    elif [[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]]; then
-        error_msg "DB incorrect user_version: " -1 false
-        restart_monitor
-    elif [[ -f "$f_monitor_suspended_no_clients" ]]; then
-        restart_monitor "- was suspended due to no clients"
     fi
 }
 

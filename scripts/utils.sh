@@ -44,6 +44,29 @@ log_it() {
         "$log_prefix" "$log_indent" "" "$@" >>"$cfg_log_file"
 }
 
+log_date_change() {
+    #
+    #  In order to not have date on every line, date is just printed
+    #  once/day
+    #
+    local today
+    local last_log_date
+
+    [[ -z "$cfg_log_file" ]] && return
+
+    today="$(date +%Y-%m-%d)"
+    last_log_date="$(cat "$f_log_date" 2>/dev/null)"
+    [[ "$last_log_date" != "$today" ]] && {
+        # since we got here $cfg_log_file is defined
+        (
+            echo
+            echo "===============  $today  ==============="
+            echo
+        ) >>"$cfg_log_file"
+        echo "$today" >"$f_log_date"
+    }
+}
+
 error_msg() {
     #
     #  Display $1 as an error message in log and in a scrollback buffer

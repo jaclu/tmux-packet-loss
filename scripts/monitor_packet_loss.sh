@@ -117,29 +117,6 @@ compare_loss_parsers() {
     fi
 }
 
-display_date() {
-    #
-    #  In order to not have date on every line, date is just printed
-    #  once/day
-    #
-    local today
-    local last_log_date
-
-    [[ -z "$cfg_log_file" ]] && return
-
-    today="$(date +%Y-%m-%d)"
-    last_log_date="$(cat "$f_log_date" 2>/dev/null)"
-    [[ "$last_log_date" != "$today" ]] && {
-        # since we got here $cfg_log_file is defined
-        (
-            echo
-            echo "===============  $today  ==============="
-            echo
-        ) >>"$cfg_log_file"
-        echo "$today" >"$f_log_date"
-    }
-}
-
 is_busybox_ping() {
     #
     #  NOT Variables provided:
@@ -233,7 +210,7 @@ do_monitor_loop() {
     exit_msg="- exiting this process"
     log_it "Starting the monitoring loop"
     while true; do
-        display_date #  make sure it is displayed before any losses
+        log_date_change #  make sure it is displayed before any losses
 
         percent_loss=""
         parse_error=false

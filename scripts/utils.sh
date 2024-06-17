@@ -711,10 +711,8 @@ get_config() {
     $b_d_data_missing && {
         local stray_monitors
 
-        log_it "data/ was missing"
-
         mkdir -p "$d_data"
-
+        log_it "data/ was missing"
         get_tmux_pid >"$pidfile_tmux" # helper for show_settings.sh
 
         #

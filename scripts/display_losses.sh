@@ -25,7 +25,7 @@ script_exit() {
 }
 
 restart_monitor() {
-    log_date_change
+    log_date_change "restart_monitor" #OK
     log_it "restarting monitor $1"
     $scr_ctrl_monitor start || error_msg "ctrl_monitor gave error on start"
     date >>"$db_restart_log" # log current time
@@ -57,7 +57,8 @@ verify_db_status() {
         #
         local db_issue="DB missing or broken"
 
-        log_date_change
+        log_date_change "$db_issue" #OK
+
         error_msg "$db_issue" -1 false
         #
         #  If DB is missing, try to start the monitor

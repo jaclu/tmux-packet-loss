@@ -179,6 +179,7 @@ current_db_vers="$(sqlite_err_handling "PRAGMA user_version")"
 update_triggers
 
 # a lot of DB related code depends on there being at least one record
-sqlite_transaction "INSERT INTO t_loss (loss) VALUES (0)"
+sqlite_transaction "-- DB prep
+    INSERT INTO t_loss (loss) VALUES (0)"
 
 log_it "$current_script - completed"

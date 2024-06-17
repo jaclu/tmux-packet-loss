@@ -207,10 +207,10 @@ do_monitor_loop() {
     #
     err_count=0
     err_count_max=3 # terminate if this many errors have occured
-    exit_msg="- exiting this process"
+    exit_msg="exiting this process"
     log_it "Starting the monitoring loop"
     while true; do
-        log_date_change #  make sure it is displayed before any losses
+        log_date_change "" #  make sure it is displayed before any losses
 
         percent_loss=""
         parse_error=false

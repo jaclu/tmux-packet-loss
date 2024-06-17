@@ -62,7 +62,7 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 #  By printing a NL and date, its easier to keep separate runs apart
 #
 log_it
-log_it "$(date)"
+log_date_change "plugin handler"
 
 #  Ensure a fresh param_cache has been created during plugin init
 $param_cache_written || {

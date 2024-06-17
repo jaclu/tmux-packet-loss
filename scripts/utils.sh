@@ -47,22 +47,31 @@ log_it() {
 log_date_change() {
     #
     #  In order to not have date on every line, date is just printed
-    #  once/day
+    #  once/day.
+    #  Primary call for this is in monitor:do_monitor_loop()
+    #  Additional calls have been added,
     #
+    local msg="$1"
     local today
     local last_log_date
-
-    [[ -z "$cfg_log_file" ]] && return
 
     today="$(date +%Y-%m-%d)"
     last_log_date="$(cat "$f_log_date" 2>/dev/null)"
     [[ "$last_log_date" != "$today" ]] && {
-        # since we got here $cfg_log_file is defined
-        (
-            echo
-            echo "===============  $today  ==============="
-            echo
-        ) >>"$cfg_log_file"
+
+        [[ -d "$d_data" ]] || {
+            log_it "!!!!! log_date_change() [$msg] aborted due to no data dir"
+            return
+        }
+
+        [[ -n "$cfg_log_file" ]] && {
+            (
+                echo
+                echo "===============  $today  =============== $msg"
+                echo
+            ) >>"$cfg_log_file"
+        }
+        [[ -z "$f_log_date" ]] && error_msg "f_log_date undefined"
         echo "$today" >"$f_log_date"
     }
 }
@@ -524,7 +533,7 @@ param_cache_write() {
     mkdir -p "$(dirname "$f_param_cache")" # ensure it exists
 
     set_tmux_vers # always get the current
-
+    # echo "><> saving params" >>/Users/jaclu/tmp/tmux-packet-loss-t2.log
     #region conf cache file
     cat <<EOF >"$f_param_cache"
     #
@@ -611,6 +620,7 @@ get_plugin_params() {
     #  Variables provided:
     #    cfg_  variables
     #
+
     get_defaults
 
     # log_it "get_plugin_params()"
@@ -661,6 +671,7 @@ get_plugin_params() {
 
     [[ -z "$cfg_log_file" ]] && {
         cfg_log_file="$(get_tmux_option "@packet-loss-log_file" "")"
+        # echo "><> reading cfg_log_file=$cfg_log_file" >>/Users/jaclu/tmp/tmux-packet-loss-t2.log
     }
 }
 

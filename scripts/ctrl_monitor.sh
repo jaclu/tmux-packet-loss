@@ -45,6 +45,8 @@ monitor_launch() {
     rm -f "$f_sqlite_errors"
     rm -f "$db_restart_log"
     rm -f "$f_monitor_suspended_no_clients"
+
+    log_date_change "monitor launch"
     log_it "tmp files have been deleted"
 
     get_tmux_pid >"$pidfile_tmux" # helper for show_settings.sh

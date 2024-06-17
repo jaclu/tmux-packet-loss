@@ -255,17 +255,22 @@ sqlite_err_handling() {
         fi
         ;;
     *)
+        local err_msg
+
         #  log error but leave handling error up to caller
-        error_msg "sqlite_err_handling($sql) - error: $sqlite_exit_code" -1 false
+        err_msg="sqlite_err_handling()\n$sql\nerror code: $sqlite_exit_code\n"
+        err_msg+="error msg:  $(cat "$f_sqlite_errors")"
+        error_msg "$err_msg" -1
+
         [[ ! -s "$f_sqlite_db" ]] && [[ -f "$f_sqlite_db" ]] && {
             #
             #  If DB was removed, then a sql action would fail but lead
             #  to an empty DB. By removing such, next call to
             #  display_losses will recreate it and restart monitoring
             #
-            error_msg "sqlite_err_handling($sql) - Removing empty DB" 1 false
-            rm -f "$f_sqlite_db"
             rm -f "$f_monitor_suspended_no_clients"
+            rm -f "$f_sqlite_db"
+            error_msg "Removing empty DB, terminating monitor" 1 false
         }
         ;;
     esac

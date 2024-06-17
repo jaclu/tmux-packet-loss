@@ -232,9 +232,6 @@ sqlite_err_handling() {
     #
     #  Loggs sqlite errors to $f_sqlite_errors
     #
-    #  Additional exit code:
-    #    99  - still SQLITE_BUSY despite recursion
-    #
     #  Variables provided:
     #    sqlite_exit_code - exit code for latest sqlite3 action
     #                       if called as a function
@@ -252,14 +249,13 @@ sqlite_err_handling() {
 
     case "$sqlite_exit_code" in
     0) ;;
-    5)
+    5 | 141)
         if [[ "$recursion" -gt 2 ]]; then
-            log_it "attempt $recursion also got SQLITE_BUSY - giving up"
-            sqlite_exit_code=99 # repeated SQLITE_BUSY
+            log_it "attempt $recursion also got ex_code:$sqlite_exit_code - giving up"
         else
             random_sleep 2
             ((recursion++))
-            log_it "SQLITE_BUSY - attempt: $recursion"
+            log_it "WARNING: ex_code:$sqlite_exit_code - attempt: $recursion"
             sqlite_err_handling "$sql" "$recursion"
         fi
         ;;

@@ -25,7 +25,9 @@ clear_out_old_losses() {
         DELETE FROM t_loss
         WHERE time_stamp <= datetime('now', '-$max_age seconds');
         "
-    sqlite_transaction "$sql" || error_msg "SQL Error in clear_out_old_losses() - sql: $sql"
+    sqlite_transaction "$sql" || {
+        error_msg "SQL Error in clear_out_old_losses() - sql: $sql"
+    }
 }
 
 define_ping_cmd() {

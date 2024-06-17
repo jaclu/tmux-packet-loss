@@ -43,19 +43,6 @@ db_seems_inactive() {
     [[ -n "$(find "$f_sqlite_db" -mmin +"$db_max_age_mins")" ]]
 }
 
-wrong_db_version() {
-    local current_db_vers
-
-    current_db_vers="$(sqlite_err_handling "PRAGMA user_version")"
-
-    # [[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]]
-    [[ "$current_db_vers" != "$db_version" ]] && {
-        error_msg "DB incorrect user_version: $current_db_vers" -1 false
-        return 0 # True
-    }
-    return 1 # False
-}
-
 verify_db_status() {
     #
     #  Some sanity check, ensuring the monitor is running
@@ -82,10 +69,6 @@ verify_db_status() {
         [[ -s "$f_sqlite_db" ]] || {
             error_msg "$db_issue - DB could not be created - aborting"
         }
-    elif wrong_db_version; then
-        # [[ "$(sqlite_err_handling "PRAGMA user_version")" != "$db_version" ]]; then
-        log_date_change "incorrect user_version"
-        restart_monitor
     elif [[ -f "$f_monitor_suspended_no_clients" ]]; then
         restart_monitor "- was suspended due to no clients"
     elif db_seems_inactive; then
@@ -103,13 +86,12 @@ get_current_loss() {
     #   current_loss
     #
     local sql
-    local current_loss_float
 
     #  shellcheck disable=SC2086 # boolean - cant be quoted
     sql_current_loss $cfg_weighted_average
 
     # CAST seems to always round down...
-    current_loss_float="$(sqlite_err_handling "$sql")" || {
+    sqlite_err_handling "$sql" || {
         local sqlite_exit_code="$?"
         local msg
 
@@ -117,7 +99,7 @@ get_current_loss() {
         msg+=" when retrieving current losses"
         error_msg "$msg"
     }
-    current_loss=$(printf "%.0f" "$current_loss_float") # float -> int
+    current_loss=$(printf "%.0f" "$sqlite_result") # float -> int
 }
 
 get_prev_loss() {
@@ -200,13 +182,15 @@ display_history() {
     local avg_loss_raw
 
     sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
-    avg_loss_raw="$(sqlite_err_handling "$sql")" || {
+    sqlite_err_handling "$sql" || {
         local sqlite_exit_code="$?"
 
         error_msg "sqlite3[$sqlite_exit_code] when retrieving history" \
             -1 false
         return
     }
+    avg_loss_raw="$sqlite_result"
+
     if [[ "$avg_loss_raw" != "0" ]]; then
         local avg_loss
 

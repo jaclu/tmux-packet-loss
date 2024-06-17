@@ -9,8 +9,8 @@
 clear_losses_in_t_loss() {
     log_it "Clearing losses - to ensure plugin isnt stuck alerting"
     sqlite_transaction "DELETE FROM t_loss WHERE loss != 0" || {
-        local msg="sqlite3 exited with: $sqlite_exit_code \n "
-        msg+=" when clearing losses for table t_loss"
+        local msg="sqlite3 exited with: $sqlite_exit_code \n"
+        msg+="when clearing losses for table t_loss"
         error_msg "$msg"
     }
 }
@@ -42,7 +42,7 @@ monitor_terminate() {
 monitor_launch() {
     #  Clear out env, some status files that will be created when needed
     rm -f "$f_previous_loss"
-    rm -f "$f_sqlite_errors"
+    rm -f "$f_sqlite_error"
     rm -f "$db_restart_log"
     rm -f "$f_monitor_suspended_no_clients"
 

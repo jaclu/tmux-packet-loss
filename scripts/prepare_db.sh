@@ -165,10 +165,9 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 #
 #  Create fresh database if it is missing or obsolete
 #
-current_db_vers="$(sqlite_err_handling "PRAGMA user_version")"
-
-[[ "$current_db_vers" != "$db_version" ]] && {
-    log_it "DB incorrect user_version: $current_db_vers"
+sqlite_err_handling "PRAGMA user_version"
+[[ "$sqlite_result" != "$db_version" ]] && {
+    log_it "DB incorrect user_version: $sqlite_result"
     create_db
 }
 

@@ -108,39 +108,6 @@ error_msg() {
     [[ "$exit_code" -gt -1 ]] && exit "$exit_code"
 }
 
-# display_message_hold() {
-#     #
-#     #  Display a message and hold until key-press
-#     #  Can't use tmux_error_handler in this func, since that could
-#     #  trigger recursion
-#     #
-#     log_it "display_message_hold()"
-#     local msg="$1"
-
-#     [[ -n "$TMUX" ]] || {
-#         # tmux not running display-message cant be called
-#         return
-#     }
-
-#     #  display-message filters out \n
-#     msg="$(echo "$msg" | tr '\n' ' ')"
-
-#     if tmux_vers_compare 3.2; then
-#         # message will remain until key-press
-#         $TMUX_BIN display-message -d 0 "$msg"
-#     else
-#         local org_display_time
-
-#         # Manually make the error msg stay on screen a long time
-#         org_display_time="$($TMUX_BIN show-option -gv display-time)"
-#         $TMUX_BIN set -g display-time 120000 >/dev/null
-#         $TMUX_BIN display-message "$msg"
-
-#         posix_get_char >/dev/null # wait for keypress
-#         $TMUX_BIN set -g display-time "$org_display_time" >/dev/null
-#     fi
-# }
-
 save_ping_issue() {
     #
     #  Save a ping outout for later inspection
@@ -230,9 +197,10 @@ sqlite_err_handling() {
     #  If SQLITE_BUSY is detected, two more attempt is done after a sleep
     #  other error handling should be done by the caller
     #
-    #  Loggs sqlite errors to $f_sqlite_errors
+    #  Loggs sqlite errors to $f_sqlite_error
     #
     #  Variables provided:
+    #    sqlite_result    - Output from query
     #    sqlite_exit_code - exit code for latest sqlite3 action
     #                       if called as a function
     #
@@ -244,18 +212,24 @@ sqlite_err_handling() {
             "sqlite_err_handling(): recursion param not int [$recursion]"
     }
 
-    sqlite3 "$f_sqlite_db" "$sql" 2>>"$f_sqlite_errors"
+    sqlite_result="$(sqlite3 "$f_sqlite_db" "$sql" 2>"$f_sqlite_error")"
     sqlite_exit_code=$?
 
     case "$sqlite_exit_code" in
-    0) ;;
+    0) ;; # no error
     5 | 141)
+        #
+        # 5 SQLITE_BUSY - obvious candidate for a few retries
+        # 141   is an odd one, I have gotten it a couple of times on iSH.
+        #       GPT didnt give any suggestion. Either way allowing it to
+        #       try a few times solved the issue.
+        #
         if [[ "$recursion" -gt 2 ]]; then
-            log_it "attempt $recursion also got ex_code:$sqlite_exit_code - giving up"
+            log_it "attempt $recursion sqlite error:$sqlite_exit_code - giving up"
         else
-            random_sleep 2
+            random_sleep 2 # give compeeting task some time to complete
             ((recursion++))
-            log_it "WARNING: ex_code:$sqlite_exit_code - attempt: $recursion"
+            log_it "WARNING: sqlite error:$sqlite_exit_code  attempt: $recursion  [$sql]"
             sqlite_err_handling "$sql" "$recursion"
         fi
         ;;
@@ -264,7 +238,7 @@ sqlite_err_handling() {
 
         #  log error but leave handling error up to caller
         err_msg="sqlite_err_handling()\n$sql\nerror code: $sqlite_exit_code\n"
-        err_msg+="error msg:  $(cat "$f_sqlite_errors")"
+        err_msg+="error msg:  $(cat "$f_sqlite_error")"
         error_msg "$err_msg" -1
 
         [[ ! -s "$f_sqlite_db" ]] && [[ -f "$f_sqlite_db" ]] && {
@@ -872,7 +846,7 @@ main() {
     f_log_date="$d_data"/log_date
     f_param_cache="$d_data"/param_cache
     f_previous_loss="$d_data"/previous_loss
-    f_sqlite_errors="$d_data"/sqlite.err
+    f_sqlite_error="$d_data"/sqlite.err
     f_monitor_suspended_no_clients="$d_data"/no_clients
     f_sqlite_db="$d_data"/packet_loss.sqlite
 

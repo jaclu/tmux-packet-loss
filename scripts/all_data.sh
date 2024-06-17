@@ -45,29 +45,31 @@ for table in "${tables[@]}"; do
     #
     if [[ "$table" = "t_loss" ]]; then
         sql_current_loss true
-        weighted="$(sqlite_err_handling "$sql")" || {
+        sqlite_err_handling "$sql" || {
             sqlite_exit_code="$?"
-            msg="sqlite3 exited with: $sqlite_exit_code \n "
-            msg+=" when retrieving current weighted losses for table $table"
+            msg="sqlite3 exited with: $sqlite_exit_code \n"
+            msg+="when retrieving current weighted losses for table $table"
             error_msg "$msg"
         }
+        weighted="$sqlite_result"
+
         sql_current_loss false
-        avg="$(sqlite_err_handling "$sql")" || {
+        sqlite_err_handling "$sql" || {
             sqlite_exit_code="$?"
             msg="sqlite3 exited with: $sqlite_exit_code \n "
             msg+=" when retrieving current avg losses for table $table"
             error_msg "$msg"
         }
-        printf "average: %5.1f  weighted: %5.1f\n" "$avg" "$weighted"
+        printf "average: %5.1f  weighted: %5.1f\n" "$sqlite_result" "$weighted"
     else
         sql="SELECT round(avg(loss),1) FROM $table;"
-        avg="$(sqlite_err_handling "$sql")" || {
+        sqlite_err_handling "$sql" || {
             sqlite_exit_code="$?"
             msg="sqlite3 exited with: $sqlite_exit_code \n "
             msg+=" when retrieving current avg losses for table $table"
             error_msg "$msg"
         }
-        printf "average: %5.1f\n" "$avg"
+        printf "average: %5.1f\n" "$sqlite_result"
     fi
     echo
 done

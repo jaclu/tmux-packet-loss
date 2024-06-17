@@ -86,13 +86,15 @@ error_msg() {
         log_it
         log_it "ERROR: $msg"
         log_it
-        [[ -n "$TMUX" ]] && {
-            err_display="\nplugin: $plugin_name:$current_script [$$] - ERROR:\n\n"
-            err_display+="$msg\n\nPress ESC to close this display"
-            $do_display_message && $TMUX_BIN run-shell "printf '$err_display'"
 
-            # $do_display_message && display_message_hold "$plugin_name $msg"
-        }
+        err_display="\nplugin: $plugin_name:$current_script [$$] - ERROR:\n\n"
+        err_display+="$msg\n\nPress ESC to close this display"
+        if [[ -n "$TMUX" ]]; then
+            $do_display_message && $TMUX_BIN run-shell "printf '$err_display'"
+        else
+            # shellcheck disable=SC2059
+            printf "$err_display" >/dev/stderr
+        fi
     fi
     [[ "$exit_code" -gt -1 ]] && exit "$exit_code"
 }

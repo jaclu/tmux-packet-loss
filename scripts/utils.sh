@@ -225,11 +225,12 @@ sqlite_err_handling() {
         #       try a few times solved the issue.
         #
         if [[ "$recursion" -gt 2 ]]; then
-            log_it "attempt $recursion sqlite error:$sqlite_exit_code - giving up"
+            log_it "attempt $recursion sqlite error:$sqlite_exit_code - giving up [$sql]
+            "
         else
             random_sleep 2 # give compeeting task some time to complete
             ((recursion++))
-            log_it "WARNING: sqlite error:$sqlite_exit_code  attempt: $recursion  [$sql]"
+            log_it "WARNING: sqlite error:$sqlite_exit_code  attempt: $recursion"
             sqlite_err_handling "$sql" "$recursion"
         fi
         ;;

@@ -43,6 +43,7 @@ create_db() {
         loss DECIMAL(5,1)
     );
 
+    PRAGMA journal_mode = WAL;
     PRAGMA user_version = $db_version;  -- replace DB if out of date
     "
     sqlite_transaction "$sql" || {

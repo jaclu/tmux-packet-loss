@@ -208,7 +208,7 @@ sqlite_err_handling() {
     local recursion="${2:-1}"
     local sql_filtered
 
-    sql_filtered="$(echo "$sql" | tr -d '\n' | tr -s ' ' | sed 's/^ //' | cut -c 1-50)"
+    sql_filtered="$(echo "$sql" | sed 's/BEGIN TRANSACTION; -- Start the transaction//' | tr -d '\n' | tr -s ' ' | sed 's/^ //' | cut -c 1-50)"
     log_it "SQL:$sql_filtered" # ><>
 
     is_int "$recursion" || {

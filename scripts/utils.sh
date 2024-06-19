@@ -209,7 +209,7 @@ sqlite_err_handling() {
 
     # log_it "sqlite_err_handling()"
     
-    if false; then # set to true to log sql queries
+    if $log_sql; then # set to true to log sql queries
         local sql_filtered
 
         # this does some filtering to give a more meaningful summary
@@ -894,6 +894,12 @@ main() {
         skip_logging=false
     }
 
+    [[ -z "$log_sql" ]] && {
+        # if true all SQL queries are logged
+        # log_it "><> disabling log_sql"
+        log_sql=false
+    }
+
     #
     #  at this point plugin_params is trusted if found, menus.tmux will
     #  allways always replace it with current tmux conf during plugin init
@@ -936,6 +942,11 @@ main() {
 
 # do_pidfile_handler_logging=true # will create ridiculous ammounts of logs
 # skip_logging=true # enforce no logging desipte tmux conf
+
+#
+# if true all SQL queries are logged - defaults to false
+#
+# log_sql=true
 
 #
 #  Disable caching

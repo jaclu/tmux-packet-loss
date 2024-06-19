@@ -895,8 +895,10 @@ main() {
     }
 
     [[ -z "$log_sql" ]] && {
-        # if true all SQL queries are logged
-        # log_it "><> disabling log_sql"
+        #
+        #  Defaults to false
+        #  if true all SQL queries are logged
+        #
         log_sql=false
     }
 

@@ -206,11 +206,20 @@ sqlite_err_handling() {
     #
     local sql="$1"
     local recursion="${2:-1}"
-    local sql_filtered
 
-    sql_filtered="$(echo "$sql" | sed 's/BEGIN TRANSACTION; -- Start the transaction//' | tr -d '\n' | tr -s ' ' | sed 's/^ //' | sed 's/ ;/;/g' | sed 's/; /;/g' | cut -c 1-50)"
-    log_it "SQL:$sql_filtered" # ><>
+    # log_it "sqlite_err_handling()"
+    
+    if false; then # set to true to log sql queries
+        local sql_filtered
 
+        # this does some filtering to give a more meaningful summary
+        sql_filtered="$(echo "$sql" | \
+            sed 's/BEGIN TRANSACTION; -- Start the transaction//' | \
+             tr -d '\n' | tr -s ' ' | sed 's/^ //' | sed 's/ ;/;/g' | \
+             sed 's/; /;/g' | cut -c 1-50)"
+        log_it "SQL:$sql_filtered"
+    fi
+    
     is_int "$recursion" || {
         error_msg \
             "sqlite_err_handling(): recursion param not int [$recursion]"

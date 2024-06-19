@@ -207,6 +207,12 @@ sqlite_err_handling() {
     local sql="$1"
     local recursion="${2:-1}"
 
+    local sql_filtered
+
+    sql_filtered="$(echo "$sql" | sed ':a;N;$!ba;s/\n//g' | sed 's/  */ /g' | cut -c 1-40)"
+
+    log_it "><> sqlite_err_handling($sql_filtered, $recursion)"
+
     is_int "$recursion" || {
         error_msg \
             "sqlite_err_handling(): recursion param not int [$recursion]"
@@ -225,8 +231,7 @@ sqlite_err_handling() {
         #       try a few times solved the issue.
         #
         if [[ "$recursion" -gt 2 ]]; then
-            log_it "attempt $recursion sqlite error:$sqlite_exit_code - giving up [$sql]
-            "
+            log_it "attempt $recursion sqlite error:$sqlite_exit_code - giving up SQL: $sql"
         else
             random_sleep 2 # give compeeting task some time to complete
             ((recursion++))

@@ -837,7 +837,7 @@ main() {
     #  for caching, so save it to a variable as well
     #
     current_script="$(basename "$0")" # name without path
-    d_current_script="$(realpath -- "$(dirname -- "$0")")"
+    d_current_script="$(realpath "$(dirname -- "$0")")"
     f_current_script="$d_current_script/$current_script"
 
     d_scripts="$D_TPL_BASE_PATH"/scripts

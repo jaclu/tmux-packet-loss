@@ -583,7 +583,7 @@ get_defaults() {
     default_run_disconnected=false #  continue to run when no client is connected
 
     default_level_disp=1   #  display loss if this or higher
-    default_level_alert=17 #  this or higher triggers alert color
+    default_level_alert=18 #  this or higher triggers alert color
     default_level_crit=40  #  this or higher triggers critical color
 
     default_hist_avg_minutes=30 #  Minutes to keep historical average

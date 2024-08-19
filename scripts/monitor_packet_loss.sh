@@ -287,7 +287,6 @@ do_monitor_loop() {
 	    #  not connected to the network
 	    #
 	    ping_parse_error "$error_ping_exit" "ping error exit code"
-	    sleep "$cfg_ping_count"
         fi
 
         #

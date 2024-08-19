@@ -66,6 +66,10 @@ define_ping_cmd() {
     fi
 
     ping_cmd="$ping_cmd -c $cfg_ping_count $cfg_ping_host"
+    if ! grep -q " / / " /proc/self/mountinfo; then
+        # when chrooted sudo is needed
+        ping_cmd="sudo $ping_cmd"
+    fi
     log_it "ping cmd used: [$ping_cmd]"
 }
 

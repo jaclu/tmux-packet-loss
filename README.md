@@ -59,6 +59,7 @@ If the monitor fails to calculate loss, packet loss above 100% is reported. So f
 | ------ | --------------------------------------------------------------------------------------------------------------- |
 | 101    | Failed to find % loss in ping output. Temporary issue. Some pings don't report loss % if there is no connection to the host. |
 | 102    | loss reported was < 0 or > 100, odd but hopefully temporary |
+| 103    | ping reported error, on some distros this happens if there is no netork connection |
 | 201    | Could not parse the output. This condition is unlikely to self-correct. If you file the output of `ping -c 5 8.8.4.4` as an Issue and also mention what Operating System this is and any other factors you think are relevant, I will try to fix it by including parsing of that output format. |
 
 ## Dependencies

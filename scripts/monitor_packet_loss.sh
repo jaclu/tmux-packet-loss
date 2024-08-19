@@ -247,35 +247,43 @@ do_monitor_loop() {
         #  the ping output is saved to a variable, so that it can be
         #  saved to a file in case the output gives issues
         #
-        ping_output="$($ping_cmd 2>/dev/null)"
-        if [[ -n "$ping_output" ]]; then
-            percent_loss="$(echo "$ping_output" | $loss_check)" || {
-                log_it "$(basename "$loss_check") returned error"
-                ((err_count++))
-                continue
-            }
-            if [[ -z "$percent_loss" ]]; then
-                msg="Failed to parse ping output, unlikely to self correct!"
-                ping_parse_error "$error_unable_to_detect_loss" "$msg"
-            elif ! is_float "$percent_loss"; then
-                ping_parse_error "$error_invalid_number" "not a float"
-            elif (($(echo "$percent_loss < 0.0 || $percent_loss > 100.0" |
-                bc -l))); then
-
-                ping_parse_error "$error_invalid_number" "invalid loss rate"
+        if ping_output="$($ping_cmd 2>/dev/null)"; then
+            if [[ -n "$ping_output" ]]; then
+		percent_loss="$(echo "$ping_output" | $loss_check)" || {
+                    log_it "$(basename "$loss_check") returned error"
+                    ((err_count++))
+                    continue
+		}
+		if [[ -z "$percent_loss" ]]; then
+                    msg="Failed to parse ping output, unlikely to self correct!"
+                    ping_parse_error "$error_unable_to_detect_loss" "$msg"
+		elif ! is_float "$percent_loss"; then
+                    ping_parse_error "$error_invalid_number" "not a float"
+		elif (($(echo "$percent_loss < 0.0 || $percent_loss > 100.0" |
+			     bc -l))); then
+		    
+                    ping_parse_error "$error_invalid_number" "invalid loss rate"
+		fi
+            else
+		#
+		#  No output, usually no connection to the host
+		#
+		ping_parse_error "$error_no_ping_output" "no output"
+		#
+		#  Some pings instantly aborts on no connection, this will keep
+		#  the poll rate kind of normal and avoid rapidly filling the DB
+		#  with bad data. Worst case, this will delay monitoring a bit
+		#  during an outage.
+		#
+		sleep "$cfg_ping_count"
             fi
         else
-            #
-            #  No output, usually no connection to the host
-            #
-            ping_parse_error "$error_no_ping_output" "no output"
-            #
-            #  Some pings instantly aborts on no connection, this will keep
-            #  the poll rate kind of normal and avoid rapidly filling the DB
-            #  with bad data. Worst case, this will delay monitoring a bit
-            #  during an outage.
-            #
-            sleep "$cfg_ping_count"
+	    #
+	    #  ping returned an error exit code, at least on iSH this happens when
+	    #  not connected to the network
+	    #
+	    ping_parse_error "$error_ping_exit" "ping error exit code"
+	    sleep "$cfg_ping_count"
         fi
 
         #
@@ -353,6 +361,12 @@ error_no_ping_output=101
 #  hopefully a temporary issue.
 #
 error_invalid_number=102
+
+#
+#  ping returned an error, at least on iSH this happens when not
+#  connected to the network
+#
+error_ping_exit=103
 
 #  parsing output gave empty result, unlikely to self correct
 error_unable_to_detect_loss=201

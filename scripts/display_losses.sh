@@ -249,9 +249,11 @@ if [[ "$current_loss" -gt 0 ]]; then
     #
     #  Set prefix & suffix for result and report to status bar
     #
-    echo "${cfg_prefix}${result}${cfg_suffix}"
+    script_exit "$result"
 fi
 
 $cfg_display_trend && set_prev_loss
 
 # log_it "$current_script - completed"
+
+script_exit

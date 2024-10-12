@@ -62,7 +62,6 @@ insert_data() {
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="tst"
 
-#  shellcheck source=scripts/utils.sh
 source "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 [[ -z "$1" ]] && {

@@ -17,7 +17,6 @@ use_param_cache=false
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="shw"
 
-#  shellcheck source=scripts/utils.sh
 source "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 #  shellcheck source=scripts/pidfile_handler.sh

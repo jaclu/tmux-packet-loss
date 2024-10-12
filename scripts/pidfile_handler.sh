@@ -253,7 +253,6 @@ set_pidfile_env() {
 
     D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
     log_prefix="pid"
-    #  shellcheck source=scripts/utils.sh
     . "$D_TPL_BASE_PATH"/scripts/utils.sh
 }
 

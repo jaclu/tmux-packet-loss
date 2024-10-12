@@ -158,7 +158,6 @@ D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 
 log_prefix="prp"
 
-# shellcheck source=scripts/utils.sh
 source "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 # log_it "+++++   Starting script: $(relative_path "$f_current_script"))   +++++"

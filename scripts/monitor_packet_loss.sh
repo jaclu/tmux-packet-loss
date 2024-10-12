@@ -19,6 +19,7 @@ clear_out_old_losses() {
     local max_age
     local sql
 
+    # shellcheck disable=SC2154
     max_age="$(echo "$cfg_ping_count * $cfg_history_size" | bc)"
     sql="
         -- Remove old items remaining after a suspend-resume
@@ -65,6 +66,7 @@ define_ping_cmd() {
         ping_cmd="ping"
     fi
 
+    # shellcheck disable=SC2154
     ping_cmd="$ping_cmd -c $cfg_ping_count $cfg_ping_host"
     if ! grep -q " / / " /proc/self/mountinfo; then
         # when chrooted sudo is needed
@@ -155,6 +157,7 @@ abort_conditions() {
     local group_exec_permission
     local msg
 
+    # shellcheck disable=SC2154
     pidfile_is_mine "$pidfile_monitor" || {
         #
         #  A new monitor has started and taken ownership of the pidfile.
@@ -186,6 +189,7 @@ abort_conditions() {
     fi
 
     if [[ "$group_exec_permission" != "x" ]]; then
+        # shellcheck disable=SC2154
         if pidfile_is_live "$pidfile_tmux"; then
             $cfg_run_disconnected && return 0 # continue to run
             touch "$f_monitor_suspended_no_clients"
@@ -225,7 +229,7 @@ do_monitor_loop() {
             break
         }
 
-        # [[ ! -d "$d_data" ]] ||
+        # shellcheck disable=SC2154
         [[ ! -s "$f_sqlite_db" ]] && {
             #
             #  If DB was removed, then a (failed) sql action was attempted
@@ -253,40 +257,40 @@ do_monitor_loop() {
         #
         if ping_output="$($ping_cmd 2>/dev/null)"; then
             if [[ -n "$ping_output" ]]; then
-		percent_loss="$(echo "$ping_output" | $loss_check)" || {
+                percent_loss="$(echo "$ping_output" | $loss_check)" || {
                     log_it "$(basename "$loss_check") returned error"
                     ((err_count++))
                     continue
-		}
-		if [[ -z "$percent_loss" ]]; then
+                }
+                if [[ -z "$percent_loss" ]]; then
                     msg="Failed to parse ping output, unlikely to self correct!"
                     ping_parse_error "$error_unable_to_detect_loss" "$msg"
-		elif ! is_float "$percent_loss"; then
+                elif ! is_float "$percent_loss"; then
                     ping_parse_error "$error_invalid_number" "not a float"
-		elif (($(echo "$percent_loss < 0.0 || $percent_loss > 100.0" |
-			     bc -l))); then
-		    
+                elif (($(echo "$percent_loss < 0.0 || $percent_loss > 100.0" |
+                    bc -l))); then
+
                     ping_parse_error "$error_invalid_number" "invalid loss rate"
-		fi
+                fi
             else
-		#
-		#  No output, usually no connection to the host
-		#
-		ping_parse_error "$error_no_ping_output" "no output"
-		#
-		#  Some pings instantly aborts on no connection, this will keep
-		#  the poll rate kind of normal and avoid rapidly filling the DB
-		#  with bad data. Worst case, this will delay monitoring a bit
-		#  during an outage.
-		#
-		sleep "$cfg_ping_count"
+                #
+                #  No output, usually no connection to the host
+                #
+                ping_parse_error "$error_no_ping_output" "no output"
+                #
+                #  Some pings instantly aborts on no connection, this will keep
+                #  the poll rate kind of normal and avoid rapidly filling the DB
+                #  with bad data. Worst case, this will delay monitoring a bit
+                #  during an outage.
+                #
+                sleep "$cfg_ping_count"
             fi
         else
-	    #
-	    #  ping returned an error exit code, at least on iSH this happens when
-	    #  not connected to the network
-	    #
-	    ping_parse_error "$error_ping_exit" "ping error exit code"
+            #
+            #  ping returned an error exit code, at least on iSH this happens when
+            #  not connected to the network
+            #
+            ping_parse_error "$error_ping_exit" "ping error exit code"
         fi
 
         #
@@ -308,6 +312,7 @@ do_monitor_loop() {
                     compare_loss_parsers
             }
         else
+            # shellcheck disable=SC2154
             error_msg "sqlite3[$sqlite_exit_code] when adding a loss" -1 false
             ((err_count++))
         fi
@@ -327,13 +332,12 @@ do_monitor_loop() {
 D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
 log_prefix="mon"
 
-#  shellcheck source=scripts/utils.sh
 source "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 #
 #  Include pidfile handling
 #
-# shellcheck source=scripts/pidfile_handler.sh
+# shellcheck source=scripts/pidfile_handler.sh disable=SC2154
 source "$scr_pidfile_handler"
 
 # log_it "+++++   Starting script: $(relative_path "$f_current_script"))   +++++"
@@ -342,6 +346,7 @@ pidfile_acquire "$pidfile_monitor" 3 || {
     error_msg "Could not acquire: $pid_file_short"
 }
 
+# shellcheck disable=SC2154
 tmux_socket="$(echo "$TMUX" | cut -d',' -f1)"
 
 # If true, output of pings with issues will be saved
@@ -378,6 +383,7 @@ scr_loss_default="$D_TPL_BASE_PATH"/scripts/ping_parsers/loss_calc_default.sh
 scr_loss_ish_deb10="$D_TPL_BASE_PATH"/scripts/ping_parsers/loss_calc_ish_deb10.sh
 
 #  Ensure DB and all triggers are vallid
+# shellcheck disable=SC2154
 $scr_prepare_db
 
 define_ping_cmd # we need the ping_cmd in kill_any_strays
@@ -392,6 +398,7 @@ else
     loss_check="$scr_loss_default"
 fi
 log_it "Checking losses using: $(basename "$loss_check")"
+# shellcheck disable=SC2154
 $store_ping_issues && log_it "Will save ping issues in $d_ping_issues"
 
 clear_out_old_losses

@@ -40,11 +40,23 @@ log_it() {
     #  In order to not have date on every line, date is just printed
     #  once/day in the end of monitor_packet_loss.sh
     #
-    printf "%s%s %s %s%*s%s\n" "$(date +%H:%M:%S)" "$socket" "$$" \
+    printf "%s%s %s %s%*s%s\n" "$(date +'%F %T')" "$socket" "$$" \
         "$log_prefix" "$log_indent" "" "$@" >>"$cfg_log_file"
 }
 
 log_date_change() {
+    #
+    #  In order to not have date on every line, date is just printed
+    #  once/day.
+    #  Primary call for this is in monitor:do_monitor_loop()
+    #  Additional calls have been added,
+    #
+    local msg="$1"
+    [[ -n "$1" ]] && log_it "$1"
+}
+
+
+not_log_date_change() {
     #
     #  In order to not have date on every line, date is just printed
     #  once/day.

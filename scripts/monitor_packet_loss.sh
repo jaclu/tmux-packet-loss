@@ -199,6 +199,7 @@ abort_conditions() {
             log_it "No clients connected to tmux server"
         else
             log_it "tmux is no longer running"
+            rm -f "$pidfile_tmux"
         fi
         return 2
     fi

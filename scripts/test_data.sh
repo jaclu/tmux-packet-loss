@@ -74,9 +74,9 @@ order to observe falloff, the recomendation is to first run this once
 without keep, in order to start with an empty DB.
 
 Sample usages:
-  $current_script 33.3      Simulate 33.3% loss with no average loss
-  $current_script 33.3 5.4  Simulate 33.3% loss with 5.4% average loss
-  $current_script --keep 10 Append a new 10% loss, keeping the DB"
+    $current_script 33.3      Simulate 33.3% loss with no average loss
+    $current_script 33.3 5.4  Simulate 33.3% loss with 5.4% average loss
+    $current_script --keep 10 Append a new 10% loss, keeping the DB"
 
     exit 0
 }

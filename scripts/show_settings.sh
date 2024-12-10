@@ -27,7 +27,7 @@ show_item() {
     local value="$2"
     local default="$3"
     if [[ "$label" = "headers" ]]; then
-        echo "     default  user setting  config vairable"
+        echo "     default  user setting  config variable"
         echo "------------  ------------  ---------------"
 
     else
@@ -81,7 +81,7 @@ show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count"
         req_interval="$(echo "$cfg_ping_count - 1" | bc)"
         if [[ "$req_interval" != "$status_interval" ]]; then
             echo "
-To better match this cfg_ping_count, tmux status-interval is recomended
+To better match this cfg_ping_count, tmux status-interval is recommended
 to be: $req_interval  currently is: $status_interval
             "
             show_item "headers"

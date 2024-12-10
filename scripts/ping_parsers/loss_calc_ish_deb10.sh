@@ -54,22 +54,22 @@ $extract_settings && {
 result="$(echo "$ping_output" | grep -v DUP | grep "seq=" |
     grep "$cfg_ping_host" | wc -l)"
 #  Trims white space
-recieved_packets="${result#"${result%%[![:space:]]*}"}"
+received_packets="${result#"${result%%[![:space:]]*}"}"
 
-if [[ "$recieved_packets" -gt "$cfg_ping_count" ]]; then
+if [[ "$received_packets" -gt "$cfg_ping_count" ]]; then
     #
-    #  on iSH Deb10 ping sometimes reports more non DUP pings recieved
+    #  on iSH Deb10 ping sometimes reports more non DUP pings received
     #  than was actually sent, assume no losses in such cases
     #
-    # log_it "got $recieved_packets pkts, expected $cfg_ping_count"
+    # log_it "got $received_packets pkts, expected $cfg_ping_count"
     save_ping_issue "$ping_output"
     echo 0.0
 else
     #
-    #  bc rounds 33.3333 to 33.4 to work arround this, bc uses three digits
+    #  bc rounds 33.3333 to 33.4 to work around this, bc uses three digits
     #  in order to give the printf better source data as it rounds it down
     #  to one
     #
-    echo "scale=3; 100 - 100 * $recieved_packets / $cfg_ping_count" |
+    echo "scale=3; 100 - 100 * $received_packets / $cfg_ping_count" |
         bc | awk '{printf "%.1f\n", $0}'
 fi

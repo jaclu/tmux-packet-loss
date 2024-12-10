@@ -7,7 +7,7 @@
 #
 #  Handling of pidfiles
 #   pidfile_acquire() - call this early at startup, to ensure additional
-#                        instances of same script cant be started
+#                        instances of same script can't be started
 #   pidfile_release() - Optional, call to clear pidfile.
 #                        pidfile_acquire will ignore any pidfile if the
 #                        listed process is gone, so leaving a pidfile
@@ -42,8 +42,8 @@ pidfile_is_live() {
         [[ -n "$pidfile_proc" ]] && {
             if [[ "$(uname)" = "Darwin" ]]; then
                 #
-                #  kill -0 doesnt kill, it just reports if the process is
-                #  still arround
+                #  kill -0 doesn't kill, it just reports if the process is
+                #  still around
                 #
                 kill -0 "$pidfile_proc" 2>/dev/null && was_alive=true
             else
@@ -88,7 +88,7 @@ pidfile_is_mine() {
 pidfile_acquire() {
     #
     #  An optional second param indicates how many times to try to
-    #  aquire the pidfile, between each attempt, a randomized
+    #  acquire the pidfile, between each attempt, a randomized
     #  sleep 1-5 seconds is done
     #
     local log_indent=$log_indent
@@ -102,10 +102,10 @@ pidfile_acquire() {
 
     [[ -n "$pid_file" ]] && [[ ! -f "$pid_file" ]] && {
         #
-        #  First attempting early grab, at this point it doesnt matter if
-        #  if multiple parallell processes over-wrote each other, since
+        #  First attempting early grab, at this point it doesn't matter if
+        #  if multiple paallel processes over-wrote each other, since
         #  the content of the file will be verified, and if the owner
-        #  doesnt match, this instance will wait and retry until success
+        #  doesn't match, this instance will wait and retry until success
         #  or running out of attempts.
         #
         echo $$ 2>/dev/null >"$pid_file" || {
@@ -114,7 +114,7 @@ pidfile_acquire() {
             error_msg "$msg" -1
             return 1
         }
-        _pf_log "Early aquire successfull"
+        _pf_log "Early acquire successful"
     }
 
     ! is_int "$attempts" && {
@@ -128,7 +128,7 @@ pidfile_acquire() {
         #  verification needed in case multiple early grabs happened
         #  at the same time
         #
-        _pf_log "Aquire successfull"
+        _pf_log "Acquire successful"
         return 0
     }
 
@@ -159,7 +159,7 @@ pidfile_acquire() {
         error_msg "$msg:" -1
         return 3
     }
-    _pf_log "Aquire successfull"
+    _pf_log "Acquire successful"
     return 0
 }
 

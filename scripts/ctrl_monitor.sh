@@ -7,7 +7,7 @@
 #
 
 clear_losses_in_t_loss() {
-    log_it "Clearing losses - to ensure plugin isnt stuck alerting"
+    log_it "Clearing losses - to ensure plugin isn't stuck alerting"
     sqlite_transaction "DELETE FROM t_loss WHERE loss != 0" || {
         local msg="sqlite3 exited with: $sqlite_exit_code \n"
         msg+="when clearing losses for table t_loss"

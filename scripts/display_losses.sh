@@ -34,7 +34,7 @@ restart_monitor() {
 db_seems_inactive() {
     #
     #  New records should normally be written to the DB every cfg_ping_count
-    #  seconds. If it hasnt happened, it can be assumed that the monitor
+    #  seconds. If it hasn't happened, it can be assumed that the monitor
     #  is no longer oprtating normally.
     #  To allow for disabling the monitor shorter periods for example
     #  when using scripts/test_data.sh, wait a couple of minutes before
@@ -50,8 +50,8 @@ verify_db_status() {
 
     if [[ ! -s "$f_sqlite_db" ]]; then
         #
-        #  Since if the DB doesnt exist and a read is being done, an
-        #  empty DB is created. This makes a check for existance of the
+        #  Since if the DB doesn't exist and a read is being done, an
+        #  empty DB is created. This makes a check for existence of the
         #  DB invalid. The -s check ensures it is of size > 0 thus would
         #  catch empty DBs having been created by a read
         #
@@ -87,7 +87,7 @@ get_current_loss() {
     #
     local sql
 
-    #  shellcheck disable=SC2086 # boolean - cant be quoted
+    #  shellcheck disable=SC2086 # boolean - can't be quoted
     sql_current_loss $cfg_weighted_average
 
     # CAST seems to always round down...

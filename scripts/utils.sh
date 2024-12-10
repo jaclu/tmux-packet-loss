@@ -122,7 +122,7 @@ error_msg() {
 
 save_ping_issue() {
     #
-    #  Save a ping outout for later inspection
+    #  Save a ping output for later inspection
     #
     local ping_output="$1"
     local iso_datetime
@@ -246,7 +246,7 @@ sqlite_err_handling() {
         #
         # 5 SQLITE_BUSY - obvious candidate for a few retries
         # 141   is an odd one, I have gotten it a couple of times on iSH.
-        #       GPT didnt give any suggestion. Either way allowing it to
+        #       GPT didn't give any suggestion. Either way allowing it to
         #       try a few times solved the issue.
         #
         if [[ "$recursion" -gt 2 ]]; then
@@ -400,7 +400,7 @@ get_tmux_option() {
 
     if value="$($TMUX_BIN show-options -gv "$opt" 2>/dev/null)"; then
         #
-        #  I havent figured out if it is my asdf builds that have issues
+        #  I haven't figured out if it is my asdf builds that have issues
         #  or something else, since I never heard of this issue before.
         #  On the other side, I dont think I have ever tried to assign ""
         #  to a user-option that has a non-empty default, so it might be
@@ -410,11 +410,11 @@ get_tmux_option() {
         #  report an error if show-options -gv is used on an undefined
         #  option starting with the char "@" as you should with
         #  user-options. For options starting with other chars,
-        #  the normal error is displayed also with theese versions.
+        #  the normal error is displayed also with these versions.
         #
         [[ -z "$value" ]] && ! is_tmux_option_defined "$opt" && {
             #
-            #  This is a workarround, checking if the variable is defined
+            #  This is a workaround, checking if the variable is defined
             #  before assigning the default, preserving intentional
             #  "" assignments
             #
@@ -630,7 +630,7 @@ get_plugin_params() {
         "$default_history_size")"
 
     #
-    #  In order to assign a boolean to a variable this two line aproach
+    #  In order to assign a boolean to a variable this two line approach
     #  is needed
     #
     normalize_bool_param "@packet-loss-weighted_average" "$default_weighted_average" &&
@@ -689,7 +689,7 @@ get_config() {
     #
     #  The plugin init .tmux script should NOT depend on this!
     #
-    #  It should instead direcly call generate_param_cache to ensure
+    #  It should instead directly call generate_param_cache to ensure
     #  the cached configs match current tmux configuration
     #
     #  This is used by everything else sourcing utils.sh, then trusting
@@ -724,13 +724,13 @@ get_config() {
         #
         #  If data dir was removed whilst a monitor was running,
         #  there is a risk running monitors will mess things up,
-        #  the running monitor cant be killed via pidfile.
+        #  the running monitor can't be killed via pidfile.
         #  Do it manually.
         #
         stray_monitors="$(pgrep -f "$scr_monitor")"
         [[ -n "$stray_monitors" ]] && {
             echo "$stray_monitors" | xargs kill
-            log_it "Mannually killed stray monitors[$stray_monitors]"
+            log_it "Manually killed stray monitors[$stray_monitors]"
         }
 
         log_it "data/ is restored"
@@ -824,10 +824,10 @@ main() {
     db_version=12
 
     #
-    #  DB should be updated every $cfg_ping_count seconds, if it hasnt
+    #  DB should be updated every $cfg_ping_count seconds, if it hasn't
     #  been changed in a while monitor is most likely not running, or has
     #  gotten stuck. Restarting it should solve the issue.
-    #  Since this script is run at regular intervalls, it is a good place
+    #  Since this script is run at regular intervals, it is a good place
     #  to ensure it is operational.
     #
     db_max_age_mins=2
@@ -837,7 +837,7 @@ main() {
     #
     #  I use an env var TMUX_BIN to point at the current tmux, defined in my
     #  tmux.conf, in order to pick the version matching the server running.
-    #  This is needed when checking backwards compatability with various versions.
+    #  This is needed when checking backwards compatibility with various versions.
     #  If not found, it is set to whatever is in path, so should have no negative
     #  impact. In all calls to tmux I use $TMUX_BIN instead in the rest of this
     #  plugin.
@@ -916,7 +916,7 @@ main() {
 
     #
     #  at this point plugin_params is trusted if found, menus.tmux will
-    #  allways always replace it with current tmux conf during plugin init
+    #  always always replace it with current tmux conf during plugin init
     #
     get_config
 }
@@ -930,7 +930,7 @@ main() {
 #
 #  Identifies the script triggering a log entry.
 #  Since it is set outside main() this will remain in effect for
-#  modules that didnt set it, during utils:main a prefix "u-" will be
+#  modules that didn't set it, during utils:main a prefix "u-" will be
 #  added to show the log action happened as utils was sourced.
 #
 [[ -z "$log_prefix" ]] && log_prefix="???"
@@ -954,7 +954,7 @@ main() {
 #
 # log_interactive_to_stderr=true
 
-# do_pidfile_handler_logging=true # will create ridiculous ammounts of logs
+# do_pidfile_handler_logging=true # will create ridiculous amounts of logs
 # skip_logging=true # enforce no logging desipte tmux conf
 
 #

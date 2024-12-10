@@ -220,7 +220,7 @@ do_monitor_loop() {
     #  Main loop
     #
     err_count=0
-    err_count_max=3 # terminate if this many errors have occured
+    err_count_max=3 # terminate if this many errors have occurred
     exit_msg="exiting this process"
     log_it "Starting the monitoring loop"
     while true; do
@@ -386,7 +386,7 @@ error_unable_to_detect_loss=201
 scr_loss_default="$D_TPL_BASE_PATH"/scripts/ping_parsers/loss_calc_default.sh
 scr_loss_ish_deb10="$D_TPL_BASE_PATH"/scripts/ping_parsers/loss_calc_ish_deb10.sh
 
-#  Ensure DB and all triggers are vallid
+#  Ensure DB and all triggers are valid
 # shellcheck disable=SC2154
 $scr_prepare_db
 

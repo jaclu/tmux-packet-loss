@@ -22,7 +22,7 @@ else
 fi
 
 #
-#  We cant rely on the absolute position of the %loss,
+#  We can't rely on the absolute position of the %loss,
 #  since sometimes it is prepended with stuff like: "+1 duplicates,"
 #
 #  To handle this we search for "packet loss" and use the word

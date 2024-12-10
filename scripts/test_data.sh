@@ -70,7 +70,7 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 Purpose: checking how statusbar displays various states.
 Suspends monitor process and inserts given data.
 Unless --keep is the first param, DB will be cleared. If keeping data in
-order to observe falloff, the recomendation is to first run this once
+order to observe falloff, the recommendation is to first run this once
 without keep, in order to start with an empty DB.
 
 Sample usages:

@@ -73,7 +73,7 @@ update_triggers() {
     }
 
     #
-    #  If a device wakes up from sleep it might take a while unitl the
+    #  If a device wakes up from sleep it might take a while until the
     #  network connection is back online.
     #  To minimize getting crap into the statistics, the first 30 seconds
     #  of data is not stored in t_1_min

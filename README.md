@@ -24,10 +24,10 @@ Plugin output takes no space when under @packet-loss-level_disp level.
 
 | Display                                                                                                     | With hist avg                                                                                                 | Status                |
 | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------- |
-| ![no_loss  ](https://github.com/jaclu/tmux-packet-loss/assets/5046648/91f94685-c931-425e-bc4a-20c0246959a4) |                                                                                                               | under threshold       |
-| ![lvl_low  ](https://github.com/jaclu/tmux-packet-loss/assets/5046648/78fd85b6-fdd3-4609-9903-9d15c0913ab2) | ![lvl_low_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/95c91b03-f562-4790-8e62-1b7a343f90c1)   | low level losses      |
+| ![no_loss](https://github.com/jaclu/tmux-packet-loss/assets/5046648/91f94685-c931-425e-bc4a-20c0246959a4) |                                                                                                               | under threshold       |
+| ![lvl_low](https://github.com/jaclu/tmux-packet-loss/assets/5046648/78fd85b6-fdd3-4609-9903-9d15c0913ab2) | ![lvl_low_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/95c91b03-f562-4790-8e62-1b7a343f90c1)   | low level losses      |
 | ![lvl_alert](https://github.com/jaclu/tmux-packet-loss/assets/5046648/7213af06-6e81-41f1-84d8-2c978beff668) | ![lvl_alert_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/63539008-fd0c-45bf-8f95-7b6e9312dd0c) | alert level losses    |
-| ![lvl_crit ](https://github.com/jaclu/tmux-packet-loss/assets/5046648/7ea54245-d571-45e9-8b04-b100b6d791db) | ![lvl_crit_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/fcc9e663-4b08-4c13-a6e9-9d7b92d3e3ef)  | critical level losses |
+| ![lvl_crit](https://github.com/jaclu/tmux-packet-loss/assets/5046648/7ea54245-d571-45e9-8b04-b100b6d791db) | ![lvl_crit_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/fcc9e663-4b08-4c13-a6e9-9d7b92d3e3ef)  | critical level losses |
 
 ### Trends
 
@@ -36,9 +36,9 @@ with a prefix character
 
 | Display                                                                                                  | Status     |
 | -------------------------------------------------------------------------------------------------------- | ---------- |
-| ![incr  ](https://github.com/jaclu/tmux-packet-loss/assets/5046648/6b1650f0-fc83-4876-9ebe-30d6fe95898f) | Increasing |
+| ![incr](https://github.com/jaclu/tmux-packet-loss/assets/5046648/6b1650f0-fc83-4876-9ebe-30d6fe95898f) | Increasing |
 | ![stable](https://github.com/jaclu/tmux-packet-loss/assets/5046648/78fd85b6-fdd3-4609-9903-9d15c0913ab2) | Stable     |
-| ![decr  ](https://github.com/jaclu/tmux-packet-loss/assets/5046648/a61e21dd-e7e3-4840-9d58-153644ca1717) | Decreasing |
+| ![decr](https://github.com/jaclu/tmux-packet-loss/assets/5046648/a61e21dd-e7e3-4840-9d58-153644ca1717) | Decreasing |
 
 ## Operation
 

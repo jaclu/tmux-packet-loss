@@ -55,7 +55,6 @@ log_date_change() {
     [[ -n "$1" ]] && log_it "$1"
 }
 
-
 not_log_date_change() {
     #
     #  In order to not have date on every line, date is just printed
@@ -365,6 +364,20 @@ set_tmux_vers() {
     #
     # log_it "set_tmux_vers()"
     tmux_vers="$($TMUX_BIN -V | cut -d' ' -f2)"
+
+    # Filter out devel prefix and release candidate suffix
+    case "$tmux_vers" in
+    next-*)
+        # Remove "next-" prefix
+        tmux_vers="${tmux_vers#next-}"
+        ;;
+    *-rc*)
+        # Remove "-rcX" suffix, otherwise the number would mess up version
+        # 3.4-rc2 would be read as 342
+        tmux_vers="${tmux_vers%-rc*}"
+        ;;
+    *) ;;
+    esac
 }
 
 tmux_vers_compare() {
@@ -793,7 +806,7 @@ random_sleep() {
     sleep "$sleep_time"
 }
 
-main() {
+prepare_environment() {
     #
     #  For actions in utils log_prefix gets an u- prefix
     #  using local ensures it goes back to its original setting once
@@ -967,4 +980,4 @@ main() {
 #
 # use_param_cache=false
 
-main
+prepare_environment

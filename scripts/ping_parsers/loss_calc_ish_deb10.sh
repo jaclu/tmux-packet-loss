@@ -17,7 +17,7 @@
 #  If read is first param ping settings are extracted from ping output
 #
 
-D_TPL_BASE_PATH=$(dirname "$(dirname "$(dirname -- "$(realpath "$0")")")")
+D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(dirname -- "$(realpath -- "$0")")")")"
 log_prefix="png-i"
 source "$D_TPL_BASE_PATH"/scripts/utils.sh
 

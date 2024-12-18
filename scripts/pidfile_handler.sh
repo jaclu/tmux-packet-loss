@@ -251,7 +251,7 @@ set_pidfile_env() {
 [[ -z "$D_TPL_BASE_PATH" ]] && {
     # If this was sourced this variable would already have been set
 
-    D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
+    D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
     log_prefix="pid"
     . "$D_TPL_BASE_PATH"/scripts/utils.sh
 }

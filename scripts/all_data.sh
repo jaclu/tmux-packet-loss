@@ -8,7 +8,7 @@
 #  Show / Clear content of all tables
 #
 
-D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
+D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="a_d"
 
 source "$D_TPL_BASE_PATH"/scripts/utils.sh

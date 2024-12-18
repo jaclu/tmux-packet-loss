@@ -8,7 +8,7 @@
 #  If no more sessions are running, terminate monitor_packet_loss.sh
 #
 
-D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
+D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="nos"
 
 . "$D_TPL_BASE_PATH/scripts/utils.sh"

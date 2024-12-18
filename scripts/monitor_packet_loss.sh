@@ -333,7 +333,7 @@ do_monitor_loop() {
 #
 #===============================================================
 
-D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
+D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="mon"
 
 source "$D_TPL_BASE_PATH"/scripts/utils.sh

@@ -59,7 +59,7 @@ insert_data() {
 #  Only source utils if params are valid, to avoid so
 #
 
-D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
+D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="tst"
 
 source "$D_TPL_BASE_PATH"/scripts/utils.sh

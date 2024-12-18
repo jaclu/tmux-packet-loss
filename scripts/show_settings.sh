@@ -14,7 +14,7 @@
 #
 use_param_cache=false
 
-D_TPL_BASE_PATH=$(dirname "$(dirname -- "$(realpath "$0")")")
+D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="shw"
 
 source "$D_TPL_BASE_PATH"/scripts/utils.sh

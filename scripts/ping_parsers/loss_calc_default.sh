@@ -10,7 +10,7 @@
 #  Either give file to read as a param, or pipe ping output into this
 #
 
-D_TPL_BASE_PATH=$(dirname "$(dirname "$(dirname -- "$(realpath "$0")")")")
+D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(dirname -- "$(realpath -- "$0")")")")"
 log_prefix="png"
 source "$D_TPL_BASE_PATH"/scripts/utils.sh
 

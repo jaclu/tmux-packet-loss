@@ -52,7 +52,7 @@ update_tmux_option() {
 #
 #===============================================================
 
-D_TPL_BASE_PATH=$(dirname -- "$(realpath "$0")")
+D_TPL_BASE_PATH="$(dirname -- "$(realpath -- "$0")")"
 log_prefix="plg" # plugin handler
 
 source "$D_TPL_BASE_PATH"/scripts/utils.sh

@@ -2,7 +2,5 @@ data/
 
 *~
 
-.markdownlint.yaml
-
 # olint meta linter
 .cache.olint

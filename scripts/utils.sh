@@ -96,7 +96,7 @@ do_not_run_create() {
     local reason="$1"
     mkdir -p "$d_data" # ensure it exists
     echo "$reason" >"$f_do_not_run"
-    log_it "Do not run condition activated: $reason"
+    log_it "Do-not-run condition activated: $reason"
 }
 
 do_not_run_clear() {

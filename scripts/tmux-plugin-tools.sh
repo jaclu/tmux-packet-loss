@@ -110,13 +110,12 @@ tpt_dependency_check() {
     else
         tpt_display_env
         tpt_log_it "Failed  deps: $tpt_missing_dependencies"
-
         [ "$2" = "$_surpress_notification" ] && {
             # Caller handles notification
             return 1
         }
-        _aa="yes"
-        if [ "$_aa" = "yes" ] && [ ! -d /proc/ish ] && tmux_vers_ok 3.2; then
+
+        if [ ! -d /proc/ish ] && tmux_vers_ok 3.2; then
             # display-popup is buggy on the iSH platform, so use fallback
 
             _formatted="$(echo "$tpt_missing_dependencies" |
@@ -138,15 +137,14 @@ tpt_dependency_check() {
             sleep 2
 
             # Since this is normally run via tmux.conf TMUX_PANE is not available
-            current_pane="$($TMUX_BIN display -p '#{pane_id}')"
-            pty="$($TMUX_BIN display-message -p -t "$current_pane" "#{pane_tty}")"
+            _current_pane="$($TMUX_BIN display -p '#{pane_id}')"
+            _pty="$($TMUX_BIN display-message -p -t "$_current_pane" "#{pane_tty}")"
 
             _formatted="$(printf "%s" "$tpt_missing_dependencies" |
                 sed 's/ /\n  /g' | sed 's/|/ or /g')"
-
-            printf '\nFailed dependency for plugin: %s [%s] [%s]\n  %s\n' \
-                "$tpt_plugin_name" "$current_pane" "$pty" "$_formatted" \
-                >"$pty"
+            printf '\nFailed dependency for plugin: %s\n  %s\n' \
+                "$tpt_plugin_name" "$_formatted" \
+                >"$_pty"
         fi
         return 1
     fi

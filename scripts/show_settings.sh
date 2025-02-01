@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-#   Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2024-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
@@ -38,10 +38,10 @@ show_item() {
 
     else
         if [[ "$value" = "$default" ]]; then
-            msg="$(printf "%13s               %-20s" \
+            msg="$(printf "%13s               %s" \
                 "$value" "$label")"
         else
-            msg="$(printf "%13s %12s  %-20s" \
+            msg="$(printf "%13s %12s  %s" \
                 "$default" "$value" "$label")"
         fi
         echo "$msg"
@@ -79,7 +79,7 @@ else
 fi
 
 show_item "headers"
-show_item cfg_ping_count "$cfg_ping_count" "$default_ping_count"
+show_item @packet-loss-ping_count "$cfg_ping_count" "$default_ping_count"
 
 [[ "$session" != "standalone" ]] && {
     status_interval="$($TMUX_BIN show-option -gqv status-interval 2>/dev/null)"
@@ -95,27 +95,27 @@ to be: $req_interval  currently is: $status_interval
     fi
 }
 
-show_item cfg_ping_host "$cfg_ping_host" "$default_ping_host"
-show_item cfg_history_size "$cfg_history_size" "$default_history_size"
+show_item "@packet-loss-ping_host" "$cfg_ping_host" "$default_ping_host"
+show_item "@packet-loss-history_size" "$cfg_history_size" "$default_history_size"
 echo
-show_item cfg_weighted_average "$cfg_weighted_average" "$default_weighted_average"
-show_item cfg_display_trend "$cfg_display_trend" "$default_display_trend"
-show_item cfg_hist_avg_display "$cfg_hist_avg_display" "$default_hist_avg_display"
-show_item cfg_run_disconnected "$cfg_run_disconnected" "$default_run_disconnected"
+show_item @packet-loss-weighted_average "$cfg_weighted_average" "$default_weighted_average"
+show_item @packet-loss-display_trend "$cfg_display_trend" "$default_display_trend"
+show_item @packet-loss-hist_avg_display "$cfg_hist_avg_display" "$default_hist_avg_display"
+show_item @packet-loss-run_disconnected "$cfg_run_disconnected" "$default_run_disconnected"
 echo
-show_item cfg_level_disp "$cfg_level_disp" "$default_level_disp"
-show_item cfg_level_alert "$cfg_level_alert" "$default_level_alert"
-show_item cfg_level_crit "$cfg_level_crit" "$default_level_crit"
+show_item @packet-loss-level_disp "$cfg_level_disp" "$default_level_disp"
+show_item @packet-loss-level_alert "$cfg_level_alert" "$default_level_alert"
+show_item @packet-loss-level_crit "$cfg_level_crit" "$default_level_crit"
 echo
-show_item cfg_hist_avg_minutes "$cfg_hist_avg_minutes" "$default_hist_avg_minutes"
-show_item cfg_hist_separator "$cfg_hist_separator" "$default_hist_separator"
+show_item @packet-loss-hist_avg_minutes "$cfg_hist_avg_minutes" "$default_hist_avg_minutes"
+show_item @packet-loss-hist_separator "$cfg_hist_separator" "$default_hist_separator"
 echo
-show_item cfg_color_alert "$cfg_color_alert" "$default_color_alert"
-show_item cfg_color_crit "$cfg_color_crit" "$default_color_crit"
-show_item cfg_color_bg "$cfg_color_bg" "$default_color_bg"
+show_item @packet-loss-color_alert "$cfg_color_alert" "$default_color_alert"
+show_item @packet-loss-color_crit "$cfg_color_crit" "$default_color_crit"
+show_item @packet-loss-color_bg "$cfg_color_bg" "$default_color_bg"
 echo
-show_item cfg_prefix "$cfg_prefix" "$default_prefix"
-show_item cfg_suffix "$cfg_suffix" "$default_suffix"
+show_item @packet-loss-prefix "$cfg_prefix" "$default_prefix"
+show_item @packet-loss-suffix "$cfg_suffix" "$default_suffix"
 [[ -n "$cfg_log_file" ]] && {
     echo
     echo "log_file in use: $cfg_log_file"

@@ -55,14 +55,14 @@ update_tmux_option() {
 D_TPL_BASE_PATH="$(dirname -- "$(realpath -- "$0")")"
 log_prefix="plg" # plugin handler
 
-source "$D_TPL_BASE_PATH"/scripts/utils.sh
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 #
 #  By printing a NL, its easier to keep separate runs apart
 #
 log_it
 
-tpt_dependency_check "sqlite3" || {
+"$D_TPL_BASE_PATH"/scripts/tmux-plugin-tools.sh dependency-check "sqlite32" || {
     # shellcheck disable=SC2154
     do_not_run_create "Failed dependencies: $tpt_missing_dependencies"
     log_it "Aborting plugin init - dependency fail: $tpt_missing_dependencies"

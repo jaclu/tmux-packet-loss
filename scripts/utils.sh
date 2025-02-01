@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #  shellcheck disable=SC2034
 #
-#   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2022-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
@@ -158,18 +158,6 @@ posix_get_char() {
     stty raw -echo
     dd bs=1 count=1 2>/dev/null
     stty "$old_stty_cfg"
-}
-
-get_digits_from_string() {
-    # this is used to get "clean" integer version number. Examples:
-    # `tmux 1.9` => `19`
-    # `1.9a`     => `19`
-    local string="$1"
-    local only_digits no_leading_zero
-
-    only_digits="$(echo "$string" | tr -dC '[:digit:]')"
-    no_leading_zero=${only_digits#0}
-    echo "$no_leading_zero"
 }
 
 #---------------------------------------------------------------
@@ -332,44 +320,6 @@ sql_current_loss() {
 #
 #---------------------------------------------------------------
 
-set_tmux_vers() {
-    #
-    #  Variables provided:
-    #   tmux_vers - version of tmux used
-    #
-    # log_it "set_tmux_vers()"
-    tmux_vers="$($TMUX_BIN -V | cut -d' ' -f2)"
-
-    # Filter out devel prefix and release candidate suffix
-    case "$tmux_vers" in
-    next-*)
-        # Remove "next-" prefix
-        tmux_vers="${tmux_vers#next-}"
-        ;;
-    *-rc*)
-        # Remove "-rcX" suffix, otherwise the number would mess up version
-        # 3.4-rc2 would be read as 342
-        tmux_vers="${tmux_vers%-rc*}"
-        ;;
-    *) ;;
-    esac
-}
-
-tmux_vers_compare() {
-    #
-    #  This returns true if v_comp <= v_ref
-    #  If only one param is given it is compared vs version of running tmux
-    #
-    local v_comp="$1"
-    local v_ref="${2:-$tmux_vers}"
-    local i_comp i_ref
-
-    i_comp=$(get_digits_from_string "$v_comp")
-    i_ref=$(get_digits_from_string "$v_ref")
-
-    [[ "$i_comp" -le "$i_ref" ]]
-}
-
 is_tmux_option_defined() {
     $TMUX_BIN show-options -g | grep -q "^$1"
 }
@@ -515,7 +465,6 @@ param_cache_write() {
 
     mkdir -p "$(dirname -- "$(realpath -- "$f_param_cache")")" # ensure it exists
 
-    set_tmux_vers # always get the current
     # echo "><> saving params" >>/Users/jaclu/tmp/tmux-packet-loss-t2.log
     #region conf cache file
     cat <<EOF >"$f_param_cache"
@@ -546,11 +495,7 @@ param_cache_write() {
     cfg_prefix="$cfg_prefix"
     cfg_suffix="$cfg_suffix"
 
-    cfg_run_disconnected="$cfg_run_disconnected"
-
     cfg_log_file="$cfg_log_file"
-
-    tmux_vers="$tmux_vers"
 EOF
     #endregion
 
@@ -607,8 +552,6 @@ get_plugin_params() {
     get_defaults
 
     # log_it "get_plugin_params()"
-
-    [[ -z "$tmux_vers" ]] && set_tmux_vers
 
     cfg_ping_host="$(get_tmux_option "@packet-loss-ping_host" \
         "$default_ping_host")"

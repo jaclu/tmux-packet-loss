@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-#   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2022-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
@@ -218,6 +218,12 @@ D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="dsp"
 
 source "$D_TPL_BASE_PATH"/scripts/utils.sh
+
+# do_not_run_active && exit 1
+do_not_run_active && {
+    log_it "do_not_run triggered abort"
+    exit 1
+}
 
 log_loss_changes=false # set to false to reduce logging from this module
 result=""              # indicating no losses

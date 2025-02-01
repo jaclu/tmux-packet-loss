@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-#   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2022-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
@@ -159,6 +159,11 @@ D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="prp"
 
 source "$D_TPL_BASE_PATH"/scripts/utils.sh
+
+do_not_run_active && {
+    log_it "do_not_run triggered abort"
+    exit 1
+}
 
 # log_it "+++++   Starting script: $(relative_path "$f_current_script"))   +++++"
 

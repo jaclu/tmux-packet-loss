@@ -22,6 +22,12 @@ source "$D_TPL_BASE_PATH"/scripts/utils.sh
 #  shellcheck source=scripts/pidfile_handler.sh
 source "$scr_pidfile_handler"
 
+do_not_run_active && {
+    log_it "do_not_run triggered abort"
+    echo "ERROR: plugin is in a do_not_run state"
+    exit 1
+}
+
 show_item() {
     local label="$1"
     local value="$2"

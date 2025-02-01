@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-#   Copyright (c) 2022-2024: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2022-202: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
@@ -155,7 +155,11 @@ abort_conditions() {
     #  Some checks to reduce the risk of having old instances that
     #  keep running in the background.
     #
-    #  Will return true if everything seems fine
+    #  Will return
+    #   0 (true) if everything seems fine
+    #   1 If an error condition was observed
+    #   2 If monitoring should be suspended for non-errror reasons, such
+    #     as there is no tmux clients connected.
     #
     local group_exec_permission
     local msg
@@ -180,6 +184,11 @@ abort_conditions() {
         fi
     }
 
+    do_not_run_active && {
+        log_it "Detected do_not_run_active condition, aborting"
+        return 1
+    }
+
     #
     #  Check TMUX socket, to verify tmux server is still running
     #
@@ -195,13 +204,14 @@ abort_conditions() {
         # shellcheck disable=SC2154
         if pidfile_is_live "$pidfile_tmux"; then
             $cfg_run_disconnected && return 0 # continue to run
+
             touch "$f_monitor_suspended_no_clients"
             log_it "No clients connected to tmux server"
         else
             log_it "tmux is no longer running"
             rm -f "$pidfile_tmux"
         fi
-        return 2
+        return 2 # Not an error, shutting down due to policy
     fi
 
     $parse_error && {

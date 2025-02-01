@@ -91,6 +91,24 @@ save_ping_issue() {
     echo "$ping_output" >"$f_ping_issue"
 }
 
+do_not_run_create() {
+    # Set an indication that system is unable to run
+    local reason="$1"
+    mkdir -p "$d_data" # ensure it exists
+    echo "$reason" >"$f_do_not_run"
+    log_it "Do not run condition activated: $reason"
+}
+
+do_not_run_clear() {
+    # Clear state
+    rm -f "$f_do_not_run"
+}
+
+do_not_run_active() {
+    # Returns true if the tools in this plugin should not be used
+    [[ -f "$f_do_not_run" ]] && return 0 # init failed to complete
+    return 1
+}
 #---------------------------------------------------------------
 #
 #   Datatype handling
@@ -844,6 +862,7 @@ prepare_environment() {
     f_sqlite_error="$d_data"/sqlite.err
     f_monitor_suspended_no_clients="$d_data"/no_clients
     f_sqlite_db="$d_data"/packet_loss.sqlite
+    f_do_not_run="$d_data"/do_not_run
 
     pidfile_ctrl_monitor="$d_data"/ctrl_monitor.pid
     pidfile_monitor="$d_data"/monitor.pid

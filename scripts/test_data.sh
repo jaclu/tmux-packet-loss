@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-#   Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2024-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
@@ -63,6 +63,12 @@ D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="tst"
 
 source "$D_TPL_BASE_PATH"/scripts/utils.sh
+
+do_not_run_active && {
+    log_it "do_not_run triggered abort"
+    echo "ERROR: plugin is in a do_not_run state"
+    exit 1
+}
 
 [[ -z "$1" ]] && {
     echo "Usage: $current_script [--keep] tst_loss [history_loss]

@@ -224,8 +224,6 @@ do_monitor_loop() {
     exit_msg="exiting this process"
     log_it "Starting the monitoring loop"
     while true; do
-        log_date_change "" #  make sure it is displayed before any losses
-
         percent_loss=""
         parse_error=false
         [[ "$err_count" -ge "$err_count_max" ]] && {

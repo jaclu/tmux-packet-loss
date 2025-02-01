@@ -44,49 +44,6 @@ log_it() {
         "$log_prefix" "$log_indent" "" "$@" >>"$cfg_log_file"
 }
 
-log_date_change() {
-    #
-    #  In order to not have date on every line, date is just printed
-    #  once/day.
-    #  Primary call for this is in monitor:do_monitor_loop()
-    #  Additional calls have been added,
-    #
-    local msg="$1"
-    [[ -n "$1" ]] && log_it "$1"
-}
-
-not_log_date_change() {
-    #
-    #  In order to not have date on every line, date is just printed
-    #  once/day.
-    #  Primary call for this is in monitor:do_monitor_loop()
-    #  Additional calls have been added,
-    #
-    local msg="$1"
-    local today
-    local last_log_date
-
-    today="$(date +%Y-%m-%d)"
-    last_log_date="$(cat "$f_log_date" 2>/dev/null)"
-    [[ "$last_log_date" != "$today" ]] && {
-
-        [[ -d "$d_data" ]] || {
-            log_it "!!!!! log_date_change() [$msg] aborted due to no data dir"
-            return
-        }
-
-        [[ -n "$cfg_log_file" ]] && {
-            (
-                echo
-                echo "===============  $today  =============== $msg"
-                echo
-            ) >>"$cfg_log_file"
-        }
-        [[ -z "$f_log_date" ]] && error_msg "f_log_date undefined"
-        echo "$today" >"$f_log_date"
-    }
-}
-
 error_msg() {
     #
     #  Display $1 as an error message in log and in a scrollback buffer

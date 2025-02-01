@@ -62,7 +62,7 @@ log_prefix="plg" # plugin handler
 #
 log_it
 
-"$D_TPL_BASE_PATH"/scripts/tmux-plugin-tools.sh dependency-check "sqlite32" || {
+"$D_TPL_BASE_PATH"/scripts/tmux-plugin-tools.sh dependency-check "sqlite3" || {
     # shellcheck disable=SC2154
     do_not_run_create "Failed dependencies: $tpt_missing_dependencies"
     log_it "Aborting plugin init - dependency fail: $tpt_missing_dependencies"

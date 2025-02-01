@@ -6,13 +6,12 @@ default, giving more emphasis to recent checks.
 
 ## Recent changes
 
+- automated dependency check - will show error msg if sqlite3 is not available
 - New option @packet-loss-run_disconnected
 - Losses are displayed, but no stats are saved for the first 30 seconds.
   This avoids getting initial errors before the network is re-established saved
   into the history during a laptop resume.
 - Fixed boolean parameter handling to allow for yes/no or true/false options.
-- Renamed variables and defaults to match the Tmux option names.
-- Refactored code into more task-isolated modules.
 
 ## Screenshots
 
@@ -24,10 +23,10 @@ Plugin output takes no space when under @packet-loss-level_disp level.
 
 | Display                                                                                                     | With hist avg                                                                                                 | Status                |
 | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------- |
-| ![no_loss](https://github.com/jaclu/tmux-packet-loss/assets/5046648/91f94685-c931-425e-bc4a-20c0246959a4) |                                                                                                               | under threshold       |
-| ![lvl_low](https://github.com/jaclu/tmux-packet-loss/assets/5046648/78fd85b6-fdd3-4609-9903-9d15c0913ab2) | ![lvl_low_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/95c91b03-f562-4790-8e62-1b7a343f90c1)   | low level losses      |
+| ![no_loss](https://github.com/jaclu/tmux-packet-loss/assets/5046648/91f94685-c931-425e-bc4a-20c0246959a4)   |                                                                                                               | under threshold       |
+| ![lvl_low](https://github.com/jaclu/tmux-packet-loss/assets/5046648/78fd85b6-fdd3-4609-9903-9d15c0913ab2)   | ![lvl_low_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/95c91b03-f562-4790-8e62-1b7a343f90c1)   | low level losses      |
 | ![lvl_alert](https://github.com/jaclu/tmux-packet-loss/assets/5046648/7213af06-6e81-41f1-84d8-2c978beff668) | ![lvl_alert_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/63539008-fd0c-45bf-8f95-7b6e9312dd0c) | alert level losses    |
-| ![lvl_crit](https://github.com/jaclu/tmux-packet-loss/assets/5046648/7ea54245-d571-45e9-8b04-b100b6d791db) | ![lvl_crit_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/fcc9e663-4b08-4c13-a6e9-9d7b92d3e3ef)  | critical level losses |
+| ![lvl_crit](https://github.com/jaclu/tmux-packet-loss/assets/5046648/7ea54245-d571-45e9-8b04-b100b6d791db)  | ![lvl_crit_h](https://github.com/jaclu/tmux-packet-loss/assets/5046648/fcc9e663-4b08-4c13-a6e9-9d7b92d3e3ef)  | critical level losses |
 
 ### Trends
 
@@ -36,9 +35,9 @@ with a prefix character
 
 | Display                                                                                                  | Status     |
 | -------------------------------------------------------------------------------------------------------- | ---------- |
-| ![incr](https://github.com/jaclu/tmux-packet-loss/assets/5046648/6b1650f0-fc83-4876-9ebe-30d6fe95898f) | Increasing |
+| ![incr](https://github.com/jaclu/tmux-packet-loss/assets/5046648/6b1650f0-fc83-4876-9ebe-30d6fe95898f)   | Increasing |
 | ![stable](https://github.com/jaclu/tmux-packet-loss/assets/5046648/78fd85b6-fdd3-4609-9903-9d15c0913ab2) | Stable     |
-| ![decr](https://github.com/jaclu/tmux-packet-loss/assets/5046648/a61e21dd-e7e3-4840-9d58-153644ca1717) | Decreasing |
+| ![decr](https://github.com/jaclu/tmux-packet-loss/assets/5046648/a61e21dd-e7e3-4840-9d58-153644ca1717)   | Decreasing |
 
 ## Operation
 
@@ -213,15 +212,15 @@ If set to no, the average of all samples is always displayed.
 Depending on the ping count, it is suggested to set an alert,
 so that a single lost packet won't show up as an alert.
 
-| pings       | one higher than <br>a single loss % | history size <br>for aprox 30s |
-| ----------- | ----------------------------------- | ------------------------------ |
-| 10          | 11                                  | 3 (27) 4 (36)                  |
-| 9           | 12                                  | 4 (32)                         |
-| 8           | 13                                  | 5 (35)                         |
-| 7           | 15                                  | 5 (30)                         |
-| 6 (default) | 17                                  | 6 (30)                         |
-| 5           | 21                                  | 8 (32)                         |
-| 3           | 34                                  | 15 (30)                        |
+| pings       | one higher than <br>a single loss % | history size <br>for approx 30s |
+| ----------- | ----------------------------------- | ------------------------------- |
+| 10          | 11                                  | 3 (27) 4 (36)                   |
+| 9           | 12                                  | 4 (32)                          |
+| 8           | 13                                  | 5 (35)                          |
+| 7           | 15                                  | 5 (30)                          |
+| 6 (default) | 17                                  | 6 (30)                          |
+| 5           | 21                                  | 8 (32)                          |
+| 3           | 34                                  | 15 (30)                         |
 
 ### Database
 

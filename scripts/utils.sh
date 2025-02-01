@@ -879,6 +879,14 @@ prepare_environment() {
 
     param_cache_written=false
 
+    # shellcheck source=/dev/null
+    source "$d_scripts"/tmux-plugin-tools.sh
+
+    # Override tmux-plugin-tools log routine to use ours
+    # tpt_log_it() {
+    #     log_it "$@"
+    # }
+
     #
     #  Set to defaults unless overridden (mostly) for debug purposes
     #

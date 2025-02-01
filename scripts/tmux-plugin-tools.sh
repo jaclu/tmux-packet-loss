@@ -14,9 +14,26 @@ _tpt_release="2025-02-01 v5"
 # all other variables use _ prefix to clearly list them as temporary.
 # This should ensure this will not collide with any other namespaces.
 #
+# Dependency check Usage:
+#
+#  1. if the version checker is also desired th better option is to source this
+#     to get both functionalities:
+#
+#    . path/to/tmux-plugin-tools.sh
+#    tpt_dependency_check "ruby fzf" || exit 1
+#    tmux_vers_ok 3.2 && {
+#        # tmux display-popup can be used
+#    }
+#
+#  2. In case only dependency check is needed, it can be called directly.
+#     Use something like this in the plugin init script - usually with
+#     a .tmux suffix.
+#
+#    path/to/tmux-plugin-tools.sh dependency-check "ruby fzf" || exit 1
+#
 # Env variables that can be set:
 #   tpt_debug_mode - if set to 1 tpt_dependency_check will print progress to /dev/stderr
-
+#
 # Variables defined, that might be useful outside of this:
 #   tpt_missing_dependencies - Lists all failed dependencies found
 #
@@ -268,7 +285,7 @@ set_popup_size_based_on_window_size() {
     fi
 
     # Debug adds heights to label to help calculations
-    _failed_dep_popup_label="$_failed_dep_popup_label $_popup_h $_win_height $_height_adjusted "
+    # _failed_dep_popup_label="$_failed_dep_popup_label $_popup_h $_win_height $_height_adjusted "
 }
 
 #---------------------------------------------------------------

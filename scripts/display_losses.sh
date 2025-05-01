@@ -30,18 +30,6 @@ restart_monitor() {
     date >>"$db_restart_log" # log current time
 }
 
-db_seems_inactive() {
-    #
-    #  New records should normally be written to the DB every cfg_ping_count
-    #  seconds. If it hasn't happened, it can be assumed that the monitor
-    #  is no longer oprtating normally.
-    #  To allow for disabling the monitor shorter periods for example
-    #  when using scripts/test_data.sh, wait a couple of minutes before
-    #  restart.
-    #
-    [[ -n "$(find "$f_sqlite_db" -mmin +"$db_max_age_mins")" ]]
-}
-
 verify_db_status() {
     #
     #  Some sanity check, ensuring the monitor is running

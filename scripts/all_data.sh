@@ -31,7 +31,6 @@ show)
     cmd="SELECT time_stamp || '  ' || round(loss, 1) AS formatted_output"
     ;;
 avgs)
-    log_it "><> avgs"
     db_seems_inactive && {
         error_msg "Database > 2 minutes old, so monitor is assumed to be inactive"
     }

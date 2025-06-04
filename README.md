@@ -6,11 +6,11 @@ default, giving more emphasis to recent checks.
 
 ## Recent changes
 
-- automated dependency check - will show error msg if sqlite3 is not available
-- New option @packet-loss-run_disconnected
-- Losses are displayed, but no stats are saved for the first 30 seconds.
+- Losses are displayed, but no stats are saved for the first 45 seconds.
   This avoids getting initial errors before the network is re-established saved
   into the history during a laptop resume.
+- automated dependency check - will show error msg if sqlite3 is not available
+- New option @packet-loss-run_disconnected
 - Fixed boolean parameter handling to allow for yes/no or true/false options.
 
 ## Screenshots

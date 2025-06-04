@@ -75,18 +75,18 @@ update_triggers() {
     #
     #  If a device wakes up from sleep it might take a while until the
     #  network connection is back online.
-    #  To minimize getting crap into the statistics, the first 30 seconds
+    #  To minimize getting crap into the statistics, the first 45 seconds
     #  of data is not stored in t_1_min
     #  Since all records older than one minute have just been erased from
     #  t_1_min previously in the trigger, its enough to count the number
     #  of records present in t_1_min to detect this condition.
-    #  Normally ping count would be low, but if it is over 30, no such
+    #  Normally ping count would be low, but if it is over 45, no such
     #  filtering will happen.
     #
     #  Since a 0 loss is inserted at end of this script, to ensure
     #  all tables have data, add one to compensate for this.
     #
-    ignore_first_items=$(echo "1 + 30 / $cfg_ping_count" | bc)
+    ignore_first_items=$(echo "1 + 45 / $cfg_ping_count" | bc)
     log_it "first checks not stored in loss history: $ignore_first_items"
 
     sql="

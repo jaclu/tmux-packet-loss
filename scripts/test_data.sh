@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 #   Copyright (c) 2024-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -20,7 +20,7 @@ tst_error() {
 }
 
 insert_data() {
-    [[ -f "$pidfile_monitor" ]] && {
+    [ -f "$pidfile_monitor" ] && {
         "$scr_ctrl_monitor" stop
         echo "Terminated the monitor."
     }
@@ -28,7 +28,7 @@ insert_data() {
     echo "$db_max_age_mins minute(-s) after last db change."
     echo
 
-    [[ -z "$loss" ]] && return
+    [ -z "$loss" ] && return
     if $keep_db; then
         sql="INSERT INTO t_loss (loss) VALUES ($loss)"
     else
@@ -41,9 +41,9 @@ insert_data() {
             INSERT INTO t_stats (loss) VALUES ($history);"
     fi
     sqlite_transaction "$sql" || {
-        msg="sqlite3 exited with: $sqlite_exit_code \n "
-        msg+=" when running \n$sql"
-        error_msg "$msg"
+        _m="sqlite3 exited with: $sqlite_exit_code \n"
+        _m="$_m  when running \n$sql"
+        error_msg "$_m"
     }
 
     # "$D_TPL_BASE_PATH"/scripts/all_data.sh show
@@ -62,7 +62,7 @@ insert_data() {
 D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="tst"
 
-source "$D_TPL_BASE_PATH"/scripts/utils.sh
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 do_not_run_active && {
     log_it "do_not_run triggered abort"
@@ -70,7 +70,7 @@ do_not_run_active && {
     exit 1
 }
 
-[[ -z "$1" ]] && {
+[ -z "$1" ] && {
     echo "Usage: $current_script [--keep] tst_loss [history_loss]
 
 Purpose: checking how statusbar displays various states.
@@ -88,7 +88,7 @@ Sample usages:
 }
 
 keep_db=false
-[[ "$1" = "--keep" ]] && {
+[ "$1" = "--keep" ] && {
     keep_db=true
     shift
 }
@@ -98,7 +98,7 @@ history="${2:-0}"
 
 is_float "$loss" || tst_error "param 1 [$loss] - not a float"
 
-$keep_db && [[ "$history" != "0" ]] && {
+$keep_db && [ "$history" != "0" ] && {
     tst_error "When using --keep, history_loss can not be provided"
 }
 

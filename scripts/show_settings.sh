@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 #   Copyright (c) 2024-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -17,10 +17,10 @@ use_param_cache=false
 D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="shw"
 
-source "$D_TPL_BASE_PATH"/scripts/utils.sh
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 #  shellcheck source=scripts/pidfile_handler.sh
-source "$scr_pidfile_handler"
+. "$scr_pidfile_handler"
 
 do_not_run_active && {
     log_it "do_not_run triggered abort"
@@ -29,20 +29,20 @@ do_not_run_active && {
 }
 
 show_item() {
-    local label="$1"
-    local value="$2"
-    local default="$3"
-    if [[ "$label" = "headers" ]]; then
-        echo "     default  user setting  config variable"
+    _si_label="$1"
+    _si_value="$2"
+    _si_default="$3"
+    if [ "$_si_label" = "headers" ]; then
+        echo "     _si_default  user setting  config variable"
         echo "------------  ------------  ---------------"
 
     else
-        if [[ "$value" = "$default" ]]; then
+        if [ "$_si_value" = "$_si_default" ]; then
             msg="$(printf "%13s               %s" \
-                "$value" "$label")"
+                "$_si_value" "$_si_label")"
         else
             msg="$(printf "%13s %12s  %s" \
-                "$default" "$value" "$label")"
+                "$_si_default" "$_si_value" "$_si_label")"
         fi
         echo "$msg"
     fi
@@ -53,12 +53,12 @@ session="$(get_tmux_socket)"
 echo "=====   Config for  session: $session   ====="
 echo
 
-if [[ "$session" != "standalone" ]]; then
+if [ "$session" != "standalone" ]; then
     this_tmux_pid="$(get_tmux_pid)"
     folder_tmux_pid="$(pidfile_show_process "$pidfile_tmux")"
 
-    if [[ -n "$folder_tmux_pid" ]]; then
-        [[ "$this_tmux_pid" = "$folder_tmux_pid" ]] || {
+    if [ -n "$folder_tmux_pid" ]; then
+        [ "$this_tmux_pid" = "$folder_tmux_pid" ] || {
             echo
             echo "***  ERROR: This is not the folder for the $plugin_name"
             echo "***         used by your tmux session"
@@ -81,11 +81,11 @@ fi
 show_item "headers"
 show_item @packet-loss-ping_count "$cfg_ping_count" "$default_ping_count"
 
-[[ "$session" != "standalone" ]] && {
+[ "$session" != "standalone" ] && {
     status_interval="$($TMUX_BIN show-option -gqv status-interval 2>/dev/null)"
-    if [[ -n "$status_interval" ]]; then
+    if [ -n "$status_interval" ]; then
         req_interval="$(echo "$cfg_ping_count - 1" | bc)"
-        if [[ "$req_interval" != "$status_interval" ]]; then
+        if [ "$req_interval" != "$status_interval" ]; then
             echo "
 To better match this cfg_ping_count, tmux status-interval is recommended
 to be: $req_interval  currently is: $status_interval
@@ -116,12 +116,12 @@ show_item @packet-loss-color_bg "$cfg_color_bg" "$default_color_bg"
 echo
 show_item @packet-loss-prefix "$cfg_prefix" "$default_prefix"
 show_item @packet-loss-suffix "$cfg_suffix" "$default_suffix"
-[[ -n "$cfg_log_file" ]] && {
+[ -n "$cfg_log_file" ] && {
     echo
     echo "log_file in use: $cfg_log_file"
 }
 
-[[ -f "$pidfile_monitor" ]] && {
+[ -f "$pidfile_monitor" ] && {
     echo
     echo "Monitor running: $(pidfile_show_process "$pidfile_monitor")"
 }

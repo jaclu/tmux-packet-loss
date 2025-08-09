@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #  shellcheck disable=SC2034
 #
 #   Copyright (c) 2022-2025: Jacob.Lundqvist@gmail.com
@@ -16,87 +16,84 @@
 #---------------------------------------------------------------
 
 log_it() {
-    [[ -z "$cfg_log_file" ]] && return #  early abort if no logging
+    [ -z "$cfg_log_file" ] && return #  early abort if no logging
     #
     #  If @packet-loss-log_file is defined, it will be read into the
     #  cfg_log_file variable and used for logging.
     #
     #  Logging should normally be disabled, since it causes some overhead.
     #
-    local socket
 
-    $log_interactive_to_stderr && [[ -t 0 ]] && {
-        printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" \
-            "$@" >/dev/stderr
+    $log_interactive_to_stderr && [ -t 0 ] && {
+        # printf "log: %s%*s%s\n" "$log_prefix" "$log_indent" "" "$@" >/dev/stderr
+        printf "log: %s %s\n" "$log_prefix" "$@" >/dev/stderr
         return
     }
 
     #  needs leading space for compactness in the printf if empty
-    socket=" $(get_tmux_socket)"
+    _li_socket=" $(get_tmux_socket)"
     #  only show socket name if not default
-    # [[ "$socket" = " default" ]] && socket=""
+    # [ "$_li_socket" = " default" ] && _li_socket=""
 
     #
     #  In order to not have date on every line, date is just printed
     #  once/day in the end of monitor_packet_loss.sh
     #
-    printf "%s%s %s %s%*s%s\n" "$(date +'%F %T')" "$socket" "$$" \
-        "$log_prefix" "$log_indent" "" "$@" >>"$cfg_log_file"
+    printf "%s%s %s %s %s\n" "$(date +'%F %T')" "$_li_socket" "$$" \
+        "$log_prefix" "$@" >>"$cfg_log_file"
 }
 
 error_msg() {
     #
     #  Display $1 as an error message in log and in a scrollback buffer
-    #  unless do_display_message is false
+    #  unless _em_do_display_message is false
     #
     #  If exit_code is set to -1, process is not exited
     #
-    local msg="$1"
-    local exit_code="${2:-1}"
-    local do_display_message=${3:-true}
+    _em_msg="$1"
+    _em_exit_code="${2:-1}"
+    _em_do_display_message="${3:-true}"
 
-    if $log_interactive_to_stderr && [[ -t 0 ]]; then
-        echo "ERROR: $msg" >/dev/stderr
+    if $log_interactive_to_stderr && [ -t 0 ]; then
+        echo "ERROR: $_em_msg" >/dev/stderr
     else
-        local err_display
-
         log_it
-        log_it "ERROR: $msg"
+        log_it "ERROR: $_em_msg"
         log_it
 
         err_display="\nplugin: $plugin_name:$current_script [$$] - ERROR:\n\n"
-        err_display+="$msg\n\nPress ESC to close this display"
-        if [[ -n "$TMUX" ]]; then
-            $do_display_message && $TMUX_BIN run-shell "printf '$err_display'"
+        err_display="${err_display}${_em_msg}\n\nPress ESC to close this display"
+        if [ -n "$TMUX" ]; then
+            $_em_do_display_message && $TMUX_BIN run-shell "printf '$err_display'"
         else
             # shellcheck disable=SC2059
             printf "$err_display" >/dev/stderr
         fi
     fi
-    [[ "$exit_code" -gt -1 ]] && exit "$exit_code"
+    [ "$_em_exit_code" -gt -1 ] && exit "$_em_exit_code"
 }
 
 save_ping_issue() {
     #
     #  Save a ping output for later inspection
     #
-    local ping_output="$1"
-    local iso_datetime
-    local f_ping_issue
+    log_it "save_ping_issue()"
+    _spi_ping_output="$1"
 
-    mkdir -p "$d_ping_issues" # ensure it exists
-    iso_datetime=$(date +'%Y-%m-%d_%H:%M:%S')
-    f_ping_issue="$d_ping_issues/$iso_datetime"
-    log_it "Saving ping issue at: $f_ping_issue"
-    echo "$ping_output" >"$f_ping_issue"
+    [ -d "$d_data" ] || mkdir -p "$d_data"
+    _spi_iso_datetime=$(date +'%Y-%m-%d_%H:%M:%S')
+    _spi_f_ping_issue="$d_ping_issues/$_spi_iso_datetime"
+    log_it "Saving ping issue at: $_spi_f_ping_issue"
+    echo "$_spi_ping_output" >"$_spi_f_ping_issue"
 }
 
 do_not_run_create() {
+    log_it "do_not_run_create()"
     # Set an indication that system is unable to run
-    local reason="$1"
-    mkdir -p "$d_data" # ensure it exists
-    echo "$reason" >"$f_do_not_run"
-    log_it "Do-not-run condition activated: $reason"
+    _dnrc_reason="$1"
+    [ -d "$d_data" ] || mkdir -p "$d_data"
+    echo "$_dnrc_reason" >"$f_do_not_run"
+    log_it "Do-not-run condition activated: $_dnrc_reason"
 }
 
 do_not_run_clear() {
@@ -106,7 +103,7 @@ do_not_run_clear() {
 
 do_not_run_active() {
     # Returns true if the tools in this plugin should not be used
-    [[ -f "$f_do_not_run" ]] && return 0 # init failed to complete
+    [ -f "$f_do_not_run" ] && return 0 # init failed to complete
     return 1
 }
 #---------------------------------------------------------------
@@ -123,24 +120,23 @@ is_int() {
 }
 
 is_float() {
-    local input="$1"
-    local strict_check="${2:-}"
-    local float_pattern
+    _if_input=$1
+    _if_strict_check=${2:-}
+    # log_it "><> is_float($_if_input,$_if_strict_check)"
 
-    if [[ -n "$strict_check" ]]; then
-        # must be a number with a .
-        float_pattern='^[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?$'
+    if [ -n "$_if_strict_check" ]; then
+        # Strict: must have decimal part, optional exponent
+        awk_pattern='^[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?$'
     else
-        # accepts both ints and floats
-        float_pattern='^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$'
+        # Loose: allows integers, floats, optional exponent
+        awk_pattern='^[-+]?[0-9]+(\.[0-9]*)?([eE][-+]?[0-9]+)?$|^[-+]?\.[0-9]+([eE][-+]?[0-9]+)?$'
     fi
 
-    # Check if the input matches the float pattern
-    if [[ $input =~ $float_pattern ]]; then
-        return 0 # Input is a floating-point number
-    else
-        return 1 # Input is not a floating-point number
+    if awk -v val="$_if_input" -v pat="$awk_pattern" 'BEGIN { exit !(val ~ pat) }'; then
+        return 0
     fi
+
+    return 1
 }
 
 lowercase_it() {
@@ -152,12 +148,10 @@ posix_get_char() {
     #  Configure terminal to read a single character without echoing,
     #  restoring the terminal and returning the char
     #
-    local old_stty_cfg
-
-    old_stty_cfg=$(stty -g)
+    _pgc_old_stty_cfg=$(stty -g)
     stty raw -echo
     dd bs=1 count=1 2>/dev/null
-    stty "$old_stty_cfg"
+    stty "$_pgc_old_stty_cfg"
 }
 
 db_seems_inactive() {
@@ -170,8 +164,8 @@ db_seems_inactive() {
     #  restart.
     #
     # log_it "db_seems_inactive()"
-    [[ -f "$f_sqlite_db" ]] || return 0 # db not available
-    [[ -n "$(find "$f_sqlite_db" -mmin +"$db_max_age_mins")" ]]
+    [ -f "$f_sqlite_db" ] || return 0 # db not available
+    [ -n "$(find "$f_sqlite_db" -mmin +"$db_max_age_mins")" ]
 }
 
 #---------------------------------------------------------------
@@ -192,28 +186,27 @@ sqlite_err_handling() {
     #    sqlite_exit_code - exit code for latest sqlite3 action
     #                       if called as a function
     #
-    local sql="$1"
-    local recursion="${2:-1}"
+    _seh_sql="$1"
+    _seh_recursion="${2:-1}"
 
     # log_it "sqlite_err_handling()"
 
     if $log_sql; then # set to true to log sql queries
-        local sql_filtered
 
         # this does some filtering to give a more meaningful summary
-        sql_filtered="$(echo "$sql" |
+        sql_filtered="$(echo "$_seh_sql" |
             sed 's/BEGIN TRANSACTION; -- Start the transaction//' |
             tr -d '\n' | tr -s ' ' | sed 's/^ //' | sed 's/ ;/;/g' |
             sed 's/; /;/g' | cut -c 1-50)"
         log_it "SQL:$sql_filtered"
     fi
 
-    is_int "$recursion" || {
+    is_int "$_seh_recursion" || {
         error_msg \
-            "sqlite_err_handling(): recursion param not int [$recursion]"
+            "sqlite_err_handling(): recursion param not int [$_seh_recursion]"
     }
 
-    sqlite_result="$(sqlite3 "$f_sqlite_db" "$sql" 2>"$f_sqlite_error")"
+    sqlite_result="$(sqlite3 "$f_sqlite_db" "$_seh_sql" 2>"$f_sqlite_error")"
     sqlite_exit_code=$?
 
     case "$sqlite_exit_code" in
@@ -225,24 +218,23 @@ sqlite_err_handling() {
         #       GPT didn't give any suggestion. Either way allowing it to
         #       try a few times solved the issue.
         #
-        if [[ "$recursion" -gt 2 ]]; then
-            log_it "attempt $recursion sqlite error:$sqlite_exit_code - giving up SQL: $sql"
+        if [ "$_seh_recursion" -gt 2 ]; then
+            log_it "attempt $_seh_recursion sqlite error:$sqlite_exit_code - giving up SQL: $_seh_sql"
         else
             random_sleep 2 # give compeeting task some time to complete
-            ((recursion++))
-            log_it "WARNING: sqlite error:$sqlite_exit_code  attempt: $recursion"
-            sqlite_err_handling "$sql" "$recursion"
+            _seh_recursion=$((_seh_recursion + 1))
+
+            log_it "WARNING: sqlite error:$sqlite_exit_code  attempt: $_seh_recursion"
+            sqlite_err_handling "$_seh_sql" "$_seh_recursion"
         fi
         ;;
     *)
-        local err_msg
-
         #  log error but leave handling error up to caller
-        err_msg="sqlite_err_handling()\n$sql\nerror code: $sqlite_exit_code\n"
-        err_msg+="error msg:  $(cat "$f_sqlite_error")"
+        err_msg="sqlite_err_handling()\n$_seh_sql\nerror code: $sqlite_exit_code\n"
+        err_msg="${err_msg}error msg:  $(cat "$f_sqlite_error")"
         error_msg "$err_msg" -1
 
-        [[ ! -s "$f_sqlite_db" ]] && [[ -f "$f_sqlite_db" ]] && {
+        [ ! -s "$f_sqlite_db" ] && [ -f "$f_sqlite_db" ] && {
             #
             #  If DB was removed, then a sql action would fail but lead
             #  to an empty DB. By removing such, next call to
@@ -259,17 +251,16 @@ sqlite_err_handling() {
 }
 
 sqlite_transaction() {
-    local sql_original="$1"
-    local sql
+    _st_sql_original="$1"
 
-    sql="
+    _st_sql="
         BEGIN TRANSACTION; -- Start the transaction
 
-        $sql_original ;
+        $_st_sql_original ;
 
         COMMIT; -- Commit the transaction
         "
-    sqlite_err_handling "$sql"
+    sqlite_err_handling "$_st_sql"
 
     #
     #  this will exit true if $sqlite_err_handling is 0
@@ -284,13 +275,13 @@ sql_current_loss() {
     #  Exported variables
     #    sql - the sql to get a weighted / average loss rate
     #
-    local use_weighted="$1"
+    _scl_use_weighted="$1"
 
-    [[ -z "$use_weighted" ]] && {
+    [ -z "$_scl_use_weighted" ] && {
         error_msg "Call to sql_current_loss() without param"
     }
 
-    if $use_weighted; then
+    if $_scl_use_weighted; then
         #
         #  To give loss a declining history weighting,
         #  it is displayed as the largest of:
@@ -339,18 +330,17 @@ is_tmux_option_defined() {
 }
 
 get_tmux_option() {
-    local opt="$1"
-    local def="$2"
-    local value
+    _gto_opt="$1"
+     _gto_def="$2"
 
-    [[ -z "$opt" ]] && error_msg "get_tmux_option() param 1 empty!"
-    [[ "$TMUX" = "" ]] && {
+    [ -z "$_gto_opt" ] && error_msg "get_tmux_option() param 1 empty!"
+    [ "$TMUX" = "" ] && {
         # this is run standalone, just report the defaults
-        echo "$def"
+        echo "$_gto_def"
         return
     }
 
-    if value="$($TMUX_BIN show-options -gv "$opt" 2>/dev/null)"; then
+    if _gto_value="$($TMUX_BIN show-options -gv "$_gto_opt" 2>/dev/null)"; then
         #
         #  I haven't figured out if it is my asdf builds that have issues
         #  or something else, since I never heard of this issue before.
@@ -364,20 +354,20 @@ get_tmux_option() {
         #  user-options. For options starting with other chars,
         #  the normal error is displayed also with these versions.
         #
-        [[ -z "$value" ]] && ! is_tmux_option_defined "$opt" && {
+        [ -z "$_gto_value" ] && ! is_tmux_option_defined "$_gto_opt" && {
             #
             #  This is a workaround, checking if the variable is defined
             #  before assigning the default, preserving intentional
             #  "" assignments
             #
-            value="$def"
+            _gto_value="$_gto_def"
         }
     else
         #  All other versions correctly fails on unassigned @options
-        value="$def"
+        _gto_value="$_gto_def"
     fi
 
-    echo "$value"
+    echo "$_gto_value"
 }
 
 normalize_bool_param() {
@@ -388,29 +378,26 @@ normalize_bool_param() {
     #  normalize_bool_param "@menus_without_prefix" "$default_no_prefix" &&
     #      cfg_no_prefix=true || cfg_no_prefix=false
     #
-    local param="$1"
-    local var_name
-    local prefix
-    local msg
+     _nbp_param="$1"
 
-    var_name=""
-    # log_it "normalize_bool_param($param, $2)"
+    _nbp_var_name=""
+    # log_it "normalize_bool_param($_nbp_param, $2)"
 
-    [[ "${param%"${param#?}"}" = "@" ]] && {
+    [ "${_nbp_param%"${_nbp_param#?}"}" = "@" ] && {
         #
         #  If it starts with "@", assume it is tmux variable name, thus
         #  read its value from the tmux environment.
         #  In this case $2 must be given as the default value!
         #
-        [[ -z "$2" ]] && {
-            error_msg "normalize_bool_param($param) - no default"
+        [ -z "$2" ] && {
+            error_msg "normalize_bool_param($_nbp_param) - no default"
         }
-        var_name="$param"
-        param="$(get_tmux_option "$param" "$2")"
+        _nbp_var_name="$_nbp_param"
+        _nbp_param="$(get_tmux_option "$_nbp_param" "$2")"
     }
 
-    param="$(lowercase_it "$param")"
-    case "$param" in
+    _nbp_param="$(lowercase_it "$_nbp_param")"
+    case "$_nbp_param" in
     #
     #  First handle the unfortunate tradition by tmux to use
     #  1 to indicate selected / active.
@@ -427,14 +414,14 @@ normalize_bool_param() {
         ;;
 
     *)
-        if [[ -n "$var_name" ]]; then
-            prefix="$var_name=$param"
+        if [ -n "$_nbp_var_name" ]; then
+            _nbp_prefix="$_nbp_var_name=$_nbp_param"
         else
-            prefix="$param"
+            _nbp_prefix="$_nbp_param"
         fi
-        msg="normalize_bool_param($param) \n"
-        msg+="$prefix - should be yes/true or no/false"
-        error_msg "$msg"
+        _nbp_msg="normalize_bool_param($_nbp_param) \n"
+        _nbp_msg="${_nbp_msg}${_nbp_prefix} - should be yes/true or no/false"
+        error_msg "$_nbp_msg"
         ;;
 
     esac
@@ -447,7 +434,7 @@ get_tmux_socket() {
     #
     #  returns name of tmux socket being used
     #
-    if [[ -n "$TMUX" ]]; then
+    if [ -n "$TMUX" ]; then
         echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
     else
         echo "standalone"
@@ -455,10 +442,8 @@ get_tmux_socket() {
 }
 
 get_tmux_pid() {
-    local tmux_pid
-
     tmux_pid=$(echo "$TMUX" | cut -d',' -f 2)
-    [[ -z "$tmux_pid" ]] && error_msg \
+    [ -z "$tmux_pid" ] && error_msg \
         "Failed to extract pid for tmux process!"
     # log_it "get_tmux_pid() - found $tmux_pid"
     echo "$tmux_pid"
@@ -471,13 +456,12 @@ get_tmux_pid() {
 #---------------------------------------------------------------
 
 param_cache_write() {
-    # log_it "param_cache_write()"
+    log_it "param_cache_write()"
     $use_param_cache || {
         log_it "param_cache_write() - aborted, not using param_cache"
         return
     }
-
-    mkdir -p "$(dirname -- "$(realpath -- "$f_param_cache")")" # ensure it exists
+    [ -d "$d_data" ] || mkdir -p "$d_data"
 
     # echo "><> saving params" >>/Users/jaclu/tmp/tmux-packet-loss-t2.log
     #region conf cache file
@@ -609,7 +593,7 @@ get_plugin_params() {
     cfg_prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
     cfg_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
 
-    [[ -z "$cfg_log_file" ]] && {
+    [ -z "$cfg_log_file" ] && {
         cfg_log_file="$(get_tmux_option "@packet-loss-log_file" "")"
         # echo "><> reading cfg_log_file=$cfg_log_file" >>/Users/jaclu/tmp/tmux-packet-loss-t2.log
     }
@@ -640,19 +624,19 @@ get_config() {
     #  This is used by everything else sourcing utils.sh, then trusting
     #  that the param cache is valid if found
     #
-    local b_d_data_missing=false
+    log_it "get_config()"
 
-    # log_it "get_config()"
+    b_d_data_missing=false
 
-    [[ -d "$d_data" ]] || b_d_data_missing=true
+    [ -d "$d_data" ] || b_d_data_missing=true
 
     if $use_param_cache; then
         # param_cache missing, create it
-        [[ -s "$f_param_cache" ]] || generate_param_cache
+        [ -s "$f_param_cache" ] || generate_param_cache
 
         # the SC1091 is needed to pass linting when use_param_cache is off
         # shellcheck source=data/param_cache disable=SC1091
-        source "$f_param_cache"
+        . "$f_param_cache"
     else
         get_plugin_params
     fi
@@ -660,9 +644,7 @@ get_config() {
     $skip_logging && unset cfg_log_file
 
     $b_d_data_missing && {
-        local stray_monitors
-
-        mkdir -p "$d_data"
+        [ -d "$d_data" ] || mkdir -p "$d_data"
         log_it "data/ was missing"
         get_tmux_pid >"$pidfile_tmux" # helper for show_settings.sh
 
@@ -672,10 +654,10 @@ get_config() {
         #  the running monitor can't be killed via pidfile.
         #  Do it manually.
         #
-        stray_monitors="$(pgrep -f "$scr_monitor")"
-        [[ -n "$stray_monitors" ]] && {
-            echo "$stray_monitors" | xargs kill
-            log_it "Manually killed stray monitors[$stray_monitors]"
+        _gc_stray_monitors="$(pgrep -f "$scr_monitor")"
+        [ -n "$_gc_stray_monitors" ] && {
+            echo "$_gc_stray_monitors" | xargs kill
+            log_it "Manually killed stray monitors[$_gc_stray_monitors]"
         }
 
         log_it "data/ is restored"
@@ -706,57 +688,59 @@ random_sleep() {
     #  it tends to leave them sleeping for the same amount of seconds
     #
     # Parameters:
-    #   $1: max_sleep - maximum seconds of sleep, can be fractional
-    #   $2: min_sleep - min seconds of sleep, default: 0.5
+    #   $1: _rs_max_sleep - maximum seconds of sleep, can be fractional
+    #   $2: _rs_min_sleep - min seconds of sleep, default: 0.5
     #
     # Example usage:
     #   # Sleep for a random duration between 0.5 and 5 seconds
     #   random_sleep 5
     #
-    local max_sleep="$1"
-    local min_sleep="${2:-0.5}"
-    local pid=$$
-    local rand_from_random rand_from_urandom random_integer sleep_time
+    _rs_max_sleep="$1"
+    _rs_min_sleep="${2:-0.5}"
+    _rs_pid=$$
 
-    _pf_log "random_sleep($max_sleep, $min_sleep)"
+    _pf_log "random_sleep($_rs_max_sleep, $_rs_min_sleep)"
 
     # multiply ny hundred, round to int
-    min_sleep=$(printf "%.0f" "$(echo "$min_sleep * 100" | bc)")
-    max_sleep=$(printf "%.0f" "$(echo "$max_sleep * 100" | bc)")
+    _rs_min_sleep=$(printf "%.0f" "$(echo "$_rs_min_sleep * 100" | bc)")
+    _rs_max_sleep=$(printf "%.0f" "$(echo "$_rs_max_sleep * 100" | bc)")
 
     # Generate random numbers
-    rand_from_random=$((RANDOM % 100))
-    rand_from_urandom=$(od -An -N2 -i /dev/urandom | awk '{print $1}')
+    _rs_rand_from_random=$(hexdump -n 2 -e '/2 "%u\n"' /dev/urandom | awk '{print $1 % 100}')
+    _rs_rand_from_urandom=$(od -An -N2 -i /dev/urandom | awk '{print $1}')
 
-    # Calculate random number between min_sleep and max_sleep with two decimal places
-    random_integer=$(((rand_from_random + rand_from_urandom + pid) % (max_sleep - min_sleep + 1) + min_sleep))
+    # Calculate random number between _rs_min_sleep and _rs_max_sleep with two decimal places
+    _rs_range_size=$((_rs_max_sleep - _rs_min_sleep + 1))
+    _rs_sum=$((_rs_rand_from_random + _rs_rand_from_urandom + _rs_pid))
+    _rs_random_integer=$((_rs_sum % _rs_range_size + _rs_min_sleep))
+
 
     # Calculate the sleep time with two decimal places
-    sleep_time=$(printf "%.2f" "$(echo "scale=2; $random_integer / 100" | bc)")
+    _rs_sleep_time=$(printf "%.2f" "$(echo "scale=2; $_rs_random_integer / 100" | bc)")
 
-    # log_it "><> Sleeping for $sleep_time seconds"
-    sleep "$sleep_time"
+    # log_it "><> Sleeping for $_rs_sleep_time seconds"
+    sleep "$_rs_sleep_time"
 }
 
 prepare_environment() {
     #
-    #  For actions in utils log_prefix gets an u- prefix
+    #  For actions in utils _pe_log_prefix gets an u- prefix
     #  using local ensures it goes back to its original setting once
     #  code is run from the caller.
     #
-    local log_prefix="u-$log_prefix"
+    _pe_log_prefix="u-$_pe_log_prefix"
 
     plugin_name="tmux-packet-loss"
 
     #  Should have been set in the calling script
-    [[ -z "$D_TPL_BASE_PATH" ]] && {
+    [ -z "$D_TPL_BASE_PATH" ] && {
         echo
         echo "ERROR: $plugin_name D_TPL_BASE_PATH is not defined!"
         echo
         exit 1
     }
     #  check one item to verify D_TPL_BASE_PATH
-    [[ -f "$D_TPL_BASE_PATH"/scripts/monitor_packet_loss.sh ]] || {
+    [ -f "$D_TPL_BASE_PATH"/scripts/monitor_packet_loss.sh ] || {
         echo
         echo "ERROR: $plugin_name D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"
         echo
@@ -777,7 +761,7 @@ prepare_environment() {
     #
     db_max_age_mins=2
 
-    log_indent=1 # check pidfile_handler.sh to see how this is used
+    # log_indent=1 # check pidfile_handler.sh to see how this is used
 
     #
     #  I use an env var TMUX_BIN to point at the current tmux, defined in my
@@ -787,7 +771,7 @@ prepare_environment() {
     #  impact. In all calls to tmux I use $TMUX_BIN instead in the rest of this
     #  plugin.
     #
-    [[ -z "$TMUX_BIN" ]] && TMUX_BIN="tmux"
+    [ -z "$TMUX_BIN" ] && TMUX_BIN="tmux"
 
     #
     #  Convert script name to full actual path notation the path is used
@@ -847,20 +831,20 @@ prepare_environment() {
     #
     #  Set to defaults unless overridden (mostly) for debug purposes
     #
-    [[ -z "$skip_time_elapsed" ]] && {
+    [ -z "$skip_time_elapsed" ] && {
         # creates a lot of overhead so should normally be true
         skip_time_elapsed=true
     }
-    [[ -z "$use_param_cache" ]] && {
+    [ -z "$use_param_cache" ] && {
         use_param_cache=true # makes gathering the params a lot faster!
     }
-    [[ -z $log_interactive_to_stderr ]] && log_interactive_to_stderr=false
-    [[ -z "$skip_logging" ]] && {
+    [ -z "$log_interactive_to_stderr" ] && log_interactive_to_stderr=false
+    [ -z "$skip_logging" ] && {
         # if true @packet-loss-log_file setting is ignored
         skip_logging=false
     }
 
-    [[ -z "$log_sql" ]] && {
+    [ -z "$log_sql" ] && {
         #
         #  Defaults to false
         #  if true all SQL queries are logged
@@ -887,7 +871,7 @@ prepare_environment() {
 #  modules that didn't set it, during utils:main a prefix "u-" will be
 #  added to show the log action happened as utils was sourced.
 #
-[[ -z "$log_prefix" ]] && log_prefix="???"
+[ -z "$log_prefix" ] && log_prefix="???"
 
 #---------------------------------------------
 #

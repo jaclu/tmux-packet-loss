@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 #   Copyright (c) 2022-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -17,33 +17,34 @@
 #  for sourcing utils.sh in the other scripts.
 #
 
-do_interpolation() {
-    local all_interpolated="$1"
 
-    all_interpolated=${all_interpolated//$pkt_loss_interpolation/$pkt_loss_command}
-    echo "$all_interpolated"
+do_interpolation() {
+    # printf '%s\n' "$1" | sed "s|$(printf '%s' "$pkt_loss_interpolation" | \
+    #     sed 's/[&/\]/\\&/g')|$(printf '%s' "$pkt_loss_command" | sed 's/[&/\]/\\&/g')|g"
+    _di_s=$1
+    echo "$_di_s" | sed "s|$pkt_loss_interpolation|$pkt_loss_command|g"
 }
 
 set_tmux_option() {
-    local sto_option="$1"
-    local sto_value="$2"
+    _sto_option="$1"
+    _sto_value="$2"
+    log_it "><> set_tmux_option($_sto_option,$_sto_value)"
 
-    [[ -z "$sto_option" ]] && {
+    [ -z "$_sto_option" ] && {
         error_msg "set_tmux_option() param 1 empty!"
     }
-    [[ "$TMUX" = "" ]] && return # this is run standalone
+    [ "$TMUX" = "" ] && return # this is run standalone
 
-    $TMUX_BIN set -g "$sto_option" "$sto_value"
+    $TMUX_BIN set -g "$_sto_option" "$_sto_value"
 }
 
 update_tmux_option() {
-    local option="$1"
-    local option_value
-    local new_option_value
+    _uto_option="$1"
+    log_it "><> update_tmux_option($_uto_option)"
 
-    option_value="$(get_tmux_option "$option")"
-    new_option_value="$(do_interpolation "$option_value")"
-    set_tmux_option "$option" "$new_option_value"
+    _uto_value="$(get_tmux_option "$_uto_option")"
+    _uto_new_value="$(do_interpolation "$_uto_value")"
+    set_tmux_option "$_uto_option" "$_uto_new_value"
 }
 
 #===============================================================

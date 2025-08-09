@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 #   Copyright (c) 2022-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -16,7 +16,7 @@
 #   11 - Added minute_trigger
 #
 create_db() {
-    [[ -f "$f_sqlite_db" ]] && {
+    [ -f "$f_sqlite_db" ] && {
         rm -f "$f_sqlite_db"
         log_it "old_db removed"
     }
@@ -24,7 +24,7 @@ create_db() {
     #  t_loss is limited to $cfg_history_size records, in order to make
     #  statistics consistent
     #
-    local sql="
+    _cd_sql="
     CREATE TABLE t_loss (
         time_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
@@ -46,10 +46,10 @@ create_db() {
     PRAGMA journal_mode = WAL;
     PRAGMA user_version = $db_version;  -- replace DB if out of date
     "
-    sqlite_transaction "$sql" || {
-        msg="sqlite3 exited with: $sqlite_exit_code \n "
-        msg+=" when creating the DB"
-        error_msg "$msg"
+    sqlite_transaction "$_cd_sql" || {
+        _m="sqlite3 exited with: $sqlite_exit_code \n"
+        _m="$_m when creating the DB"
+        error_msg "$_m"
     }
     log_it "Created DB - user_version: $db_version"
 }
@@ -60,16 +60,15 @@ update_triggers() {
     #  a user defined setting, that might have changed since the DB
     #  was created
     #
-    local sql
 
-    sql="
+    _ut_sql="
     DROP TRIGGER IF EXISTS new_loss;
     DROP TRIGGER IF EXISTS new_minute
     "
-    sqlite_transaction "$sql" || {
-        msg="sqlite3 exited with: $sqlite_exit_code \n "
-        msg+=" when dropping triggers"
-        error_msg "$msg"
+    sqlite_transaction "$_ut_sql" || {
+        _m="sqlite3 exited with: $sqlite_exit_code \n"
+        _m="$_m when dropping triggers"
+        error_msg "$_m"
     }
 
     #
@@ -89,7 +88,7 @@ update_triggers() {
     ignore_first_items=$(echo "1 + 45 / $cfg_ping_count" | bc)
     log_it "first checks not stored in loss history: $ignore_first_items"
 
-    sql="
+    _ut_sql="
     CREATE TRIGGER IF NOT EXISTS new_loss
     AFTER INSERT ON t_loss
     BEGIN
@@ -140,10 +139,10 @@ update_triggers() {
         WHERE time_stamp <= datetime('now', '-$cfg_hist_avg_minutes minutes');
     END;
     "
-    sqlite_transaction "$sql" || {
-        msg="sqlite3 exited with: $sqlite_exit_code \n "
-        msg+=" when creating triggers"
-        error_msg "$msg"
+    sqlite_transaction "$_ut_sql" || {
+        _m="sqlite3 exited with: $sqlite_exit_code \n"
+        _m="$_m when creating triggers"
+        error_msg "$_m"
     }
     log_it "Created db-triggers"
 }
@@ -158,7 +157,7 @@ D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 
 log_prefix="prp"
 
-source "$D_TPL_BASE_PATH"/scripts/utils.sh
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 do_not_run_active && {
     log_it "do_not_run triggered abort"
@@ -171,7 +170,7 @@ do_not_run_active && {
 #  Create fresh database if it is missing or obsolete
 #
 sqlite_err_handling "PRAGMA user_version"
-[[ "$sqlite_result" != "$db_version" ]] && {
+[ "$sqlite_result" != "$db_version" ] && {
     log_it "DB incorrect user_version: $sqlite_result"
     create_db
 }

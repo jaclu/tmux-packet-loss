@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
-#   Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2024-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
@@ -19,9 +19,9 @@
 
 D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(dirname -- "$(realpath -- "$0")")")")"
 log_prefix="png-i"
-source "$D_TPL_BASE_PATH"/scripts/utils.sh
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
-if [[ "$1" = "read" ]]; then
+if [ "$1" = "read" ]; then
     #  When testing, read settings from output to match sample
     shift
     extract_settings=true
@@ -29,7 +29,7 @@ else
     extract_settings=false
 fi
 
-if [[ -n "$1" ]]; then
+if [ -n "$1" ]; then
     ping_output="$(cat "$1")"
 else
     # Read input from stdin
@@ -54,9 +54,9 @@ $extract_settings && {
 result="$(echo "$ping_output" | grep -v DUP | grep "seq=" |
     grep "$cfg_ping_host" | wc -l)"
 #  Trims white space
-received_packets="${result#"${result%%[![:space:]]*}"}"
+received_packets="${result#"${result%%[![:space:]*}"}"
 
-if [[ "$received_packets" -gt "$cfg_ping_count" ]]; then
+if [ "$received_packets" -gt "$cfg_ping_count" ]; then
     #
     #  on iSH Deb10 ping sometimes reports more non DUP pings received
     #  than was actually sent, assume no losses in such cases

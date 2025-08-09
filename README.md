@@ -6,6 +6,8 @@ default, giving more emphasis to recent checks.
 
 ## Recent changes
 
+- Converted all scripts to POSIX, no more bash dependencies. This cuts down a lot
+  on startup times, `scripts/display_losses.sh` is 3-4 times faster!
 - Losses are displayed, but no stats are saved for the first 45 seconds.
   This avoids getting initial errors before the network is re-established saved
   into the history during a laptop resume.
@@ -73,7 +75,6 @@ Ensure you have the following dependencies installed:
 
 - `tmux 1.9`
 - `sqlite3`
-- `bash`
 
 ## Verified Environments
 

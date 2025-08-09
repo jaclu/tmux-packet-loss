@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
-#   Copyright (c) 2024: Jacob.Lundqvist@gmail.com
+#   Copyright (c) 2024-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
 #
 #   Part of https://github.com/jaclu/tmux-packet-loss
@@ -12,9 +12,9 @@
 
 D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(dirname -- "$(realpath -- "$0")")")")"
 log_prefix="png"
-source "$D_TPL_BASE_PATH"/scripts/utils.sh
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
-if [[ -n "$1" ]]; then
+if [ -n "$1" ]; then
     ping_output="$(cat "$1")"
 else
     # Read input from stdin

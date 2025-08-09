@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 #   Copyright (c) 2022-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -9,24 +9,26 @@
 clear_losses_in_t_loss() {
     log_it "Clearing losses - to ensure plugin isn't stuck alerting"
     sqlite_transaction "DELETE FROM t_loss WHERE loss != 0" || {
-        local msg="sqlite3 exited with: $sqlite_exit_code \n"
-        msg+="when clearing losses for table t_loss"
-        error_msg "$msg"
+        _m="sqlite3 exited with: $sqlite_exit_code \n"
+        _m="${_m}when clearing losses for table t_loss"
+        error_msg "$_m"
     }
 }
 
 monitor_terminate() {
-    local i
-
     pidfile_is_live "$pidfile_monitor" && {
         log_it "Will kill [$pidfile_proc] $db_monitor"
         kill "$pidfile_proc"
-        for ((i = 0; i < 10; i++)); do
+
+        _mt_i=0
+        while [ "$_mt_i" -lt 10 ]; do
             pidfile_is_live "$pidfile_monitor" || break
             sleep 1
-            # log_it "waiting i[$i]"
+            # log_it "waiting _mt_i[$_mt_i]"
+            _mt_i=$(( _mt_i + 1 ))
         done
-        [[ "$i" -gt 0 ]] && log_it "after loop: [$i]"
+
+        [ "$_mt_i" -gt 0 ] && log_it "after loop: [$_mt_i]"
         pidfile_is_live "$pidfile_monitor" && {
             error_msg "Failed to terminate $db_monitor"
         }
@@ -83,13 +85,12 @@ exit_script() {
     #
     #  Terminate script doing cleanup
     #
-    local exit_code="${1:-0}"
-    local msg
+    exit_code="${1:-0}"
 
     pidfile_release "$pidfile_ctrl_monitor"
-    msg="$current_script - completed"
-    [[ "$exit_code" -ne 0 ]] && msg+=" exit code:$exit_code"
-    log_it "$msg"
+    _m="$current_script - completed"
+    [ "$exit_code" -ne 0 ] && _m="$_m exit code:$exit_code"
+    log_it "$_m"
     exit "$exit_code"
 }
 
@@ -102,7 +103,7 @@ exit_script() {
 D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="ctr"
 
-source "$D_TPL_BASE_PATH"/scripts/utils.sh
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 do_not_run_active && {
     log_it "do_not_run triggered abort"
@@ -115,7 +116,7 @@ do_not_run_active && {
 #  Include pidfile handling
 #
 # shellcheck source=scripts/pidfile_handler.sh
-source "$scr_pidfile_handler"
+. "$scr_pidfile_handler"
 
 db_monitor="$(basename "$scr_monitor")"
 

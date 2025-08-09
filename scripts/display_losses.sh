@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 #   Copyright (c) 2022-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -12,11 +12,11 @@ script_exit() {
     #
     #  wrap status in prefix/suffix and exit gracefully
     #
-    local status="$1"
+    status="$1"
 
-    [[ -n "$status" ]] && echo "${cfg_prefix}${status}${cfg_suffix}"
+    [ -n "$status" ] && echo "${cfg_prefix}${status}${cfg_suffix}"
 
-    [[ -n "$2" ]] && {
+    [ -n "$2" ] && {
         # param check
         error_msg "script_exit() got 2nd unexpected param: [$2]"
     }
@@ -35,26 +35,26 @@ verify_db_status() {
     #  Some sanity check, ensuring the monitor is running
     #
 
-    if [[ ! -s "$f_sqlite_db" ]]; then
+    if [ ! -s "$f_sqlite_db" ]; then
         #
         #  Since if the DB doesn't exist and a read is being done, an
         #  empty DB is created. This makes a check for existence of the
         #  DB invalid. The -s check ensures it is of size > 0 thus would
         #  catch empty DBs having been created by a read
         #
-        local db_issue="DB missing or broken"
+        _vds_db_issue="DB missing or broken"
 
-        error_msg "$db_issue" -1 false
+        error_msg "$_vds_db_issue" -1 false
         #
         #  If DB is missing, try to start the monitor
         #
-        restart_monitor "$db_issue"
-        log_it "$db_issue - monitor was restarted"
+        restart_monitor "$_vds_db_issue"
+        log_it "$_vds_db_issue - monitor was restarted"
 
-        [[ -s "$f_sqlite_db" ]] || {
-            error_msg "$db_issue - DB could not be created - aborting"
+        [ -s "$f_sqlite_db" ] || {
+            error_msg "$_vds_db_issue - DB could not be created - aborting"
         }
-    elif [[ -f "$f_monitor_suspended_no_clients" ]]; then
+    elif [ -f "$f_monitor_suspended_no_clients" ]; then
         restart_monitor "- was suspended due to no clients"
     elif db_seems_inactive; then
         #
@@ -70,19 +70,16 @@ get_current_loss() {
     #  public variables defined
     #   current_loss
     #
-    local sql
-
     #  shellcheck disable=SC2086 # boolean - can't be quoted
     sql_current_loss $cfg_weighted_average
 
     # CAST seems to always round down...
     sqlite_err_handling "$sql" || {
-        local sqlite_exit_code="$?"
-        local msg
+        sqlite_exit_code="$?"
 
-        msg="sqlite3 exited with: $sqlite_exit_code \n "
-        msg+=" when retrieving current losses"
-        error_msg "$msg"
+        _m="sqlite3 exited with: $sqlite_exit_code \n"
+        _m="$_m  when retrieving current losses"
+        error_msg "$_m"
     }
     current_loss=$(printf "%.0f" "$sqlite_result") # float -> int
 }
@@ -92,7 +89,7 @@ get_prev_loss() {
     #  public variables defined
     #   prev_loss
     #
-    if [[ -f "$f_previous_loss" ]]; then
+    if [ -f "$f_previous_loss" ]; then
         read -r prev_loss <"$f_previous_loss"
     else
         prev_loss=0
@@ -100,18 +97,18 @@ get_prev_loss() {
 }
 
 set_prev_loss() {
-    [[ -z "$prev_loss" ]] && get_prev_loss
+    [ -z "$prev_loss" ] && get_prev_loss
 
-    if [[ "$current_loss" -gt 0 ]]; then
+    if [ "$current_loss" -gt 0 ]; then
         echo "$current_loss" >"$f_previous_loss"
     else
         rm -f "$f_previous_loss"
     fi
 
     # log loss changes
-    $log_loss_changes && [[ "$prev_loss" -ne "$current_loss" ]] &&
+    $log_loss_changes && [ "$prev_loss" -ne "$current_loss" ] &&
         {
-            if [[ "$current_loss" -gt 0 ]]; then
+            if [ "$current_loss" -gt 0 ]; then
                 log_it "$s_log_result"
             else
                 log_it "no packet losses"
@@ -126,12 +123,12 @@ show_trend() {
     #  public variables provided
     #    result
     #
-    [[ -z "$prev_loss" ]] && get_prev_loss
+    [ -z "$prev_loss" ] && get_prev_loss
 
-    if [[ "$prev_loss" -ne "$current_loss" ]]; then
-        if [[ "$current_loss" -gt "$prev_loss" ]]; then
+    if [ "$prev_loss" -ne "$current_loss" ]; then
+        if [ "$current_loss" -gt "$prev_loss" ]; then
             result="+$current_loss"
-        elif [[ "$current_loss" -lt "$prev_loss" ]]; then
+        elif [ "$current_loss" -lt "$prev_loss" ]; then
             result="-$current_loss"
         fi
     fi
@@ -141,19 +138,19 @@ colorize_high_numbers() {
     #
     #  If loss is over trigger levels, display in appropriate color
     #
-    local number="$1" # numerical value to check
-    local item="$2"   # string that might get color
+    _chn_number="$1" # numerical value to check
+    _chn_item="$2"   # string that might get color
 
-    if awk -v val="$number" -v trig_lvl="$cfg_level_crit" \
+    if awk -v val="$_chn_number" -v trig_lvl="$cfg_level_crit" \
         'BEGIN{exit !(val >= trig_lvl)}'; then
 
-        item="#[fg=$cfg_color_crit,bg=$cfg_color_bg]${item}#[default]"
-    elif awk -v val="$number" -v trig_lvl="$cfg_level_alert" \
+        _chn_item="#[fg=$cfg_color_crit,bg=$cfg_color_bg]${_chn_item}#[default]"
+    elif awk -v val="$_chn_number" -v trig_lvl="$cfg_level_alert" \
         'BEGIN{exit !(val >= trig_lvl)}'; then
 
-        item="#[fg=$cfg_color_alert,bg=$cfg_color_bg]${item}#[default]"
+        _chn_item="#[fg=$cfg_color_alert,bg=$cfg_color_bg]${_chn_item}#[default]"
     fi
-    echo "$item"
+    echo "$_chn_item"
 }
 
 display_history() {
@@ -163,30 +160,23 @@ display_history() {
     #  Outside variables modified:
     #    s_log_result - will be used by main to display current losses
     #
-    local sql
-    local avg_loss_raw
-
-    sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
-    sqlite_err_handling "$sql" || {
-        local sqlite_exit_code="$?"
-
-        error_msg "sqlite3[$sqlite_exit_code] when retrieving history" \
+    _dh_sql="SELECT CAST((SELECT AVG(loss) FROM t_stats) + .499 AS INTEGER)"
+    sqlite_err_handling "$_dh_sql" || {
+        error_msg "sqlite3[$?] when retrieving history" \
             -1 false
         return
     }
-    avg_loss_raw="$sqlite_result"
+    _dh_avg_loss_raw="$sqlite_result"
 
-    if [[ "$avg_loss_raw" != "0" ]]; then
-        local avg_loss
-
+    if [ "$_dh_avg_loss_raw" != "0" ]; then
         #
         #  If stats is over trigger levels, display in appropriate color
         #
-        avg_loss="$(
-            colorize_high_numbers "$avg_loss_raw" "$avg_loss_raw"
+        _dh_avg_loss="$(
+            colorize_high_numbers "$_dh_avg_loss_raw" "$_dh_avg_loss_raw"
         )"
-        result="${result}${cfg_hist_separator}${avg_loss}"
-        s_log_result="$s_log_result   avg: $avg_loss_raw"
+        result="${result}${cfg_hist_separator}${_dh_avg_loss}"
+        s_log_result="$s_log_result   avg: $_dh_avg_loss_raw"
     fi
 }
 
@@ -200,12 +190,12 @@ display_history() {
 #  Prevent tmux from running this every couple of seconds,
 #  convenient during debugging
 #
-# [[ "$1" != "hepp" ]] && exit 0
+# [ "$1" != "hepp" ] && exit 0
 
 D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="dsp"
 
-source "$D_TPL_BASE_PATH"/scripts/utils.sh
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 # do_not_run_active && exit 1
 do_not_run_active && {
@@ -220,11 +210,11 @@ verify_db_status
 
 get_current_loss
 
-[[ "$current_loss" -lt "$cfg_level_disp" ]] && current_loss=0
+[ "$current_loss" -lt "$cfg_level_disp" ] && current_loss=0
 
 s_log_result="loss: $current_loss" # might get altered by display_history
 
-if [[ "$current_loss" -gt 0 ]]; then
+if [ "$current_loss" -gt 0 ]; then
     result="$current_loss"
 
     #

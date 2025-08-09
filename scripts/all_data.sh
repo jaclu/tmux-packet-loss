@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 #   Copyright (c) 2024-2025: Jacob.Lundqvist@gmail.com
 #   License: MIT
@@ -11,7 +11,7 @@
 D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="a_d"
 
-source "$D_TPL_BASE_PATH"/scripts/utils.sh
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 # do_not_run_active && exit 1
 do_not_run_active && {
@@ -20,7 +20,7 @@ do_not_run_active && {
     exit 1
 }
 
-[[ -f "$f_sqlite_db" ]] || {
+[ -f "$f_sqlite_db" ] || {
     error_msg "Database not found - aborting"
 }
 action="$1"
@@ -46,42 +46,44 @@ clear)
     ;;
 esac
 
-tables=(t_stats t_1_min t_loss)
-
-for table in "${tables[@]}"; do
+old_ifs="$IFS"
+IFS=','
+set -- t_stats t_1_min t_loss
+for table; do
     echo "--------  Table: $table  --------"
-    [[ -n "$cmd" ]] && sqlite3 "$f_sqlite_db" "$cmd FROM $table;"
+    [ -n "$cmd" ] && sqlite3 "$f_sqlite_db" "$cmd FROM $table;"
 
     #
     #  Display averages - and for t_loss also weighted avg
     #
-    if [[ "$table" = "t_loss" ]]; then
+    if [ "$table" = "t_loss" ]; then
         sql_current_loss true
         sqlite_err_handling "$sql" || {
             sqlite_exit_code="$?"
-            msg="sqlite3 exited with: $sqlite_exit_code \n"
-            msg+="when retrieving current weighted losses for table $table"
-            error_msg "$msg"
+            _m="sqlite3 exited with: $sqlite_exit_code \n"
+            _m="${_m}when retrieving current weighted losses for table $table"
+            error_msg "$_m"
         }
         weighted="$sqlite_result"
 
         sql_current_loss false
         sqlite_err_handling "$sql" || {
             sqlite_exit_code="$?"
-            msg="sqlite3 exited with: $sqlite_exit_code \n "
-            msg+=" when retrieving current avg losses for table $table"
-            error_msg "$msg"
+            _m="sqlite3 exited with: $sqlite_exit_code \n"
+            _m="$_m  when retrieving current avg losses for table $table"
+            error_msg "$_m"
         }
         printf "average: %5.1f  weighted: %5.1f\n" "$sqlite_result" "$weighted"
     else
         sql="SELECT round(avg(loss),1) FROM $table;"
         sqlite_err_handling "$sql" || {
             sqlite_exit_code="$?"
-            msg="sqlite3 exited with: $sqlite_exit_code \n "
-            msg+=" when retrieving current avg losses for table $table"
-            error_msg "$msg"
+            _m="sqlite3 exited with: $sqlite_exit_code \n"
+            _m="$_m  when retrieving current avg losses for table $table"
+            error_msg "$_m"
         }
         printf "average: %5.1f\n" "$sqlite_result"
     fi
     echo
 done
+IFS="$old_ifs"

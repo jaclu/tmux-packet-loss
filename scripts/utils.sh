@@ -595,7 +595,6 @@ get_plugin_params() {
 
     [ -z "$cfg_log_file" ] && {
         cfg_log_file="$(get_tmux_option "@packet-loss-log_file" "")"
-        # echo "><> reading cfg_log_file=$cfg_log_file" >>/Users/jaclu/tmp/tmux-packet-loss-t2.log
     }
 }
 
@@ -883,7 +882,7 @@ prepare_environment() {
 #  Setting it here will allow for debugging utils setting up the env.
 #  Not needed for normal usage of logging.
 #
-# cfg_log_file="$HOME/tmp/tmux-packet-loss-t2.log"
+# cfg_log_file="$HOME/tmp/tmux-packet-loss.log"
 
 #
 #  When this is used, a cfg_log_file must still be defined, since

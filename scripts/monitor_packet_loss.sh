@@ -258,9 +258,6 @@ do_monitor_loop() {
         #  saved to a file in case the output gives issues
         #
         if ping_output="$($ping_cmd 2>/dev/null)"; then
-            log_it "><> ping output ===="
-            log_it "$ping_output"
-            log_it " -------------------"
             if [ -n "$ping_output" ]; then
                 percent_loss="$(echo "$ping_output" | $loss_check)" || {
                     log_it "$(basename "$loss_check") returned error"

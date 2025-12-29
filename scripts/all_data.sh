@@ -26,24 +26,24 @@ do_not_run_active && {
 action="$1"
 
 case "$action" in
-show)
-    #cmd="SELECT time_stamp,round(loss,1)"
-    cmd="SELECT time_stamp || '  ' || round(loss, 1) AS formatted_output"
-    ;;
-avgs)
-    db_seems_inactive && {
-        error_msg "Database > 2 minutes old, so monitor is assumed to be inactive"
-    }
-    cmd=""
-    ;;
-clear)
-    cmd="DELETE"
-    log_it "DB will be cleared"
-    ;;
-*)
-    echo "usage: $current_script show/avgs/clear"
-    exit 1
-    ;;
+    show)
+        #cmd="SELECT time_stamp,round(loss,1)"
+        cmd="SELECT time_stamp || '  ' || round(loss, 1) AS formatted_output"
+        ;;
+    avgs)
+        db_seems_inactive && {
+            error_msg "Database > 2 minutes old, so monitor is assumed to be inactive"
+        }
+        cmd=""
+        ;;
+    clear)
+        cmd="DELETE"
+        log_it "DB will be cleared"
+        ;;
+    *)
+        echo "usage: $current_script show/avgs/clear"
+        exit 1
+        ;;
 esac
 
 old_ifs="$IFS"

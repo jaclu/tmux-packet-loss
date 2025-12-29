@@ -25,7 +25,7 @@ monitor_terminate() {
             pidfile_is_live "$pidfile_monitor" || break
             sleep 1
             # log_it "waiting _mt_i[$_mt_i]"
-            _mt_i=$(( _mt_i + 1 ))
+            _mt_i=$((_mt_i + 1))
         done
 
         [ "$_mt_i" -gt 0 ] && log_it "after loop: [$_mt_i]"
@@ -59,24 +59,24 @@ monitor_launch() {
 
 handle_param() {
     case "$1" in
-    start | "")
-        monitor_terminate # First kill any running instance
-        monitor_launch || error_msg "Failed to launch monitor"
-        ;;
-    stop)
-        killed_monitor=false
-        monitor_terminate
-        clear_losses_in_t_loss # only do on explicit stop
-        $killed_monitor || {
-            log_it "Did not find any running instances of $scr_monitor"
-        }
-        exit_script 0
-        ;;
-    *)
-        msg="Valid params: [None/start|stop] - got [$1]"
-        echo "$msg"
-        error_msg "$msg"
-        ;;
+        start | "")
+            monitor_terminate # First kill any running instance
+            monitor_launch || error_msg "Failed to launch monitor"
+            ;;
+        stop)
+            killed_monitor=false
+            monitor_terminate
+            clear_losses_in_t_loss # only do on explicit stop
+            $killed_monitor || {
+                log_it "Did not find any running instances of $scr_monitor"
+            }
+            exit_script 0
+            ;;
+        *)
+            msg="Valid params: [None/start|stop] - got [$1]"
+            echo "$msg"
+            error_msg "$msg"
+            ;;
 
     esac
 }

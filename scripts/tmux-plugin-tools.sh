@@ -69,8 +69,8 @@ tmux_vers_ok() {
     # If the desired version has a suffix but the running version doesn't, fail
     [ -n "$_suf" ] && [ -z "$tpt_current_vers_suffix" ] && return 1
     # Perform lexicographical comparison of suffixes only if necessary
-    [ "$(printf '%s\n%s\n' "$_suf" "$tpt_current_vers_suffix" |
-        LC_COLLATE=C sort | head -n 1)" = "$_suf" ] && return 0
+    [ "$(printf '%s\n%s\n' "$_suf" "$tpt_current_vers_suffix" \
+        | LC_COLLATE=C sort | head -n 1)" = "$_suf" ] && return 0
 
     # If none of the above conditions are met, the version is insufficient
     return 1
@@ -130,7 +130,7 @@ tpt_dependency_check() {
             # Caller handles notification
             return 1
         }
-	set_popup_size_based_on_window_size
+        set_popup_size_based_on_window_size
         if [ -z "$TMUX" ]; then
             # run outside tmux, respond in text
             echo "Failed dependencies: $tpt_missing_dependencies"
@@ -138,21 +138,21 @@ tpt_dependency_check() {
             # display-popup is buggy on the iSH platform, so use fallback
 
             if [ "$_height_adjusted" -ge 8 ]; then
-                _line_split="$(echo "$tpt_missing_dependencies" |
-                                   sed 's/ /\n /g' | sed 's/|/ or /g')"
+                _line_split="$(echo "$tpt_missing_dependencies" \
+                    | sed 's/ /\n /g' | sed 's/|/ or /g')"
                 _popup_content="$(printf '\n%s:\n\n %s\n\n%s ' \
-                                          "$_failed_dep_popup_line_1" \
-                                            "$_line_split" \
-                                            'Press Escape to close this popup')"
+                    "$_failed_dep_popup_line_1" \
+                    "$_line_split" \
+                    'Press Escape to close this popup')"
             else
-		# Compact view, to fit on a tight screen
+                # Compact view, to fit on a tight screen
                 _popup_content="$(printf '%s:\n\n%s ' \
-					 "$_failed_dep_popup_line_1" \
-                                         "$tpt_missing_dependencies")"
+                    "$_failed_dep_popup_line_1" \
+                    "$tpt_missing_dependencies")"
             fi
             $TMUX_BIN display-popup -h "$_popup_h" -w 95% \
-                      -T "$_failed_dep_popup_label" \
-                      printf '%s' "$_popup_content"
+                -T "$_failed_dep_popup_label" \
+                printf '%s' "$_popup_content"
         else
             # if the shell changes it's prompt after a short delay, it might cause
             # plugin warnings displayed before that moment to disappear, this sleep
@@ -165,8 +165,8 @@ tpt_dependency_check() {
             _current_pane="$($TMUX_BIN display -p '#{pane_id}')"
             _pty="$($TMUX_BIN display-message -p -t "$_current_pane" "#{pane_tty}")"
 
-            _formatted="$(printf "%s" "$tpt_missing_dependencies" |
-                sed 's/ /\n  /g' | sed 's/|/ or /g')"
+            _formatted="$(printf "%s" "$tpt_missing_dependencies" \
+                | sed 's/ /\n  /g' | sed 's/|/ or /g')"
             printf '\nFailed dependency for %s\n  %s\n' \
                 "$_failed_dep_text_label" "$_formatted" \
                 >"$_pty"
@@ -245,10 +245,10 @@ tpt_verify_dependencies() {
     tpt_fail_count=0
     # shellcheck disable=SC2068 # in this case we want to split the param
     for _dep_group in $@; do
-	# a _dep_group is one space separated item
+        # a _dep_group is one space separated item
         tpt_log_it " dep_group: >$_dep_group<"
         for _dep in $(echo "$_dep_group" | tr "|" ' '); do
-	    # _dep is a | separated item, or the entire group if no | present
+            # _dep is a | separated item, or the entire group if no | present
             tpt_log_it "  _dep: >$_dep<"
             if command -v "$_dep" >/dev/null 2>&1; then
                 continue 2
@@ -260,7 +260,6 @@ tpt_verify_dependencies() {
     [ -z "$tpt_missing_dependencies" ]
 }
 
-
 set_popup_size_based_on_window_size() {
     #
     #  Defines:
@@ -271,17 +270,17 @@ set_popup_size_based_on_window_size() {
     _height_adjusted=$((_win_height - tpt_fail_count))
 
     if [ "$_height_adjusted" -ge 20 ]; then
-	_popup_h="50%"
+        _popup_h="50%"
     elif [ "$_height_adjusted" -ge 16 ]; then
-	_popup_h="60%"
+        _popup_h="60%"
     elif [ "$_height_adjusted" -ge 14 ]; then
-	_popup_h="70%"
+        _popup_h="70%"
     elif [ "$_height_adjusted" -ge 11 ]; then
-	_popup_h="80%"
+        _popup_h="80%"
     elif [ "$_height_adjusted" -ge 10 ]; then
-	_popup_h="90%"
+        _popup_h="90%"
     else
-	_popup_h="100%"
+        _popup_h="100%"
     fi
 
     # Debug adds heights to label to help calculations
@@ -319,19 +318,19 @@ tpt_define_plugin_env() {
     # tpt_log_it "trying to extract plugin name & folder from [$_caller]"
 
     # Assume plugin name is folder name following ../plugins/
-    tpt_plugin_name="$(echo "$_caller" | grep plugins | sed 's#plugins/# #' |
-        cut -d' ' -f 2 | cut -d/ -f 1)"
+    tpt_plugin_name="$(echo "$_caller" | grep plugins | sed 's#plugins/# #' \
+        | cut -d' ' -f 2 | cut -d/ -f 1)"
     if [ -n "$tpt_plugin_name" ]; then
         _failed_dep_popup_label=" plugin: $tpt_plugin_name "
-	_failed_dep_popup_line_1="Failed dependencies"
+        _failed_dep_popup_line_1="Failed dependencies"
         _failed_dep_text_label="plugin: $tpt_plugin_name"
-        tpt_d_plugin="$(echo "$_caller" |
-            sed "s#$tpt_plugin_name#$tpt_plugin_name\|#" | cut -d'|' -f1)"
+        tpt_d_plugin="$(echo "$_caller" \
+            | sed "s#$tpt_plugin_name#$tpt_plugin_name\|#" | cut -d'|' -f1)"
     else
         # As a fallback, use full path of script that called this, to at least
         # give some hint
         _failed_dep_popup_label=" Failed dependencies "
-	_failed_dep_popup_line_1="$_caller"
+        _failed_dep_popup_line_1="$_caller"
         _failed_dep_text_label="$_caller"
         tpt_d_plugin=""
     fi
@@ -361,12 +360,12 @@ tpt_parse_cmd_line() {
             shift
             tpt_tests "$@"
             ;;
-	env)
-	    shift
-	    tpt_debug_mode=1
-	    tpt_define_plugin_env
-	    tpt_display_env
-	    ;;
+        env)
+            shift
+            tpt_debug_mode=1
+            tpt_define_plugin_env
+            tpt_display_env
+            ;;
         *)
             echo "Valid params:"
             echo
@@ -374,9 +373,9 @@ tpt_parse_cmd_line() {
             echo "  If tmux >= 3.2 a popup will be used to display failed dependencies"
             echo "  For older tmux versions and if called from outside tmux, It will be printed."
             echo
-	    echo "env"
-	    echo "  Display environment picked up"
-	    echo
+            echo "env"
+            echo "  Display environment picked up"
+            echo
             echo "self-test [skip-notifications]"
             echo "  This will demonstrate both tools:"
             echo "    tmux_vers_ok - to check if a given feature is available"

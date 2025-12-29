@@ -224,12 +224,12 @@ set_pidfile_env() {
     #  Handle plugin prefix
     #
     case $pid_file in
-    /*) pid_file_short="${pid_file#"$D_TPL_BASE_PATH"/}" ;; # Absolute path
-    *)
-        # Not an absolute path
-        pid_file_short="$pid_file"
-        pid_file="$d_data/$pid_file"
-        ;;
+        /*) pid_file_short="${pid_file#"$D_TPL_BASE_PATH"/}" ;; # Absolute path
+        *)
+            # Not an absolute path
+            pid_file_short="$pid_file"
+            pid_file="$d_data/$pid_file"
+            ;;
     esac
 
     if [ -f "$pid_file" ]; then

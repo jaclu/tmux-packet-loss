@@ -106,8 +106,8 @@ set_prev_loss() {
     fi
 
     # log loss changes
-    $log_loss_changes && [ "$prev_loss" -ne "$current_loss" ] &&
-        {
+    $log_loss_changes && [ "$prev_loss" -ne "$current_loss" ] \
+        && {
             if [ "$current_loss" -gt 0 ]; then
                 log_it "$s_log_result"
             else

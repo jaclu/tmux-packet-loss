@@ -44,9 +44,9 @@ define_ping_cmd() {
     else
         _dpc_timeout_help="$(ping -h 2>&1 | grep timeout | head -n 1)"
         case "$_dpc_timeout_help" in
-        *-t*) _dpc_timeout_parameter="-t" ;;
-        *-W*) _dpc_timeout_parameter="-W" ;;
-        *) _dpc_timeout_parameter="" ;;
+            *-t*) _dpc_timeout_parameter="-t" ;;
+            *-W*) _dpc_timeout_parameter="-W" ;;
+            *) _dpc_timeout_parameter="" ;;
         esac
     fi
 
@@ -269,8 +269,8 @@ do_monitor_loop() {
                     ping_parse_error "$error_unable_to_detect_loss" "$msg"
                 elif ! is_float "$percent_loss"; then
                     ping_parse_error "$error_invalid_number" "not a float"
-                elif [ "$(echo "$percent_loss < 0.0 || $percent_loss > 100.0" |
-                    bc -l)" -eq 1 ]; then
+                elif [ "$(echo "$percent_loss < 0.0 || $percent_loss > 100.0" \
+                    | bc -l)" -eq 1 ]; then
 
                     ping_parse_error "$error_invalid_number" "invalid loss rate"
                 fi
@@ -308,10 +308,10 @@ do_monitor_loop() {
             [ "$percent_loss" != 0 ] && {
                 log_it "stored in DB: $percent_loss"
 
-                $store_ping_issues &&
-                    ! $parse_error &&
-                    [ "$loss_check" != "$scr_loss_default" ] &&
-                    compare_loss_parsers
+                $store_ping_issues \
+                    && ! $parse_error \
+                    && [ "$loss_check" != "$scr_loss_default" ] \
+                    && compare_loss_parsers
             }
         else
             # shellcheck disable=SC2154

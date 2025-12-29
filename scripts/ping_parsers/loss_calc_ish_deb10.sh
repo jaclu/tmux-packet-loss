@@ -38,8 +38,8 @@ fi
 
 $extract_settings && {
     cfg_ping_host="$(echo "$ping_output" | grep "^PING" | cut -d' ' -f 2)"
-    cfg_ping_count="$(echo "$ping_output" | grep "packets transmitted" |
-        cut -d' ' -f 1)"
+    cfg_ping_count="$(echo "$ping_output" | grep "packets transmitted" \
+        | cut -d' ' -f 1)"
     echo "Extracted"
     echo "cfg_ping_host:  $cfg_ping_host"
     echo "cfg_ping_count: $cfg_ping_count"
@@ -51,8 +51,8 @@ $extract_settings && {
 #  Obviously busybox uses ' seq=' ...
 #
 #  shellcheck disable=SC2126
-result="$(echo "$ping_output" | grep -v DUP | grep "seq=" |
-    grep "$cfg_ping_host" | wc -l)"
+result="$(echo "$ping_output" | grep -v DUP | grep "seq=" \
+    | grep "$cfg_ping_host" | wc -l)"
 #  Trims white space
 received_packets="${result#"${result%%[![:space:]*}"}"
 
@@ -70,6 +70,6 @@ else
     #  in order to give the printf better source data as it rounds it down
     #  to one
     #
-    echo "scale=3; 100 - 100 * $received_packets / $cfg_ping_count" |
-        bc | awk '{printf "%.1f\n", $0}'
+    echo "scale=3; 100 - 100 * $received_packets / $cfg_ping_count" \
+        | bc | awk '{printf "%.1f\n", $0}'
 fi

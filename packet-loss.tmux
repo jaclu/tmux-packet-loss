@@ -17,7 +17,6 @@
 #  for sourcing utils.sh in the other scripts.
 #
 
-
 do_interpolation() {
     # printf '%s\n' "$1" | sed "s|$(printf '%s' "$pkt_loss_interpolation" | \
     #     sed 's/[&/\]/\\&/g')|$(printf '%s' "$pkt_loss_command" | sed 's/[&/\]/\\&/g')|g"

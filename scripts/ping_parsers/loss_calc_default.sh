@@ -36,26 +36,29 @@ fi
 #  5 display last remaining word - packet loss as a float with
 #    no % sign!
 #
-avg_loss="$(echo "$ping_output" |
-    grep "packet loss" | # Only process the summary line
-
+avg_loss="$(echo "$ping_output" \
+    | grep "packet loss" \
+    |
+    # Only process the summary line
     # get rid of % and make ~ indicate end of interesting part
-    sed 's/%// ; s/packet loss/~/' |
-    cut -d~ -f 1 | # only keep up to before ~
+    sed 's/%// ; s/packet loss/~/' \
+    | cut -d~ -f 1 \
+    |
+    # only keep up to before ~
     awk 'NF>1{print $NF}')"
 
 #
 #  Normalize number of decimals to one for consistency
 #
 case $(echo "$avg_loss" | awk -F'.' '{ print length($2) }') in
-1) ;;
-0) # fake a decimal
-    avg_loss="${avg_loss}.0"
-    ;;
-*) # only use one digit
-    rounded_loss="$(echo "$avg_loss" | awk '{printf "%.1f", $0}')"
-    avg_loss="$rounded_loss"
-    ;;
+    1) ;;
+    0) # fake a decimal
+        avg_loss="${avg_loss}.0"
+        ;;
+    *) # only use one digit
+        rounded_loss="$(echo "$avg_loss" | awk '{printf "%.1f", $0}')"
+        avg_loss="$rounded_loss"
+        ;;
 esac
 
 echo "$avg_loss"

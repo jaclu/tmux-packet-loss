@@ -114,8 +114,8 @@ do_not_run_active() {
 
 is_int() {
     case $1 in
-    '' | *[!0-9]*) return 1 ;; # Contains non-numeric characters
-    *) return 0 ;;             # Contains only digits
+        '' | *[!0-9]*) return 1 ;; # Contains non-numeric characters
+        *) return 0 ;;             # Contains only digits
     esac
 }
 
@@ -194,10 +194,10 @@ sqlite_err_handling() {
     if $log_sql; then # set to true to log sql queries
 
         # this does some filtering to give a more meaningful summary
-        sql_filtered="$(echo "$_seh_sql" |
-            sed 's/BEGIN TRANSACTION; -- Start the transaction//' |
-            tr -d '\n' | tr -s ' ' | sed 's/^ //' | sed 's/ ;/;/g' |
-            sed 's/; /;/g' | cut -c 1-50)"
+        sql_filtered="$(echo "$_seh_sql" \
+            | sed 's/BEGIN TRANSACTION; -- Start the transaction//' \
+            | tr -d '\n' | tr -s ' ' | sed 's/^ //' | sed 's/ ;/;/g' \
+            | sed 's/; /;/g' | cut -c 1-50)"
         log_it "SQL:$sql_filtered"
     fi
 
@@ -210,41 +210,41 @@ sqlite_err_handling() {
     sqlite_exit_code=$?
 
     case "$sqlite_exit_code" in
-    0) ;; # no error
-    5 | 141)
-        #
-        # 5 SQLITE_BUSY - obvious candidate for a few retries
-        # 141   is an odd one, I have gotten it a couple of times on iSH.
-        #       GPT didn't give any suggestion. Either way allowing it to
-        #       try a few times solved the issue.
-        #
-        if [ "$_seh_recursion" -gt 2 ]; then
-            log_it "attempt $_seh_recursion sqlite error:$sqlite_exit_code - giving up SQL: $_seh_sql"
-        else
-            random_sleep 2 # give compeeting task some time to complete
-            _seh_recursion=$((_seh_recursion + 1))
-
-            log_it "WARNING: sqlite error:$sqlite_exit_code  attempt: $_seh_recursion"
-            sqlite_err_handling "$_seh_sql" "$_seh_recursion"
-        fi
-        ;;
-    *)
-        #  log error but leave handling error up to caller
-        err_msg="sqlite_err_handling()\n$_seh_sql\nerror code: $sqlite_exit_code\n"
-        err_msg="${err_msg}error msg:  $(cat "$f_sqlite_error")"
-        error_msg "$err_msg" -1
-
-        [ ! -s "$f_sqlite_db" ] && [ -f "$f_sqlite_db" ] && {
+        0) ;; # no error
+        5 | 141)
             #
-            #  If DB was removed, then a sql action would fail but lead
-            #  to an empty DB. By removing such, next call to
-            #  display_losses will recreate it and restart monitoring
+            # 5 SQLITE_BUSY - obvious candidate for a few retries
+            # 141   is an odd one, I have gotten it a couple of times on iSH.
+            #       GPT didn't give any suggestion. Either way allowing it to
+            #       try a few times solved the issue.
             #
-            rm -f "$f_monitor_suspended_no_clients"
-            rm -f "$f_sqlite_db"
-            error_msg "Removing empty DB, terminating monitor" 1 false
-        }
-        ;;
+            if [ "$_seh_recursion" -gt 2 ]; then
+                log_it "attempt $_seh_recursion sqlite error:$sqlite_exit_code - giving up SQL: $_seh_sql"
+            else
+                random_sleep 2 # give compeeting task some time to complete
+                _seh_recursion=$((_seh_recursion + 1))
+
+                log_it "WARNING: sqlite error:$sqlite_exit_code  attempt: $_seh_recursion"
+                sqlite_err_handling "$_seh_sql" "$_seh_recursion"
+            fi
+            ;;
+        *)
+            #  log error but leave handling error up to caller
+            err_msg="sqlite_err_handling()\n$_seh_sql\nerror code: $sqlite_exit_code\n"
+            err_msg="${err_msg}error msg:  $(cat "$f_sqlite_error")"
+            error_msg "$err_msg" -1
+
+            [ ! -s "$f_sqlite_db" ] && [ -f "$f_sqlite_db" ] && {
+                #
+                #  If DB was removed, then a sql action would fail but lead
+                #  to an empty DB. By removing such, next call to
+                #  display_losses will recreate it and restart monitoring
+                #
+                rm -f "$f_monitor_suspended_no_clients"
+                rm -f "$f_sqlite_db"
+                error_msg "Removing empty DB, terminating monitor" 1 false
+            }
+            ;;
     esac
 
     return "$sqlite_exit_code"
@@ -331,7 +331,7 @@ is_tmux_option_defined() {
 
 get_tmux_option() {
     _gto_opt="$1"
-     _gto_def="$2"
+    _gto_def="$2"
 
     [ -z "$_gto_opt" ] && error_msg "get_tmux_option() param 1 empty!"
     [ "$TMUX" = "" ] && {
@@ -378,7 +378,7 @@ normalize_bool_param() {
     #  normalize_bool_param "@menus_without_prefix" "$default_no_prefix" &&
     #      cfg_no_prefix=true || cfg_no_prefix=false
     #
-     _nbp_param="$1"
+    _nbp_param="$1"
 
     _nbp_var_name=""
     # log_it "normalize_bool_param($_nbp_param, $2)"
@@ -398,31 +398,31 @@ normalize_bool_param() {
 
     _nbp_param="$(lowercase_it "$_nbp_param")"
     case "$_nbp_param" in
-    #
-    #  First handle the unfortunate tradition by tmux to use
-    #  1 to indicate selected / active.
-    #  This means 1 is 0 and 0 is 1, how Orwellian...
-    #
-    1 | yes | true)
-        #  Be a nice guy and accept some common positive notations
-        return 0
-        ;;
+        #
+        #  First handle the unfortunate tradition by tmux to use
+        #  1 to indicate selected / active.
+        #  This means 1 is 0 and 0 is 1, how Orwellian...
+        #
+        1 | yes | true)
+            #  Be a nice guy and accept some common positive notations
+            return 0
+            ;;
 
-    0 | no | false)
-        #  Be a nice guy and accept some common false notations
-        return 1
-        ;;
+        0 | no | false)
+            #  Be a nice guy and accept some common false notations
+            return 1
+            ;;
 
-    *)
-        if [ -n "$_nbp_var_name" ]; then
-            _nbp_prefix="$_nbp_var_name=$_nbp_param"
-        else
-            _nbp_prefix="$_nbp_param"
-        fi
-        _nbp_msg="normalize_bool_param($_nbp_param) \n"
-        _nbp_msg="${_nbp_msg}${_nbp_prefix} - should be yes/true or no/false"
-        error_msg "$_nbp_msg"
-        ;;
+        *)
+            if [ -n "$_nbp_var_name" ]; then
+                _nbp_prefix="$_nbp_var_name=$_nbp_param"
+            else
+                _nbp_prefix="$_nbp_param"
+            fi
+            _nbp_msg="normalize_bool_param($_nbp_param) \n"
+            _nbp_msg="${_nbp_msg}${_nbp_prefix} - should be yes/true or no/false"
+            error_msg "$_nbp_msg"
+            ;;
 
     esac
 
@@ -562,14 +562,14 @@ get_plugin_params() {
     #  In order to assign a boolean to a variable this two line approach
     #  is needed
     #
-    normalize_bool_param "@packet-loss-weighted_average" "$default_weighted_average" &&
-        cfg_weighted_average=true || cfg_weighted_average=false
-    normalize_bool_param "@packet-loss-display_trend" "$default_display_trend" &&
-        cfg_display_trend=true || cfg_display_trend=false
-    normalize_bool_param "@packet-loss-hist_avg_display" "$default_hist_avg_display" &&
-        cfg_hist_avg_display=true || cfg_hist_avg_display=false
-    normalize_bool_param "@packet-loss-run_disconnected" "$default_run_disconnected" &&
-        cfg_run_disconnected=true || cfg_run_disconnected=false
+    normalize_bool_param "@packet-loss-weighted_average" "$default_weighted_average" \
+        && cfg_weighted_average=true || cfg_weighted_average=false
+    normalize_bool_param "@packet-loss-display_trend" "$default_display_trend" \
+        && cfg_display_trend=true || cfg_display_trend=false
+    normalize_bool_param "@packet-loss-hist_avg_display" "$default_hist_avg_display" \
+        && cfg_hist_avg_display=true || cfg_hist_avg_display=false
+    normalize_bool_param "@packet-loss-run_disconnected" "$default_run_disconnected" \
+        && cfg_run_disconnected=true || cfg_run_disconnected=false
 
     cfg_level_disp="$(get_tmux_option "@packet-loss-level_disp" \
         "$default_level_disp")"
@@ -712,7 +712,6 @@ random_sleep() {
     _rs_range_size=$((_rs_max_sleep - _rs_min_sleep + 1))
     _rs_sum=$((_rs_rand_from_random + _rs_rand_from_urandom + _rs_pid))
     _rs_random_integer=$((_rs_sum % _rs_range_size + _rs_min_sleep))
-
 
     # Calculate the sleep time with two decimal places
     _rs_sleep_time=$(printf "%.2f" "$(echo "scale=2; $_rs_random_integer / 100" | bc)")

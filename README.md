@@ -23,6 +23,8 @@ Plugin output takes no space when under @packet-loss-level_disp level.
 
 ### Loss levels
 
+The `~4` displays last 30 min average loss rate.
+
 | Display                                                                                                     | With hist avg                                                                                                 | Status                |
 | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------- |
 | ![no_loss](https://github.com/jaclu/tmux-packet-loss/assets/5046648/91f94685-c931-425e-bc4a-20c0246959a4)   |                                                                                                               | under threshold       |

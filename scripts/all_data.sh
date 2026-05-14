@@ -51,7 +51,10 @@ IFS=','
 set -- t_stats t_1_min t_loss
 for table; do
     echo "--------  Table: $table  --------"
-    [ -n "$cmd" ] && sqlite3 "$f_sqlite_db" "$cmd FROM $table;"
+    [ -n "$cmd" ] && {
+        # sqlite3 "$f_sqlite_db" "$cmd FROM $table;"
+        sqlite_err_handling "$cmd FROM $table;" || error_msg "Failed to run: $cmd FROM $table"
+    }
 
     #
     #  Display averages - and for t_loss also weighted avg

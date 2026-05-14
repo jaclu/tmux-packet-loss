@@ -623,7 +623,7 @@ get_config() {
     #  This is used by everything else sourcing utils.sh, then trusting
     #  that the param cache is valid if found
     #
-    log_it "get_config()"
+    # log_it "get_config()"
 
     b_d_data_missing=false
 

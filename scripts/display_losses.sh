@@ -75,8 +75,6 @@ get_current_loss() {
 
     # CAST seems to always round down...
     sqlite_err_handling "$sql" || {
-        sqlite_exit_code="$?"
-
         _m="sqlite3 exited with: $sqlite_exit_code \n"
         _m="$_m  when retrieving current losses"
         error_msg "$_m"

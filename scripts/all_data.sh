@@ -59,7 +59,6 @@ for table; do
     if [ "$table" = "t_loss" ]; then
         sql_current_loss true
         sqlite_err_handling "$sql" || {
-            sqlite_exit_code="$?"
             _m="sqlite3 exited with: $sqlite_exit_code \n"
             _m="${_m}when retrieving current weighted losses for table $table"
             error_msg "$_m"
@@ -68,7 +67,6 @@ for table; do
 
         sql_current_loss false
         sqlite_err_handling "$sql" || {
-            sqlite_exit_code="$?"
             _m="sqlite3 exited with: $sqlite_exit_code \n"
             _m="$_m  when retrieving current avg losses for table $table"
             error_msg "$_m"
@@ -77,7 +75,6 @@ for table; do
     else
         sql="SELECT round(avg(loss),1) FROM $table;"
         sqlite_err_handling "$sql" || {
-            sqlite_exit_code="$?"
             _m="sqlite3 exited with: $sqlite_exit_code \n"
             _m="$_m  when retrieving current avg losses for table $table"
             error_msg "$_m"

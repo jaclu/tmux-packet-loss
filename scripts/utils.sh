@@ -192,12 +192,11 @@ sqlite_err_handling() {
     # log_it "sqlite_err_handling()"
 
     if $log_sql; then # set to true to log sql queries
-
-        # this does some filtering to give a more meaningful summary
+        # this does some filtering to give a sanitized query
         sql_filtered="$(echo "$_seh_sql" \
             | sed 's/BEGIN TRANSACTION; -- Start the transaction//' \
             | tr -d '\n' | tr -s ' ' | sed 's/^ //' | sed 's/ ;/;/g' \
-            | sed 's/; /;/g' | cut -c 1-50)"
+            | sed 's/; /;/g' | cut -c 1-160)"
         log_it "SQL:$sql_filtered"
     fi
 
@@ -206,7 +205,11 @@ sqlite_err_handling() {
             "sqlite_err_handling(): recursion param not int [$_seh_recursion]"
     }
 
-    sqlite_result="$(sqlite3 "$f_sqlite_db" "$_seh_sql" 2>"$f_sqlite_error")"
+    # shellcheck disable=SC2086 # sql_timeout should be expanded
+    sqlite_result="$(sqlite3 \
+        -cmd '.timeout 3000' \
+        "$f_sqlite_db" \
+        "$_seh_sql" 2>"$f_sqlite_error")"
     sqlite_exit_code=$?
 
     case "$sqlite_exit_code" in

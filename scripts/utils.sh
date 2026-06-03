@@ -250,6 +250,7 @@ sqlite_err_handling() {
             ;;
     esac
 
+    log_sql=false # disable logging after each call
     return "$sqlite_exit_code"
 }
 
@@ -762,6 +763,12 @@ prepare_environment() {
     #
     db_max_age_mins=2
 
+    #
+    # Set to true per call to sqlite_err_handling, to enable logging of that call
+    # this is disabled again at the end of the call
+    #
+    log_sql=false
+
     # log_indent=1 # check pidfile_handler.sh to see how this is used
 
     #
@@ -845,14 +852,6 @@ prepare_environment() {
         skip_logging=false
     }
 
-    [ -z "$log_sql" ] && {
-        #
-        #  Defaults to false
-        #  if true all SQL queries are logged
-        #
-        log_sql=false
-    }
-
     #
     #  at this point plugin_params is trusted if found, menus.tmux will
     #  always always replace it with current tmux conf during plugin init
@@ -895,11 +894,6 @@ prepare_environment() {
 
 # do_pidfile_handler_logging=true # will create ridiculous amounts of logs
 # skip_logging=true # enforce no logging desipte tmux conf
-
-#
-# if true all SQL queries are logged - defaults to false
-#
-# log_sql=true
 
 #
 #  Disable caching

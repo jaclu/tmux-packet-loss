@@ -13,6 +13,20 @@ log_prefix="a_d"
 
 . "$D_TPL_BASE_PATH"/scripts/utils.sh
 
+show_help() {
+    echo "usage: $current_script show | avgs | clear"
+    echo
+    echo "  show   Display all stored data"
+    echo "  avgs   Show averages"
+    echo "  clear  Clear all data"
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
 # do_not_run_active && exit 1
 do_not_run_active && {
     log_it "do_not_run triggered abort"
@@ -23,6 +37,7 @@ do_not_run_active && {
 [ -f "$f_sqlite_db" ] || {
     error_msg "Database not found - aborting"
 }
+
 action="$1"
 
 case "$action" in
@@ -41,7 +56,7 @@ case "$action" in
         log_it "DB will be cleared"
         ;;
     *)
-        echo "usage: $current_script show/avgs/clear"
+        show_help
         exit 1
         ;;
 esac
@@ -52,8 +67,10 @@ set -- t_stats t_1_min t_loss
 for table; do
     echo "--------  Table: $table  --------"
     [ -n "$cmd" ] && {
-        # sqlite3 "$f_sqlite_db" "$cmd FROM $table;"
-        sqlite_err_handling "$cmd FROM $table;" || error_msg "Failed to run: $cmd FROM $table"
+        sqlite_err_handling "$cmd FROM $table;" || {
+            error_msg "Failed to run: $cmd FROM $table"
+        }
+        echo "$sqlite_result"
     }
 
     #

@@ -365,6 +365,7 @@ sql_current_loss() {
 #---------------------------------------------------------------
 
 is_tmux_option_defined() {
+    [ -n "$TMUX" ] || return 1 # abort false if not inside a tmux session
     $TMUX_BIN show-options -g | grep -q "^$1"
 }
 
@@ -533,6 +534,7 @@ get_plugin_params() {
 
 param_cache_write() {
     log_it "param_cache_write()"
+    # extra check, to ensure nothing is written if param cache is not used
     $use_param_cache || {
         log_it "param_cache_write() - aborted, not using param_cache"
         return
@@ -587,15 +589,8 @@ EOF
 
 generate_param_cache() {
     #
-    #  will also ensure current tmux conf is used, even if other
-    #  settings has already been sourced
+    #  will ensure current tmux conf is used
     #
-    $use_param_cache || {
-        # log_it "generate_param_cache() - aborted, not using param_cache"
-        return
-    }
-    # log_it "generate_param_cache()"
-
     get_plugin_params
     f_sql_timeout="$D_TPL_BASE_PATH"/.sql-timeout
     [ -f "$f_sql_timeout" ] && cfg_sql_timeout=$(cat "$f_sql_timeout")
@@ -622,10 +617,11 @@ get_config() {
     [ -d "$d_data" ] || b_d_data_missing=true
 
     if $use_param_cache; then
-        # param_cache missing, create it
+        # if f_param_cache is missing, create it
         [ -s "$f_param_cache" ] || generate_param_cache
 
-        # the SC1091 is needed to pass linting when use_param_cache is off
+        # the SC1091 is needed to pass linting when the param-cache has
+        # not yet been generated
         # shellcheck source=data/param-cache disable=SC1091
         . "$f_param_cache"
     else
@@ -785,6 +781,7 @@ prepare_environment() {
         skip_time_elapsed=true
     }
     [ -z "$use_param_cache" ] && {
+        # unless overridden elsewhere, assume cache should be used
         use_param_cache=true # makes gathering the params a lot faster!
     }
     [ -z "$log_interactive_to_stderr" ] && log_interactive_to_stderr=false
@@ -847,7 +844,7 @@ clear_previous_losses() {
 # skip_logging=true # enforce no logging desipte tmux conf
 
 #
-#  Disable caching
+#  Disable caching globally
 #
 # use_param_cache=false
 

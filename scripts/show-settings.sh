@@ -116,7 +116,7 @@ to be: $req_interval  currently is: $status_interval
 show_item "@packet-loss-ping_host" "$cfg_ping_host" "$default_ping_host"
 show_item "@packet-loss-history_size" "$cfg_history_size" "$default_history_size"
 echo
-show_item @packet-loss-weighted_average "$cfg_weighted_average" "$default_weighted_average"
+show_item @packet-loss-reactive "$cfg_reactive" "$default_reactive"
 show_item @packet-loss-display_trend "$cfg_display_trend" "$default_display_trend"
 show_item @packet-loss-hist_avg_display "$cfg_hist_avg_display" "$default_hist_avg_display"
 show_item @packet-loss-run_disconnected "$cfg_run_disconnected" "$default_run_disconnected"

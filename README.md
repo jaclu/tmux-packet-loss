@@ -1,19 +1,23 @@
 # Tmux-Packet-Loss
 
 Tmux-Packet-Loss is a plugin for Tmux that displays the percentage of packet
-loss on your connection. It calculates the loss level as a weighted average by
-default, giving more emphasis to recent checks.
+loss on your connection. In reactive mode, it calculates loss using multiple
+rolling averages over recent checks and reports the highest value, making
+recent spikes visible while allowing them to decay over time. A simple rolling
+average mode can be selected via configuration.
 
 ## Recent changes
 
+- `@packet-loss-weighted_average` renamed to `@packet-loss-reactive` after
+  clarifying that the approach is not a weighted average.
+  The old variable is still supported for now, but triggers a warning advising migration.
+- Added support for no network connection for all supported platforms - reported as 101
+- Now uses both "journal_mode = WAL" and sqlite3 -cmd '.timeout 200' to avoid DB collisions
 - Converted all scripts to POSIX, no more bash dependencies. This cuts down a lot
   on startup times, `scripts/display-losses.sh` is 3-4 times faster!
 - Losses are displayed, but no stats are saved for the first 45 seconds.
   This avoids getting initial errors before the network is re-established saved
   into the history during a laptop resume.
-- automated dependency check - will show error msg if sqlite3 is not available
-- New option @packet-loss-run_disconnected
-- Fixed boolean parameter handling to allow for yes/no or true/false options.
 
 ## Screenshots
 
@@ -45,8 +49,10 @@ with a prefix character
 
 ## Operation
 
-The plugin runs a background process that pings a host to measure packet loss.
-By default, loss is calculated as a weighted average, emphasizing recent data.
+The plugin runs a background process that periodically pings a host to measure packet loss.
+By default, it computes loss from multiple rolling averages over recent samples
+and reports the maximum value, making recent spikes more visible
+while allowing them to decay over time.
 
 ### Background monitor
 
@@ -115,31 +121,31 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 
 ## Configuration Variables
 
-| Variable                      | Default   | Purpose |
-| ----------------------------- | --------- | ------- |
-| @packet-loss-ping_host        | 8.8.8.8   | The host to ping. Choosing a well-connected & replicated host like 8.8.8.8 or 1.1.1.1 gives a good idea of your general link quality. |
-| @packet-loss-ping_count       | 6         | Number of pings per statistics update. |
-| @packet-loss-history_size     | 6         | Number of results to keep. Lower values show current status better; use `@packet-loss-hist_avg_display` for longer-term trends. |
-| | | |
-| @packet-loss-weighted_average | yes       | Bias toward recent data if `yes`, equal weight to all if `no`. |
-| @packet-loss-display_trend    | no        | Show trend indicator (`+` rising, `-` falling) if `yes`. |
-| @packet-loss-hist_avg_display | no        | Show 30-min historical average alongside current loss if `yes`. |
-| @packet-loss-run_disconnected | no        | Monitor runs always if `yes`, stops when no clients connected if `no`. |
-| @packet-loss-level_disp       | 1         | Display loss if at or higher than this level. |
-| @packet-loss-level_alert      | 17        | Color loss with `@packet-loss-color_alert` at or above this level. Tip: set one higher than single packet loss %. |
-| @packet-loss-level_crit       | 40        | Color loss with `@packet-loss-color_crit` if at or above this level. |
-| | | |
-| @packet-loss-hist_avg_minutes | 30        | Minutes to keep the historical average. |
-| @packet-loss-hist_separator   | '\~'      | Separator for current/historical losses. |
-| | | |
-| @packet-loss-color_alert      | colour226 | Color for alert-level loss. |
-| @packet-loss-color_crit       | colour196 | Color for critical-level loss. |
-| @packet-loss-color_bg         | black     | Background color for colored loss display. |
-| | | |
-| @packet-loss-prefix           | '\|'      | Prefix for status when displayed. |
-| @packet-loss-suffix           | '\|'      | Suffix for status when displayed. |
-| | | |
-| @packet-loss-log_file         |           | If defined this file will be used for logging. |
+| Variable                      | Default   | Purpose                                                                                                                                                                    |
+| ----------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| @packet-loss-ping_host        | 8.8.8.8   | The host to ping. Choosing a well-connected & replicated host like 8.8.8.8 or 1.1.1.1 gives a good idea of your general link quality.                                      |
+| @packet-loss-ping_count       | 6         | Number of pings per statistics update.                                                                                                                                     |
+| @packet-loss-history_size     | 6         | Number of results to keep. Lower values show current status better; use `@packet-loss-hist_avg_display` for longer-term trends.                                            |
+|                               |           |                                                                                                                                                                            |
+| @packet-loss-reactive         | yes       | Enables reactive mode: loss is computed from multiple rolling averages over recent samples and the highest value is used. If disabled, loss is the average of all samples. |
+| @packet-loss-display_trend    | no        | Show trend indicator (`+` rising, `-` falling) if `yes`.                                                                                                                   |
+| @packet-loss-hist_avg_display | no        | Show 30-min historical average alongside current loss if `yes`.                                                                                                            |
+| @packet-loss-run_disconnected | no        | Monitor runs always if `yes`, stops when no clients connected if `no`.                                                                                                     |
+| @packet-loss-level_disp       | 1         | Display loss if at or higher than this level.                                                                                                                              |
+| @packet-loss-level_alert      | 17        | Color loss with `@packet-loss-color_alert` at or above this level. Tip: set one higher than single packet loss %.                                                          |
+| @packet-loss-level_crit       | 40        | Color loss with `@packet-loss-color_crit` if at or above this level.                                                                                                       |
+|                               |           |                                                                                                                                                                            |
+| @packet-loss-hist_avg_minutes | 30        | Minutes to keep the historical average.                                                                                                                                    |
+| @packet-loss-hist_separator   | '\~'      | Separator for current/historical losses.                                                                                                                                   |
+|                               |           |                                                                                                                                                                            |
+| @packet-loss-color_alert      | colour226 | Color for alert-level loss.                                                                                                                                                |
+| @packet-loss-color_crit       | colour196 | Color for critical-level loss.                                                                                                                                             |
+| @packet-loss-color_bg         | black     | Background color for colored loss display.                                                                                                                                 |
+|                               |           |                                                                                                                                                                            |
+| @packet-loss-prefix           | '\|'      | Prefix for status when displayed.                                                                                                                                          |
+| @packet-loss-suffix           | '\|'      | Suffix for status when displayed.                                                                                                                                          |
+|                               |           |                                                                                                                                                                            |
+| @packet-loss-log_file         |           | If defined this file will be used for logging.                                                                                                                             |
 
 ## My config
 
@@ -173,9 +179,10 @@ use `@packet-loss-hist_avg_display` for longer-term trends.
 **Clearing data:** Delete the data folder to reset the database and restart
 the monitor—an easy way to clear history without touching SQL.
 
-**Weighted average:** When enabled (default), shows the highest of: last
-value, avg of last 2–7, or avg of all. When disabled, always shows the
-average of all samples.
+**Reactive mode:** When enabled (default), loss is computed from multiple
+rolling averages over recent samples (1–7) plus the full-history average, and
+the highest value is used. When disabled, loss is computed as the average of
+all samples.
 
 ### Suggested Alert Levels
 

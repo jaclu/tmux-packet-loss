@@ -54,8 +54,8 @@ get_current_loss() {
     #   current_loss_raw
     #
 
-    # shellcheck disable=SC2154 # cfg_weighted_average defined in utils.sh
-    sql_current_loss "$cfg_weighted_average"
+    # shellcheck disable=SC2154 # cfg_reactive defined via eval in utils.sh
+    sql_current_loss "$cfg_reactive"
     current_loss_raw=$(printf "%.0f" "$sqlite_result") # float -> int
 }
 
@@ -95,7 +95,7 @@ show_trend() {
     #
     current_loss="$current_loss_raw" # default if no trend is displayed
 
-    # shellcheck disable=SC2154 # defined in utils.sh
+    # shellcheck disable=SC2154 # cfg_display_trend defined via eval in utils.sh
     $cfg_display_trend || return
 
     [ -z "$prev_loss" ] && get_prev_loss # only needed to read this once
@@ -163,7 +163,6 @@ display_history() {
     #
     _dh_cur_loss=$(colorize_high_numbers "$current_loss")
     _dh_avg_loss=$(colorize_high_numbers "$_dh_avg_loss_raw")
-    # shell check disable=SC2154 # _dh_avg_loss defined via eval
     result="${_dh_cur_loss}${cfg_hist_separator}${_dh_avg_loss}"
 
     # fi

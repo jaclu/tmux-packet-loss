@@ -30,26 +30,8 @@ log_it() {
         return
     }
 
-    # to include time use: $(date '%F %T')
     _li_prefix="$(date +'%F %T') [$$] $log_prefix"
-
-    # # old main printd
-    # printf "%s%s %s %s %s\n" "$(date +'%F %T')" "$_li_socket" "$$" \
-    #     "$log_prefix" "$@" >>"$cfg_log_file"
-
-    # printf "%s%s %s %s $@\n" "$_li_prefix"(date +'%T')" "$_li_socket" "$$" \
-    #     "$log_prefix" >>"$cfg_log_file" 2>/dev/null || {
-
     printf '%s %s\n' "$_li_prefix" "$@" >>"$cfg_log_file" 2>/dev/null
-
-    # # shellcheck disable=SC2059,SC2145 # allow formatting like LF in msg
-    # printf "$_li_prefix $@\n" >>"$cfg_log_file" 2>/dev/null || {
-    #     pf1_ex="$?"
-    #     printf '\n\nIssue with first printf [%s]\n' "$pf1_ex" >>"$cfg_log_file" 2>/dev/null
-    #     # $@ probably contained a printf invalid char, try it the safe way
-    #     # ignoring \n etc in params
-    #     printf "%s %s\n" "$_li_prefix" "$@" >>"$cfg_log_file" 2>/dev/null
-    # }
 }
 
 error_msg() {
@@ -75,7 +57,7 @@ error_msg() {
         if [ -n "$TMUX" ]; then
             $_em_do_display_message && $TMUX_BIN run-shell "printf \"$err_display\""
         else
-            # shellcheck disable=SC2059
+            # shellcheck disable=SC2059 # allow formatted error msgs
             printf "$err_display" >/dev/stderr
         fi
     fi
@@ -253,12 +235,6 @@ sqlite_err_handling() {
     _seh_sql="$1"
     _seh_exit_on_error="${2:-yes}"
     if $log_sql; then # set to true to log sql queries
-        # this does some filtering to give a sanitized query
-        # sql_filtered="$(echo "$_seh_sql" \
-        #     | sed 's/BEGIN TRANSACTION; -- Start the transaction//' \
-        #     | tr -d '\n' | tr -s ' ' | sed 's/^ //' | sed 's/ ;/;/g' \
-        #     | sed 's/; /;/g' | cut -c 1-160)"
-        # log_it "SQL: $sql_filtered"
         log_it "SQL: $_seh_sql"
     fi
 
@@ -336,15 +312,15 @@ sql_current_loss() {
     #    sqlite_result - current loss, weigted/average depending on $2 true/false
     #
     # log_it "sql_current_loss() [$1]"
-    _scl_use_weighted="$1"
-    [ -z "$_scl_use_weighted" ] && {
+    _scl_use_reactive="$1"
+    [ -z "$_scl_use_reactive" ] && {
         error_msg "Call to sql_current_loss() without param"
     }
 
-    if normalize_bool_param "$_scl_use_weighted"; then
+    if normalize_bool_param "$_scl_use_reactive"; then
         #
-        #  To give loss a declining history weighting,
-        #  it is displayed as the largest of:
+        # To make loss more sensitive to recent spikes while allowing them to decay,
+        # it is displayed as the largest of:
         #    last value
         #    avg of last 2
         #    avg of last 3
@@ -379,7 +355,7 @@ sql_current_loss() {
     fi
     sqlite_err_handling "$_sck_sql" || {
         log_it "=====   SHOULD NEVER GET HERE!   ====="
-        log_it "sql_current_loss($_scl_use_weighted) [$sqlite_result]"
+        log_it "sql_current_loss($_scl_use_reactive) [$sqlite_result]"
     }
 }
 
@@ -463,8 +439,8 @@ get_defaults() {
     #  how many ping results to keep in the primary table
     default_history_size=6
 
-    #  Use weighted average over averaging all data points
-    default_weighted_average=true
+    # To make loss more sensitive to recent spikes while allowing them to decay
+    default_reactive=true
     #  display ^/v prefix if value is increasing/decreasing
     default_display_trend=false
     default_hist_avg_display=false #  Display long term average
@@ -503,11 +479,33 @@ get_plugin_params() {
         "$default_history_size")"
 
     #
-    #  In order to assign a boolean to a variable this two line approach
-    #  is needed
+    #  2026-06-14
     #
-    normalize_bool_param "@packet-loss-weighted_average" cfg_weighted_average \
-        "$default_weighted_average"
+    #  Compatibility handling for renamed option:
+    #    @packet-loss-weighted_average  ->  @packet-loss-reactive
+    #
+    #  Precedence rules:
+    #    1. If @packet-loss-weighted_average is set, its value is used as the
+    #       default for @packet-loss-reactive (backward compatibility).
+    #    2. If both are set, @packet-loss-reactive takes precedence.
+    #    3. If only @packet-loss-reactive is set, it is used as-is.
+    #
+    #  This ensures:
+    #    - old configs continue working unchanged
+    #    - new configs behave as documented
+    #    - mixed configs prefer the new option
+    #
+    is_tmux_option_defined "@packet-loss-weighted_average" && {
+        normalize_bool_param "@packet-loss-weighted_average" obsolete_param \
+            "$default_reactive"
+
+        # shellcheck disable=SC2154 # obsolete_param defined above via eval
+        default_reactive="$obsolete_param"
+
+        $TMUX_BIN display "@packet-loss-weighted_average is obsolete, use @packet-loss-reactive"
+    }
+    normalize_bool_param "@packet-loss-reactive" cfg_reactive "$default_reactive"
+
     normalize_bool_param "@packet-loss-display_trend" cfg_display_trend \
         "$default_display_trend"
     normalize_bool_param "@packet-loss-hist_avg_display" cfg_hist_avg_display \
@@ -545,7 +543,7 @@ param_cache_write() {
 
     # echo "><> saving params" >>/Users/jaclu/tmp/tmux-packet-loss-t2.log
     #region conf cache file
-    # shellcheck disable=SC2154
+    # shellcheck disable=SC2154 # variables below defined via eval
     cat <<EOF >"$f_param_cache"
 #
 # param cache - This is used to avoid having to poll tmux for config variables
@@ -556,7 +554,7 @@ cfg_ping_host="$cfg_ping_host"
 cfg_ping_count="$cfg_ping_count"
 cfg_history_size="$cfg_history_size"
 
-cfg_weighted_average="$cfg_weighted_average"
+cfg_reactive="$cfg_reactive"
 cfg_display_trend="$cfg_display_trend"
 cfg_hist_avg_display="$cfg_hist_avg_display"
 cfg_run_disconnected="$cfg_run_disconnected"
@@ -632,7 +630,7 @@ get_config() {
         [ -s "$f_param_cache" ] || generate_param_cache
 
         # the SC1091 is needed to pass linting when use_param_cache is off
-        # shellcheck source=data/param_cache disable=SC1091
+        # shellcheck source=data/param-cache disable=SC1091
         . "$f_param_cache"
     else
         get_plugin_params # Use defaults
@@ -782,14 +780,6 @@ prepare_environment() {
     db_restart_log="$d_data"/db-restarted.log
 
     param_cache_written=false
-
-    # shellcheck source=/dev/null
-    # source "$d_scripts"/tmux-plugin-tools.sh
-
-    # Override tmux-plugin-tools log routine to use ours
-    # tpt_log_it() {
-    #     log_it "$@"
-    # }
 
     #
     #  Set to defaults unless overridden (mostly) for debug purposes

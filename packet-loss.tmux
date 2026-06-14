@@ -80,7 +80,6 @@ tpt_log_it() {
 }
 
 tpt_dependency_check "sqlite3" || {
-    # shellcheck disable=SC2154
     do_not_run_create "Failed dependencies: $tpt_missing_dependencies"
     log_it "Aborting plugin init - dependency fail: $tpt_missing_dependencies"
     exit 1

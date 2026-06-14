@@ -119,7 +119,6 @@ tpt_dependency_check() {
 
     tpt_log_it "dependency_check($_dependencies, $2)"
     tpt_define_plugin_env
-    # shellcheck disable=SC2154
     [ "$tpt_debug_mode" = "1" ] && tpt_display_env
 
     if tpt_verify_dependencies "$_dependencies"; then
@@ -416,7 +415,6 @@ tpt_tests() {
     tpt_define_plugin_env
 
     echo "plugin folder detected: $tpt_d_plugin"
-    # shellcheck disable=SC2154
     echo "plugin name detected: $tpt_plugin_name"
     echo
 

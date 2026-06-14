@@ -17,7 +17,6 @@ float_drop_digits() {
 clear_out_old_losses() {
     # log_it clear_out_old_losses()"
 
-    # shellcheck disable=SC2154
     _cool_max_age="$(echo "$cfg_ping_count * $cfg_history_size" | bc)"
     _cool_sql="
         -- Remove old items remaining after a suspend-resume
@@ -58,7 +57,6 @@ define_ping_cmd() {
         esac
     fi
 
-    # shellcheck disable=SC2154
     ping_cmd="$ping_cmd -c $cfg_ping_count $cfg_ping_host"
     [ -f /proc/self/mountinfo ] && {
         # check if this is chrooted
@@ -154,7 +152,6 @@ abort_conditions() {
 
     do_not_run_check # since this is run in a loop repeat the check
 
-    # shellcheck disable=SC2154
     pidfile_is_mine "$pidfile_monitor" || {
         #
         #  A new monitor has started and taken ownership of the pidfile.
@@ -186,7 +183,7 @@ abort_conditions() {
     fi
 
     if [ "$group_exec_permission" != "x" ]; then
-        # shellcheck disable=SC2154
+        # shellcheck disable=SC2154 # cfg_run_disconnected defined via eval in utils.sh
         if pidfile_is_live "$pidfile_tmux"; then
             $cfg_run_disconnected && return 0 # continue to run
 
@@ -227,7 +224,6 @@ do_monitor_loop() {
             break
         }
 
-        # shellcheck disable=SC2154
         [ ! -s "$f_sqlite_db" ] && {
             #
             #  If DB was removed, then a (failed) sql action was attempted
@@ -341,7 +337,6 @@ do_monitor_loop() {
                     && compare_loss_parsers
             }
         else
-            # shellcheck disable=SC2154
             error_msg "sqlite3[$sqlite_exit_code] when adding a loss" -1 false
             err_count=$((err_count + 1))
         fi
@@ -375,7 +370,7 @@ log_prefix="mon"
 #
 #  Include pidfile handling
 #
-# shellcheck source=scripts/pidfile-handler.sh disable=SC2154
+# shellcheck source=scripts/pidfile-handler.sh
 . "$f_pidfile_handler"
 
 # log_it "+++++   Starting script: $(relative_path "$f_current_script"))   +++++"
@@ -389,7 +384,6 @@ no_network=0
 
 kernel_name=$(uname -s)
 
-# shellcheck disable=SC2154
 tmux_socket="$(echo "$TMUX" | cut -d',' -f1)"
 
 # If true, output of pings with issues will be saved
@@ -432,7 +426,6 @@ scr_loss_default="$D_TPL_BASE_PATH"/scripts/ping_parsers/loss_calc_default.sh
 scr_loss_ish_deb10="$D_TPL_BASE_PATH"/scripts/ping_parsers/loss_calc_ish_deb10.sh
 
 #  Ensure DB and all triggers are valid
-# shellcheck disable=SC2154
 $f_prepare_db
 
 define_ping_cmd # we need the ping_cmd in kill_any_strays
@@ -447,7 +440,6 @@ else
     loss_check="$scr_loss_default"
 fi
 log_it "Checking losses using: $(basename "$loss_check")"
-# shellcheck disable=SC2154
 $store_ping_issues && log_it "Will save ping issues in $d_ping_issues"
 
 clear_out_old_losses

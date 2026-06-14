@@ -53,7 +53,6 @@ insert_data() {
     }
 
     sqlite_transaction "INSERT INTO t_loss (loss) VALUES ($percent_loss)" || {
-        # shellcheck disable=SC2154
         error_msg "sqlite3[$sqlite_exit_code] when adding a loss"
     }
     log_it "Injected fake loss: $percent_loss"
@@ -62,7 +61,6 @@ insert_data() {
             error_msg "sqlite3[$sqlite_exit_code] when clearing losses"
         }
         sqlite_transaction "INSERT INTO t_stats (loss) VALUES ($history)" || {
-            # shell check disable=SC2154
             error_msg "sqlite3[$sqlite_exit_code] when adding a loss"
         }
         log_it "Replaced history data"

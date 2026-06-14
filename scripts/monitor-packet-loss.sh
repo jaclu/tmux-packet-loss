@@ -265,7 +265,7 @@ do_monitor_loop() {
                     msg="Failed to parse ping output, unlikely to self correct!"
                     ping_parse_error "$error_unable_to_detect_loss" "$msg"
                 elif ! is_float "$percent_loss"; then
-                    ping_parse_error "$error_invalid_number" "not a float"
+                    ping_parse_error "$error_invalid_number" "[$percent_loss] - not a float"
                 elif [ "$(echo "$percent_loss < 0.0 || $percent_loss > 100.0" \
                     | bc -l)" -eq 1 ]; then
 

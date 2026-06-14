@@ -63,7 +63,7 @@ insert_data() {
         sqlite_transaction "INSERT INTO t_stats (loss) VALUES ($history)" || {
             error_msg "sqlite3[$sqlite_exit_code] when adding a loss"
         }
-        log_it "Replaced history data"
+        log_it "Replaced history data with: $history"
     }
 }
 
@@ -96,7 +96,7 @@ history="${2:-0}"
 
 [ -n "$percent_loss" ] || tst_error "No loss param"
 is_float "$percent_loss" || tst_error "param 1 [$percent_loss] - not a float"
-is_float "$history" || tst_error "param 2 not a float"
+is_float "$history" || tst_error "param 2 [$history] - not a float"
 
 [ -f "$pidfile_monitor" ] && {
     log_it "Shutting down monitor"

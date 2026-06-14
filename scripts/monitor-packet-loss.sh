@@ -351,8 +351,6 @@ do_monitor_loop() {
             # notification of no network
             sleep "$cfg_ping_count"
         }
-
-        # log_it "><> main loop has completed"
     done
 }
 

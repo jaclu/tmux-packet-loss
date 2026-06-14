@@ -291,7 +291,6 @@ random_sleep() {
     # Calculate the sleep time with two decimal places
     _rs_sleep_time=$(printf "%.2f" "$(echo "scale=2; $_rs_random_integer / 100" | bc)")
 
-    # _pf_log "><> Sleeping for $_rs_sleep_time seconds"
     sleep "$_rs_sleep_time"
 }
 

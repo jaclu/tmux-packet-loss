@@ -115,7 +115,6 @@ is_bool() {
 
 is_float() {
     _if_input=$1
-    # log_it "><> is_float($_if_input)"
 
     if awk -v val="$_if_input" '
         BEGIN {
@@ -466,10 +465,9 @@ get_plugin_params() {
     #  Variables provided:
     #    cfg_  variables
     #
+    # log_it "get_plugin_params()"
 
     get_defaults
-
-    # log_it "get_plugin_params()"
 
     cfg_ping_host="$(get_tmux_option "@packet-loss-ping_host" \
         "$default_ping_host")"
@@ -541,8 +539,6 @@ param_cache_write() {
     }
     [ -d "$d_data" ] || mkdir -p "$d_data"
 
-    # echo "><> saving params" >>/Users/jaclu/tmp/tmux-packet-loss-t2.log
-    #region conf cache file
     # shellcheck disable=SC2154 # variables below defined via eval
     cat <<EOF >"$f_param_cache"
 #

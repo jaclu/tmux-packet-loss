@@ -52,7 +52,6 @@ _tpt_release="2025-02-01 v5"
 # Checks if the running tmux version is at least the specified version.
 tmux_vers_ok() {
     _v_comp="$1" # Desired minimum version to check against
-    # echo "><> tmux_vers_ok($_v_comp)" >/dev/stderr
 
     # Retrieve and cache the current tmux version on the first call
     [ -z "$tpt_current_vers" ] && tpt_retrieve_running_tmux_vers
@@ -302,7 +301,7 @@ tpt_log_it() {
     # }
 
     [ "$tpt_debug_mode" = "1" ] && {
-        echo "><> $1" >/dev/stderr
+        echo "[tpt log] $1" >/dev/stderr
     }
 }
 
@@ -395,7 +394,6 @@ tpt_parse_cmd_line() {
 
 tpt_test_version() {
     v_test="$1"
-    # echo "><> tmux_vers_ok($v_test)" >/dev/stderr
 
     if tmux_vers_ok "$v_test"; then
         printf '%s\ton %s\t- is ok\n' "$v_test" "$tpt_current_vers"
@@ -406,8 +404,6 @@ tpt_test_version() {
 
 tpt_test_dependency() {
     dependency="$1"
-
-    # echo "><> tpt_test_dependency($dependency)"
     tpt_dependency_check "$dependency" && echo "Dependencies verified: $dependency"
 }
 

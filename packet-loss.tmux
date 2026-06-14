@@ -34,7 +34,6 @@ do_interpolation() {
 set_tmux_option() {
     _sto_option="$1"
     _sto_value="$2"
-    # log_it "><> set_tmux_option($_sto_option,$_sto_value)"
 
     [ -z "$_sto_option" ] && {
         error_msg "set_tmux_option() param 1 empty!"
@@ -48,8 +47,6 @@ set_tmux_option() {
 
 update_tmux_option() {
     _uto_option="$1"
-    # log_it "><> update_tmux_option($_uto_option)"
-
     _uto_value="$(get_tmux_option "$_uto_option")"
     _uto_new_value="$(do_interpolation "$_uto_value")"
     set_tmux_option "$_uto_option" "$_uto_new_value"

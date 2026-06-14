@@ -30,17 +30,26 @@ log_it() {
         return
     }
 
-    #  needs leading space for compactness in the printf if empty
-    _li_socket=" $(get_tmux_socket)"
-    #  only show socket name if not default
-    # [ "$_li_socket" = " default" ] && _li_socket=""
+    # to include time use: $(date '%F %T')
+    _li_prefix="$(date +'%F %T') [$$] $log_prefix"
 
-    #
-    #  In order to not have date on every line, date is just printed
-    #  once/day in the end of monitor_packet_loss.sh
-    #
-    printf "%s%s %s %s %s\n" "$(date +'%F %T')" "$_li_socket" "$$" \
-        "$log_prefix" "$@" >>"$cfg_log_file"
+    # # old main printd
+    # printf "%s%s %s %s %s\n" "$(date +'%F %T')" "$_li_socket" "$$" \
+    #     "$log_prefix" "$@" >>"$cfg_log_file"
+
+    # printf "%s%s %s %s $@\n" "$_li_prefix"(date +'%T')" "$_li_socket" "$$" \
+    #     "$log_prefix" >>"$cfg_log_file" 2>/dev/null || {
+
+    printf '%s %s\n' "$_li_prefix" "$@" >>"$cfg_log_file" 2>/dev/null
+
+    # # shellcheck disable=SC2059,SC2145 # allow formatting like LF in msg
+    # printf "$_li_prefix $@\n" >>"$cfg_log_file" 2>/dev/null || {
+    #     pf1_ex="$?"
+    #     printf '\n\nIssue with first printf [%s]\n' "$pf1_ex" >>"$cfg_log_file" 2>/dev/null
+    #     # $@ probably contained a printf invalid char, try it the safe way
+    #     # ignoring \n etc in params
+    #     printf "%s %s\n" "$_li_prefix" "$@" >>"$cfg_log_file" 2>/dev/null
+    # }
 }
 
 error_msg() {
@@ -64,7 +73,7 @@ error_msg() {
         err_display="\nplugin: $plugin_name:$current_script [$$] - ERROR:\n\n"
         err_display="${err_display}${_em_msg}\n\nPress ESC to close this display"
         if [ -n "$TMUX" ]; then
-            $_em_do_display_message && $TMUX_BIN run-shell "printf '$err_display'"
+            $_em_do_display_message && $TMUX_BIN run-shell "printf \"$err_display\""
         else
             # shellcheck disable=SC2059
             printf "$err_display" >/dev/stderr
@@ -77,14 +86,15 @@ save_ping_issue() {
     #
     #  Save a ping output for later inspection
     #
-    log_it "save_ping_issue()"
     _spi_ping_output="$1"
 
-    [ -d "$d_data" ] || mkdir -p "$d_data"
+    [ -d "$d_ping_issues" ] || mkdir -p "$d_ping_issues"
     _spi_iso_datetime=$(date +'%Y-%m-%d_%H:%M:%S')
     _spi_f_ping_issue="$d_ping_issues/$_spi_iso_datetime"
     log_it "Saving ping issue at: $_spi_f_ping_issue"
-    echo "$_spi_ping_output" >"$_spi_f_ping_issue"
+    echo "$_spi_ping_output" >"$_spi_f_ping_issue" || {
+        error_msg "Failed to save ping issue"
+    }
 }
 
 do_not_run_create() {
@@ -96,46 +106,43 @@ do_not_run_create() {
     log_it "Do-not-run condition activated: $_dnrc_reason"
 }
 
-do_not_run_clear() {
-    # Clear state
-    rm -f "$f_do_not_run"
+do_not_run_check() {
+    # Aborts with reason if f_do_not_run is present
+    [ -f "$f_do_not_run" ] && {
+        _msg="ERROR: plugin is in a do_not_run state:"
+        echo "$_msg"
+        log_it "$_msg"
+        cat "$f_do_not_run"
+        exit 1
+    }
 }
 
-do_not_run_active() {
-    # Returns true if the tools in this plugin should not be used
-    [ -f "$f_do_not_run" ] && return 0 # init failed to complete
-    return 1
-}
 #---------------------------------------------------------------
 #
 #   Datatype handling
 #
 #---------------------------------------------------------------
 
-is_int() {
-    case $1 in
-        '' | *[!0-9]*) return 1 ;; # Contains non-numeric characters
-        *) return 0 ;;             # Contains only digits
+is_bool() {
+    case "$1" in
+        true | false) return 0 ;;
+        *) ;;
     esac
+    return 1
 }
 
 is_float() {
     _if_input=$1
-    _if_strict_check=${2:-}
-    # log_it "><> is_float($_if_input,$_if_strict_check)"
+    # log_it "><> is_float($_if_input)"
 
-    if [ -n "$_if_strict_check" ]; then
-        # Strict: must have decimal part, optional exponent
-        awk_pattern='^[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?$'
-    else
-        # Loose: allows integers, floats, optional exponent
-        awk_pattern='^[-+]?[0-9]+(\.[0-9]*)?([eE][-+]?[0-9]+)?$|^[-+]?\.[0-9]+([eE][-+]?[0-9]+)?$'
-    fi
+    if awk -v val="$_if_input" '
+        BEGIN {
+            pat="^[-+]?[0-9]+(\\.[0-9]*)?([eE][-+]?[0-9]+)?$|^[-+]?\\.[0-9]+([eE][-+]?[0-9]+)?$"
+            exit !(val ~ pat)
+        }'; then
 
-    if awk -v val="$_if_input" -v pat="$awk_pattern" 'BEGIN { exit !(val ~ pat) }'; then
         return 0
     fi
-
     return 1
 }
 
@@ -143,25 +150,80 @@ lowercase_it() {
     echo "$1" | tr '[:upper:]' '[:lower:]'
 }
 
-posix_get_char() {
+normalize_bool_param() {
     #
-    #  Configure terminal to read a single character without echoing,
-    #  restoring the terminal and returning the char
+    #  If _nbp_param starts with "@", assume it is tmux variable name, thus
+    #  read its value from the tmux environment.
+    #  In this case $3 must be given as the default value!
     #
-    _pgc_old_stty_cfg=$(stty -g)
-    stty raw -echo
-    dd bs=1 count=1 2>/dev/null
-    stty "$_pgc_old_stty_cfg"
+    # log_it "normalize_bool_param() [$1] [$2] [$3]"
+    _nbp_param="$1"
+    _nbp_var_name="$2"
+    _nbp_tmux_default="$3"
+
+    [ "${_nbp_param%"${_nbp_param#?}"}" = "@" ] && {
+        # log_it "normalize_bool_param($_nbp_param) - is tmux variable"
+        #
+        #  If it starts with "@", assume it is tmux variable name, thus
+        #  read its value from the tmux environment.
+        #  In this case $2 must be given as the default value!
+        #
+        [ -z "$_nbp_tmux_default" ] && {
+            error_msg "normalize_bool_param($_nbp_param) - no default"
+        }
+        # replace with actual value
+        _nbp_param=$(get_tmux_option "$_nbp_param" "$_nbp_tmux_default")
+    }
+
+    case $(lowercase_it "$_nbp_param") in
+        #
+        #  First handle the unfortunate tradition by tmux to use
+        #  1 to indicate selected / active.
+        #  This means 1 is 0 and 0 is 1, how Orwellian...
+        #
+        1 | yes | true)
+            #  Be a nice guy and accept some common positive notations
+            _nbp_result=true
+            _nbp_return=0
+            ;;
+
+        0 | no | false)
+            #  Be a nice guy and accept some common false notations
+            _nbp_result=false
+            _nbp_return=1
+            ;;
+
+        *)
+            if [ -n "$_nbp_var_name" ]; then
+                _nbp_prefix="$_nbp_var_name=$_nbp_param"
+            else
+                _nbp_prefix="$_nbp_param"
+            fi
+            _nbp_msg="normalize_bool_param($_nbp_param) \n"
+            _nbp_msg="${_nbp_msg}${_nbp_prefix} - should be yes/true/1 or no/false/0\n"
+            _nbp_msg="${_nbp_msg}was: $_nbp_result"
+            error_msg "$_nbp_msg"
+            ;;
+
+    esac
+
+    [ -n "$_nbp_var_name" ] && {
+        # if variable name provided set it to _nbp_result
+        eval "$_nbp_var_name=\"\$_nbp_result\""
+    }
+
+    # Should never get here...
+    return "$_nbp_return"
 }
 
 db_seems_inactive() {
     #
     #  New records should normally be written to the DB every cfg_ping_count
     #  seconds. If it hasn't happened, it can be assumed that the monitor
-    #  is no longer oprtating normally.
+    #  is no longer opertating normally.
     #  To allow for disabling the monitor shorter periods for example
     #  when using scripts/test_data.sh, wait a couple of minutes before
-    #  restart.
+    #  restart (db_max_age_mins).
     #
     # log_it "db_seems_inactive()"
     [ -f "$f_sqlite_db" ] || return 0 # db not available
@@ -176,77 +238,71 @@ db_seems_inactive() {
 
 sqlite_err_handling() {
     #
-    #  If SQLITE_BUSY is detected, two more attempt is done after a sleep
-    #  other error handling should be done by the caller
+    #  param 1 is SQL statement
+    #  param 2 is exit on error - defaults to true
     #
     #  Loggs sqlite errors to $f_sqlite_error
     #
     #  Variables provided:
     #    sqlite_result    - Output from query
     #    sqlite_exit_code - exit code for latest sqlite3 action
-    #                       if called as a function
-    #
+    #                       if _seh_exit_on_error is false
+
+    # log_it "sqlite_err_handling() [$1] [$2]"
+
     _seh_sql="$1"
-    _seh_recursion="${2:-1}"
-
-    # log_it "sqlite_err_handling()"
-
+    _seh_exit_on_error="${2:-yes}"
     if $log_sql; then # set to true to log sql queries
         # this does some filtering to give a sanitized query
-        sql_filtered="$(echo "$_seh_sql" \
-            | sed 's/BEGIN TRANSACTION; -- Start the transaction//' \
-            | tr -d '\n' | tr -s ' ' | sed 's/^ //' | sed 's/ ;/;/g' \
-            | sed 's/; /;/g' | cut -c 1-160)"
-        log_it "SQL:$sql_filtered"
+        # sql_filtered="$(echo "$_seh_sql" \
+        #     | sed 's/BEGIN TRANSACTION; -- Start the transaction//' \
+        #     | tr -d '\n' | tr -s ' ' | sed 's/^ //' | sed 's/ ;/;/g' \
+        #     | sed 's/; /;/g' | cut -c 1-160)"
+        # log_it "SQL: $sql_filtered"
+        log_it "SQL: $_seh_sql"
     fi
 
-    is_int "$_seh_recursion" || {
-        error_msg \
-            "sqlite_err_handling(): recursion param not int [$_seh_recursion]"
-    }
+    if normalize_bool_param "$_seh_exit_on_error"; then
+        _seh_error_exit=1
+        _seh_display_error=false
+    else
+        _seh_error_exit=-1
+        _seh_display_error=true
+    fi
 
-    # shellcheck disable=SC2086 # sql_timeout should be expanded
-    sqlite_result="$(sqlite3 \
-        -cmd '.timeout 3000' \
-        "$f_sqlite_db" \
-        "$_seh_sql" 2>"$f_sqlite_error")"
-    sqlite_exit_code=$?
+    if [ "$cfg_sql_timeout" -gt 0 ]; then
+        # log_it "sqlite .timeout: $cfg_sql_timeout"
+        sqlite_result="$(
+            sqlite3 \
+                -cmd ".timeout $cfg_sql_timeout" \
+                "$f_sqlite_db" \
+                "$_seh_sql" \
+                2>"$f_sqlite_error"
+        )"
+        sqlite_exit_code=$?
+    else
+        sqlite_result="$(sqlite3 "$f_sqlite_db" "$_seh_sql" 2>"$f_sqlite_error")"
+        sqlite_exit_code=$?
+    fi
 
     case "$sqlite_exit_code" in
         0) ;; # no error
-        5 | 141)
-            #
-            # 5 SQLITE_BUSY - obvious candidate for a few retries
-            # 141   is an odd one, I have gotten it a couple of times on iSH.
-            #       GPT didn't give any suggestion. Either way allowing it to
-            #       try a few times solved the issue.
-            #
-            if [ "$_seh_recursion" -gt 2 ]; then
-                log_it "attempt $_seh_recursion sqlite error:$sqlite_exit_code - giving up SQL: $_seh_sql"
-            else
-                random_sleep 2 # give compeeting task some time to complete
-                _seh_recursion=$((_seh_recursion + 1))
-
-                log_it "WARNING: sqlite error:$sqlite_exit_code  attempt: $_seh_recursion"
-                sqlite_err_handling "$_seh_sql" "$_seh_recursion"
-            fi
-            ;;
         *)
-            #  log error but leave handling error up to caller
-            err_msg="sqlite_err_handling()\n$_seh_sql\nerror code: $sqlite_exit_code\n"
-            err_msg="${err_msg}error msg:  $(cat "$f_sqlite_error")"
-            error_msg "$err_msg" -1
-
             [ ! -s "$f_sqlite_db" ] && [ -f "$f_sqlite_db" ] && {
                 #
                 #  If DB was removed, then a sql action would fail but lead
                 #  to an empty DB. By removing such, next call to
-                #  display_losses will recreate it and restart monitoring
+                #  display-losses will recreate it and restart monitoring
                 #
                 rm -f "$f_monitor_suspended_no_clients"
                 rm -f "$f_sqlite_db"
-                error_msg "Removing empty DB, terminating monitor" 1 false
+                error_msg "Removing empty DB, terminating monitor" \
+                    "$_seh_error_exit" false
             }
+            err_msg="sqlite_err_handling()  - error code: $sqlite_exit_code\n"
+            err_msg="${err_msg}  $(cat "$f_sqlite_error")\n"
+            # err_msg="${err_msg}  SQL:\n$_seh_sql"
+            error_msg "$err_msg" "$_seh_error_exit" "$_seh_display_error"
             ;;
     esac
 
@@ -255,16 +311,16 @@ sqlite_err_handling() {
 }
 
 sqlite_transaction() {
+    # log_it "sqlite_transaction() [$1] [$2]"
+
     _st_sql_original="$1"
+    _st_exit_on_error="${2:-yes}"
 
     _st_sql="
         BEGIN TRANSACTION; -- Start the transaction
-
         $_st_sql_original ;
-
-        COMMIT; -- Commit the transaction
-        "
-    sqlite_err_handling "$_st_sql"
+        COMMIT; -- Commit the transaction"
+    sqlite_err_handling "$_st_sql" "$(normalize_bool_param "$_st_exit_on_error")"
 
     #
     #  this will exit true if $sqlite_err_handling is 0
@@ -277,15 +333,15 @@ sqlite_transaction() {
 sql_current_loss() {
     #
     #  Exported variables
-    #    sql - the sql to get a weighted / average loss rate
+    #    sqlite_result - current loss, weigted/average depending on $2 true/false
     #
+    # log_it "sql_current_loss() [$1]"
     _scl_use_weighted="$1"
-
     [ -z "$_scl_use_weighted" ] && {
         error_msg "Call to sql_current_loss() without param"
     }
 
-    if $_scl_use_weighted; then
+    if normalize_bool_param "$_scl_use_weighted"; then
         #
         #  To give loss a declining history weighting,
         #  it is displayed as the largest of:
@@ -295,7 +351,7 @@ sql_current_loss() {
         #    avg of last 4
         #    ...
         #
-        sql="SELECT max(
+        _sck_sql="SELECT max(
         (SELECT loss FROM t_loss ORDER BY ROWID DESC limit 1      ),
 
         (SELECT avg(loss) FROM(
@@ -319,8 +375,12 @@ sql_current_loss() {
         (SELECT avg(loss) FROM t_loss)
         )"
     else
-        sql="SELECT avg(loss) FROM t_loss"
+        _sck_sql="SELECT avg(loss) FROM t_loss"
     fi
+    sqlite_err_handling "$_sck_sql" || {
+        log_it "=====   SHOULD NEVER GET HERE!   ====="
+        log_it "sql_current_loss($_scl_use_weighted) [$sqlite_result]"
+    }
 }
 
 #---------------------------------------------------------------
@@ -374,81 +434,9 @@ get_tmux_option() {
     echo "$_gto_value"
 }
 
-normalize_bool_param() {
-    #
-    #  Take a boolean style text param and convert it into an actual
-    #  boolean that can be used in your code. Example of usage:
-    #
-    #  normalize_bool_param "@menus_without_prefix" "$default_no_prefix" &&
-    #      cfg_no_prefix=true || cfg_no_prefix=false
-    #
-    _nbp_param="$1"
-
-    _nbp_var_name=""
-    # log_it "normalize_bool_param($_nbp_param, $2)"
-
-    [ "${_nbp_param%"${_nbp_param#?}"}" = "@" ] && {
-        #
-        #  If it starts with "@", assume it is tmux variable name, thus
-        #  read its value from the tmux environment.
-        #  In this case $2 must be given as the default value!
-        #
-        [ -z "$2" ] && {
-            error_msg "normalize_bool_param($_nbp_param) - no default"
-        }
-        _nbp_var_name="$_nbp_param"
-        _nbp_param="$(get_tmux_option "$_nbp_param" "$2")"
-    }
-
-    _nbp_param="$(lowercase_it "$_nbp_param")"
-    case "$_nbp_param" in
-        #
-        #  First handle the unfortunate tradition by tmux to use
-        #  1 to indicate selected / active.
-        #  This means 1 is 0 and 0 is 1, how Orwellian...
-        #
-        1 | yes | true)
-            #  Be a nice guy and accept some common positive notations
-            return 0
-            ;;
-
-        0 | no | false)
-            #  Be a nice guy and accept some common false notations
-            return 1
-            ;;
-
-        *)
-            if [ -n "$_nbp_var_name" ]; then
-                _nbp_prefix="$_nbp_var_name=$_nbp_param"
-            else
-                _nbp_prefix="$_nbp_param"
-            fi
-            _nbp_msg="normalize_bool_param($_nbp_param) \n"
-            _nbp_msg="${_nbp_msg}${_nbp_prefix} - should be yes/true or no/false"
-            error_msg "$_nbp_msg"
-            ;;
-
-    esac
-
-    # Should never get here...
-    return 2
-}
-
-get_tmux_socket() {
-    #
-    #  returns name of tmux socket being used
-    #
-    if [ -n "$TMUX" ]; then
-        echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
-    else
-        echo "standalone"
-    fi
-}
-
 get_tmux_pid() {
     tmux_pid=$(echo "$TMUX" | cut -d',' -f 2)
-    [ -z "$tmux_pid" ] && error_msg \
-        "Failed to extract pid for tmux process!"
+    [ -z "$tmux_pid" ] && error_msg "Failed to extract pid for tmux process!"
     # log_it "get_tmux_pid() - found $tmux_pid"
     echo "$tmux_pid"
 }
@@ -458,53 +446,6 @@ get_tmux_pid() {
 #   param cache handling
 #
 #---------------------------------------------------------------
-
-param_cache_write() {
-    log_it "param_cache_write()"
-    $use_param_cache || {
-        log_it "param_cache_write() - aborted, not using param_cache"
-        return
-    }
-    [ -d "$d_data" ] || mkdir -p "$d_data"
-
-    # echo "><> saving params" >>/Users/jaclu/tmp/tmux-packet-loss-t2.log
-    #region conf cache file
-    cat <<EOF >"$f_param_cache"
-    #
-    # param cache, should always be removed on startup when
-    # packet-loss.tmux is run
-    #
-    cfg_ping_host="$cfg_ping_host"
-    cfg_ping_count="$cfg_ping_count"
-    cfg_history_size="$cfg_history_size"
-
-    cfg_weighted_average="$cfg_weighted_average"
-    cfg_display_trend="$cfg_display_trend"
-    cfg_hist_avg_display="$cfg_hist_avg_display"
-    cfg_run_disconnected="$cfg_run_disconnected"
-
-    cfg_level_disp="$cfg_level_disp"
-    cfg_level_alert="$cfg_level_alert"
-    cfg_level_crit="$cfg_level_crit"
-
-    cfg_hist_avg_minutes="$cfg_hist_avg_minutes"
-    cfg_hist_separator="$cfg_hist_separator"
-
-    cfg_color_alert="$cfg_color_alert"
-    cfg_color_crit="$cfg_color_crit"
-    cfg_color_bg="$cfg_color_bg"
-
-    cfg_prefix="$cfg_prefix"
-    cfg_suffix="$cfg_suffix"
-
-    cfg_log_file="$cfg_log_file"
-EOF
-    #endregion
-
-    #  Ensure param cache is current
-    param_cache_written=true
-
-}
 
 get_defaults() {
     #
@@ -542,7 +483,6 @@ get_defaults() {
 
     default_prefix='|'
     default_suffix='|'
-
 }
 
 get_plugin_params() {
@@ -566,33 +506,26 @@ get_plugin_params() {
     #  In order to assign a boolean to a variable this two line approach
     #  is needed
     #
-    normalize_bool_param "@packet-loss-weighted_average" "$default_weighted_average" \
-        && cfg_weighted_average=true || cfg_weighted_average=false
-    normalize_bool_param "@packet-loss-display_trend" "$default_display_trend" \
-        && cfg_display_trend=true || cfg_display_trend=false
-    normalize_bool_param "@packet-loss-hist_avg_display" "$default_hist_avg_display" \
-        && cfg_hist_avg_display=true || cfg_hist_avg_display=false
-    normalize_bool_param "@packet-loss-run_disconnected" "$default_run_disconnected" \
-        && cfg_run_disconnected=true || cfg_run_disconnected=false
-
-    cfg_level_disp="$(get_tmux_option "@packet-loss-level_disp" \
-        "$default_level_disp")"
-    cfg_level_alert="$(get_tmux_option "@packet-loss-level_alert" \
-        "$default_level_alert")"
-    cfg_level_crit="$(get_tmux_option "@packet-loss-level_crit" \
-        "$default_level_crit")"
+    normalize_bool_param "@packet-loss-weighted_average" cfg_weighted_average \
+        "$default_weighted_average"
+    normalize_bool_param "@packet-loss-display_trend" cfg_display_trend \
+        "$default_display_trend"
+    normalize_bool_param "@packet-loss-hist_avg_display" cfg_hist_avg_display \
+        "$default_hist_avg_display"
+    normalize_bool_param "@packet-loss-run_disconnected" cfg_run_disconnected \
+        "$default_run_disconnected"
+    cfg_level_disp="$(get_tmux_option "@packet-loss-level_disp" "$default_level_disp")"
+    cfg_level_alert="$(get_tmux_option "@packet-loss-level_alert" "$default_level_alert")"
+    cfg_level_crit="$(get_tmux_option "@packet-loss-level_crit" "$default_level_crit")"
 
     cfg_hist_avg_minutes="$(get_tmux_option \
         "@packet-loss-hist_avg_minutes" "$default_hist_avg_minutes")"
     cfg_hist_separator="$(get_tmux_option \
         "@packet-loss-hist_separator" "$default_hist_separator")"
 
-    cfg_color_alert="$(get_tmux_option "@packet-loss-color_alert" \
-        "$default_color_alert")"
-    cfg_color_crit="$(get_tmux_option "@packet-loss-color_crit" \
-        "$default_color_crit")"
-    cfg_color_bg="$(get_tmux_option "@packet-loss-color_bg" \
-        "$default_color_bg")"
+    cfg_color_alert="$(get_tmux_option "@packet-loss-color_alert" "$default_color_alert")"
+    cfg_color_crit="$(get_tmux_option "@packet-loss-color_crit" "$default_color_crit")"
+    cfg_color_bg="$(get_tmux_option "@packet-loss-color_bg" "$default_color_bg")"
 
     cfg_prefix="$(get_tmux_option "@packet-loss-prefix" "$default_prefix")"
     cfg_suffix="$(get_tmux_option "@packet-loss-suffix" "$default_suffix")"
@@ -600,6 +533,62 @@ get_plugin_params() {
     [ -z "$cfg_log_file" ] && {
         cfg_log_file="$(get_tmux_option "@packet-loss-log_file" "")"
     }
+}
+
+param_cache_write() {
+    log_it "param_cache_write()"
+    $use_param_cache || {
+        log_it "param_cache_write() - aborted, not using param_cache"
+        return
+    }
+    [ -d "$d_data" ] || mkdir -p "$d_data"
+
+    # echo "><> saving params" >>/Users/jaclu/tmp/tmux-packet-loss-t2.log
+    #region conf cache file
+    # shellcheck disable=SC2154
+    cat <<EOF >"$f_param_cache"
+#
+# param cache - This is used to avoid having to poll tmux for config variables
+# each time any script in this plugin is run.
+# If removed, it will automatically be re-created, by polling from tmux
+#
+cfg_ping_host="$cfg_ping_host"
+cfg_ping_count="$cfg_ping_count"
+cfg_history_size="$cfg_history_size"
+
+cfg_weighted_average="$cfg_weighted_average"
+cfg_display_trend="$cfg_display_trend"
+cfg_hist_avg_display="$cfg_hist_avg_display"
+cfg_run_disconnected="$cfg_run_disconnected"
+
+cfg_level_disp="$cfg_level_disp"
+cfg_level_alert="$cfg_level_alert"
+cfg_level_crit="$cfg_level_crit"
+
+cfg_hist_avg_minutes="$cfg_hist_avg_minutes"
+cfg_hist_separator="$cfg_hist_separator"
+
+cfg_color_alert="$cfg_color_alert"
+cfg_color_crit="$cfg_color_crit"
+cfg_color_bg="$cfg_color_bg"
+
+cfg_prefix="$cfg_prefix"
+cfg_suffix="$cfg_suffix"
+
+cfg_log_file="$cfg_log_file"
+
+#
+# Not derived from tmux variables, if .sql-timeout is found in the repo top folder,
+# this overrides the default timeout value. If set to 0 no timeout is used.
+#
+cfg_sql_timeout="$cfg_sql_timeout"
+
+EOF
+    #endregion
+
+    #  Ensure param cache is current
+    param_cache_written=true
+
 }
 
 generate_param_cache() {
@@ -614,7 +603,12 @@ generate_param_cache() {
     # log_it "generate_param_cache()"
 
     get_plugin_params
+    f_sql_timeout="$D_TPL_BASE_PATH"/.sql-timeout
+    [ -f "$f_sql_timeout" ] && cfg_sql_timeout=$(cat "$f_sql_timeout")
     param_cache_write
+
+    # Stop monitor if active, ensuring any temporary cache changes are no longer used.
+    rm -f "$pidfile_monitor" || err_msg "Failed to remove: $pidfile_monitor"
 }
 
 get_config() {
@@ -641,7 +635,7 @@ get_config() {
         # shellcheck source=data/param_cache disable=SC1091
         . "$f_param_cache"
     else
-        get_plugin_params
+        get_plugin_params # Use defaults
     fi
 
     $skip_logging && unset cfg_log_file
@@ -649,7 +643,7 @@ get_config() {
     $b_d_data_missing && {
         [ -d "$d_data" ] || mkdir -p "$d_data"
         log_it "data/ was missing"
-        get_tmux_pid >"$pidfile_tmux" # helper for show_settings.sh
+        get_tmux_pid >"$pidfile_tmux" # helper for show-settings.sh
 
         #
         #  If data dir was removed whilst a monitor was running,
@@ -657,7 +651,7 @@ get_config() {
         #  the running monitor can't be killed via pidfile.
         #  Do it manually.
         #
-        _gc_stray_monitors="$(pgrep -f "$scr_monitor")"
+        _gc_stray_monitors="$(pgrep -f "$f_monitor")"
         [ -n "$_gc_stray_monitors" ] && {
             echo "$_gc_stray_monitors" | xargs kill
             log_it "Manually killed stray monitors[$_gc_stray_monitors]"
@@ -682,48 +676,6 @@ relative_path() {
     echo "$1" | sed "s|^$D_TPL_BASE_PATH/||"
 }
 
-random_sleep() {
-    #
-    #  Function to generate a random sleep time with improved randomness
-    #
-    #  When multiple processes start at the same time using something like
-    #    sleep $((RANDOM % 4 + 1))
-    #  it tends to leave them sleeping for the same amount of seconds
-    #
-    # Parameters:
-    #   $1: _rs_max_sleep - maximum seconds of sleep, can be fractional
-    #   $2: _rs_min_sleep - min seconds of sleep, default: 0.5
-    #
-    # Example usage:
-    #   # Sleep for a random duration between 0.5 and 5 seconds
-    #   random_sleep 5
-    #
-    _rs_max_sleep="$1"
-    _rs_min_sleep="${2:-0.5}"
-    _rs_pid=$$
-
-    _pf_log "random_sleep($_rs_max_sleep, $_rs_min_sleep)"
-
-    # multiply ny hundred, round to int
-    _rs_min_sleep=$(printf "%.0f" "$(echo "$_rs_min_sleep * 100" | bc)")
-    _rs_max_sleep=$(printf "%.0f" "$(echo "$_rs_max_sleep * 100" | bc)")
-
-    # Generate random numbers
-    _rs_rand_from_random=$(hexdump -n 2 -e '/2 "%u\n"' /dev/urandom | awk '{print $1 % 100}')
-    _rs_rand_from_urandom=$(od -An -N2 -i /dev/urandom | awk '{print $1}')
-
-    # Calculate random number between _rs_min_sleep and _rs_max_sleep with two decimal places
-    _rs_range_size=$((_rs_max_sleep - _rs_min_sleep + 1))
-    _rs_sum=$((_rs_rand_from_random + _rs_rand_from_urandom + _rs_pid))
-    _rs_random_integer=$((_rs_sum % _rs_range_size + _rs_min_sleep))
-
-    # Calculate the sleep time with two decimal places
-    _rs_sleep_time=$(printf "%.2f" "$(echo "scale=2; $_rs_random_integer / 100" | bc)")
-
-    # log_it "><> Sleeping for $_rs_sleep_time seconds"
-    sleep "$_rs_sleep_time"
-}
-
 prepare_environment() {
     #
     #  For actions in utils _pe_log_prefix gets an u- prefix
@@ -738,13 +690,6 @@ prepare_environment() {
     [ -z "$D_TPL_BASE_PATH" ] && {
         echo
         echo "ERROR: $plugin_name D_TPL_BASE_PATH is not defined!"
-        echo
-        exit 1
-    }
-    #  check one item to verify D_TPL_BASE_PATH
-    [ -f "$D_TPL_BASE_PATH"/scripts/monitor_packet_loss.sh ] || {
-        echo
-        echo "ERROR: $plugin_name D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"
         echo
         exit 1
     }
@@ -769,7 +714,7 @@ prepare_environment() {
     #
     log_sql=false
 
-    # log_indent=1 # check pidfile_handler.sh to see how this is used
+    # log_indent=1 # check pidfile-handler.sh to see how this is used
 
     #
     #  I use an env var TMUX_BIN to point at the current tmux, defined in my
@@ -785,46 +730,56 @@ prepare_environment() {
     #  Convert script name to full actual path notation the path is used
     #  for caching, so save it to a variable as well
     #
-    current_script="$(basename "$0")" # name without path
+
+    current_script="${0##*/}" # same but faster than "$(basename "$0")"
+
     d_current_script="$(dirname -- "$(realpath -- "$0")")"
     f_current_script="$d_current_script/$current_script"
 
     d_scripts="$D_TPL_BASE_PATH"/scripts
     d_data="$D_TPL_BASE_PATH"/data # location for all runtime data
-    d_ping_issues="$d_data"/ping_issues
+    d_ping_issues="$d_data"/ping-issues
 
     #
     #  Shortands for some scripts that are called in various places
     #
-    scr_prepare_db="$d_scripts"/prepare_db.sh
-    scr_ctrl_monitor="$d_scripts"/ctrl_monitor.sh
-    scr_display_losses="$d_scripts"/display_losses.sh
-    scr_monitor="$d_scripts"/monitor_packet_loss.sh
-    scr_pidfile_handler="$d_scripts"/pidfile_handler.sh
+    f_prepare_db="$d_scripts"/prepare-db.sh
+    f_ctrl_monitor="$d_scripts"/ctrl-monitor.sh
+    f_display_losses="$d_scripts"/display-losses.sh
+    f_monitor="$d_scripts"/monitor-packet-loss.sh
+    f_pidfile_handler="$d_scripts"/pidfile-handler.sh
+
+    #  check one item that should be there, to verify D_TPL_BASE_PATH
+    [ -f "$f_monitor" ] || {
+        echo
+        echo "ERROR: $plugin_name D_TPL_BASE_PATH seems invalid: [$D_TPL_BASE_PATH]"
+        echo
+        exit 1
+    }
 
     #
     #  These files are assumed to be in the directory data
     #
-    f_log_date="$d_data"/log_date
-    f_param_cache="$d_data"/param_cache
-    f_previous_loss="$d_data"/previous_loss
-    f_sqlite_error="$d_data"/sqlite.err
-    f_monitor_suspended_no_clients="$d_data"/no_clients
-    f_sqlite_db="$d_data"/packet_loss.sqlite
-    f_do_not_run="$d_data"/do_not_run
+    f_param_cache="$d_data"/param-cache      # to reduce overhead tmux params are only read once
+    f_do_not_run="$d_data"/do-not-run        # dependency or other issue making plugin unusable
+    f_sqlite_db="$d_data"/packet-loss.sqlite # the actual DB
+    f_sqlite_error="$d_data"/sqlite.err      # contains latest sql error msg if any
+    f_previous_loss="$d_data"/previous_loss  # used if @packet-loss-display_trend is true
 
-    pidfile_ctrl_monitor="$d_data"/ctrl_monitor.pid
-    pidfile_monitor="$d_data"/monitor.pid
+    f_log_date="$d_data"/log-date                       # ensure date is only printed once in log file
+    f_monitor_suspended_no_clients="$d_data"/no-clients # monitor exited due to no tmux clients
+
+    pidfile_monitor="$d_data"/monitor.pid # used to ensure only one monitor is running
 
     #
-    #  This one is just kept for show_settings.sh, in order to verify
+    #  This one is just kept for show-settings.sh, in order to verify
     #  that the process running it is using the "right" tmux-packet-loss
     #  folder, if not an error is displayed.
     #
     pidfile_tmux="$d_data"/tmux.pid
 
-    #  lists each time display_losses had to restart monitor
-    db_restart_log="$d_data"/db_restarted.log
+    #  lists each time display-losses had to restart monitor
+    db_restart_log="$d_data"/db-restarted.log
 
     param_cache_written=false
 
@@ -852,11 +807,18 @@ prepare_environment() {
         skip_logging=false
     }
 
+    cfg_sql_timeout=200 # store deviating timeout in <repo folder>/.sql-timeout
     #
     #  at this point plugin_params is trusted if found, menus.tmux will
     #  always always replace it with current tmux conf during plugin init
     #
     get_config
+
+    do_not_run_check
+}
+
+clear_previous_losses() {
+    rm -f "$f_previous_loss" || error_msg "Failed to remove: $f_previous_loss"
 }
 
 #===============================================================
@@ -883,7 +845,7 @@ prepare_environment() {
 #  Setting it here will allow for debugging utils setting up the env.
 #  Not needed for normal usage of logging.
 #
-# cfg_log_file="$HOME/tmp/tmux-packet-loss.log"
+# cfg_log_file="$HOME/tmp/tmux-packet-loss-t2.log"
 
 #
 #  When this is used, a cfg_log_file must still be defined, since
@@ -891,6 +853,9 @@ prepare_environment() {
 #  Further non-interactive tasks will always use cfg_log_file
 #
 # log_interactive_to_stderr=true
+
+# Pad5 debug
+# [ "$(tty)" = "/dev/pts/3" ] && log_interactive_to_stderr=true
 
 # do_pidfile_handler_logging=true # will create ridiculous amounts of logs
 # skip_logging=true # enforce no logging desipte tmux conf

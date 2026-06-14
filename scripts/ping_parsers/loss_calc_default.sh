@@ -36,6 +36,7 @@ fi
 #  5 display last remaining word - packet loss as a float with
 #    no % sign!
 #
+
 avg_loss="$(echo "$ping_output" \
     | grep "packet loss" \
     |

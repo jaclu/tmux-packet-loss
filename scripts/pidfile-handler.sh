@@ -31,6 +31,10 @@ pidfile_is_live() {
     #
     #  boolean
     #
+    #  Variables provided:
+    #    pid_file - based on name of current script name if nothing provided
+    #    pidfile_proc - process indicated in pidfile if file exists
+    #
     b_was_alive=false
 
     _pf_log "pidfile_is_live($1)"
@@ -66,7 +70,10 @@ pidfile_is_mine() {
     #  Returns true if this process is owning the pidfile, or if it
     #  is an abandoned pidfile
     #
-
+    #  Variables provided:
+    #    pid_file - based on name of current script name if nothing provided
+    #    pidfile_proc - process indicated in pidfile if file exists
+    #
     _pf_log "pidfile_is_mine($1)"
     # ((log_indent++)) # increase indent until this returns
     set_pidfile_env "$1"
@@ -129,7 +136,7 @@ pidfile_acquire() {
 
     _pa_i=1
     while [ "$_pa_i" -le "$_pa_attempts" ]; do
-        log_it "+++++ waiting for $pid_file_short $_pa_i/$_pa_attempts"
+        _pf_log "+++++ waiting for $pid_file_short $_pa_i/$_pa_attempts"
         random_sleep 5 1
 
         if ! pidfile_is_live "$pid_file"; then
@@ -164,7 +171,7 @@ pidfile_release() {
     #  Calling this is optional, but it will remove the pid_file and
     #  thereby indicate the process exited gracefully.
     #
-    #  It can be used to remove pid_files now owned by the running
+    #  It can be used to remove pid_files not owned by the running
     #  process if they are abandoned.
     #
 
@@ -199,6 +206,13 @@ pidfile_release() {
 #   Other
 #
 #---------------------------------------------------------------
+
+is_int() {
+    case $1 in
+        '' | *[!0-9]*) return 1 ;; # Contains non-numeric characters
+        *) return 0 ;;             # Contains only digits
+    esac
+}
 
 _pf_log() {
     #
@@ -237,6 +251,48 @@ set_pidfile_env() {
     else
         pidfile_proc=""
     fi
+}
+
+random_sleep() {
+    #
+    #  Function to generate a random sleep time with improved randomness
+    #
+    #  When multiple processes start at the same time using something like
+    #    sleep $((RANDOM % 4 + 1))
+    #  it tends to leave them sleeping for the same amount of seconds
+    #
+    # Parameters:
+    #   $1: _rs_max_sleep - maximum seconds of sleep, can be fractional
+    #   $2: _rs_min_sleep - min seconds of sleep, default: 0.5
+    #
+    # Example usage:
+    #   # Sleep for a random duration between 0.5 and 5 seconds
+    #   random_sleep 5
+    #
+    _rs_max_sleep="$1"
+    _rs_min_sleep="${2:-0.5}"
+    _rs_pid=$$
+
+    _pf_log "random_sleep($_rs_max_sleep, $_rs_min_sleep)"
+
+    # multiply ny hundred, round to int
+    _rs_min_sleep=$(printf "%.0f" "$(echo "$_rs_min_sleep * 100" | bc)")
+    _rs_max_sleep=$(printf "%.0f" "$(echo "$_rs_max_sleep * 100" | bc)")
+
+    # Generate random numbers
+    _rs_rand_from_random=$(hexdump -n 2 -e '/2 "%u\n"' /dev/urandom | awk '{print $1 % 100}')
+    _rs_rand_from_urandom=$(od -An -N2 -i /dev/urandom | awk '{print $1}')
+
+    # Calculate random number between _rs_min_sleep and _rs_max_sleep with two decimal places
+    _rs_range_size=$((_rs_max_sleep - _rs_min_sleep + 1))
+    _rs_sum=$((_rs_rand_from_random + _rs_rand_from_urandom + _rs_pid))
+    _rs_random_integer=$((_rs_sum % _rs_range_size + _rs_min_sleep))
+
+    # Calculate the sleep time with two decimal places
+    _rs_sleep_time=$(printf "%.2f" "$(echo "scale=2; $_rs_random_integer / 100" | bc)")
+
+    # _pf_log "><> Sleeping for $_rs_sleep_time seconds"
+    sleep "$_rs_sleep_time"
 }
 
 #===============================================================

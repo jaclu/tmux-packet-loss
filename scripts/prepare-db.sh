@@ -46,11 +46,7 @@ create_db() {
     PRAGMA journal_mode = WAL;
     PRAGMA user_version = $db_version;  -- replace DB if out of date
     "
-    sqlite_transaction "$_cd_sql" || {
-        _m="sqlite3 exited with: $sqlite_exit_code \n"
-        _m="$_m when creating the DB"
-        error_msg "$_m"
-    }
+    sqlite_transaction "$_cd_sql"
     log_it "Created DB - user_version: $db_version"
 }
 
@@ -65,11 +61,7 @@ update_triggers() {
     DROP TRIGGER IF EXISTS new_loss;
     DROP TRIGGER IF EXISTS new_minute
     "
-    sqlite_transaction "$_ut_sql" || {
-        _m="sqlite3 exited with: $sqlite_exit_code \n"
-        _m="$_m when dropping triggers"
-        error_msg "$_m"
-    }
+    sqlite_transaction "$_ut_sql"
 
     #
     #  If a device wakes up from sleep it might take a while until the
@@ -139,11 +131,7 @@ update_triggers() {
         WHERE time_stamp <= datetime('now', '-$cfg_hist_avg_minutes minutes');
     END;
     "
-    sqlite_transaction "$_ut_sql" || {
-        _m="sqlite3 exited with: $sqlite_exit_code \n"
-        _m="$_m when creating triggers"
-        error_msg "$_m"
-    }
+    sqlite_transaction "$_ut_sql"
     log_it "Created db-triggers"
 }
 
@@ -158,11 +146,6 @@ D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
 log_prefix="prp"
 
 . "$D_TPL_BASE_PATH"/scripts/utils.sh
-
-do_not_run_active && {
-    log_it "do_not_run triggered abort"
-    exit 1
-}
 
 # log_it "+++++   Starting script: $(relative_path "$f_current_script"))   +++++"
 

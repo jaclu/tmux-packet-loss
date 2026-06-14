@@ -25,7 +25,7 @@ clear_out_old_losses() {
         WHERE time_stamp <= datetime('now', '-$_cool_max_age seconds');
         "
     sqlite_transaction "$_cool_sql" || {
-        error_msg "SQL Error in clear_out_old_losses() - sql: $_cool_sql"
+        error_msg "clear_out_old_losses() - SQL Error in:: $_cool_sql"
     }
 }
 
@@ -40,24 +40,22 @@ define_ping_cmd() {
     #  Selecting the right timeout option
     #
     if is_busybox_ping; then
-        _dpc_timeout_parameter="-W"
+        ping_cmd="ping -W 1"
     else
         _dpc_timeout_help="$(ping -h 2>&1 | grep timeout | head -n 1)"
         case "$_dpc_timeout_help" in
-            *-t*) _dpc_timeout_parameter="-t" ;;
-            *-W*) _dpc_timeout_parameter="-W" ;;
-            *) _dpc_timeout_parameter="" ;;
+            *-t*)
+                # For Darwin (and I guees BSD) the timeout works as expected
+                # and is the total amount of seconds allowed for the command
+                # this is also usable when host is not responding
+                ping_cmd="ping -t $cfg_ping_count"
+                ;;
+            *-W*)
+                # On Linux timeout is per ping sent
+                ping_cmd="ping -W 1"
+                ;;
+            *) ping_cmd="ping" ;; # no timeout param recognized
         esac
-    fi
-
-    if [ -n "$_dpc_timeout_parameter" ]; then
-        ping_cmd="ping $_dpc_timeout_parameter $cfg_ping_count"
-    else
-        #
-        #  Without a timeout flag and no response, ping might end up taking
-        #  2 * cfg_ping_count seconds to complete...
-        #
-        ping_cmd="ping"
     fi
 
     # shellcheck disable=SC2154
@@ -78,48 +76,48 @@ ping_parse_error() {
 
     parse_error=true
 
-    log_it "*** ping parsing error - $_ppe_err_msg [$percent_loss]"
+    log_it "*** ping parsing error - $_ppe_err_msg"
     percent_loss="$_ppe_err_code"
 }
 
-compare_loss_parsers() {
-    #
-    #  When alternate loss calculations are used
-    #  this compares with what the default would give
-    #  and logs items that might need further inspection
-    #  It is not an error in it-self if they differ, but it is
-    #  quick way to gather sample data for testing.
-    #
-    # log_indent="$log_indent"
+# compare_loss_parsers() {
+#     #
+#     #  When alternate loss calculations are used
+#     #  this compares with what the default would give
+#     #  and logs items that might need further inspection
+#     #  It is not an error in it-self if they differ, but it is
+#     #  quick way to gather sample data for testing.
+#     #
+#     # log_indent="$log_indent"
 
-    # #
-    # #  an alternete check detected a loss
-    # #  compare result with what default check gives
-    # #  and log the output if they differ
-    # #
-    # log_indent=$((log_indent + 1)) # increase indent until this returns
+#     # #
+#     # #  an alternete check detected a loss
+#     # #  compare result with what default check gives
+#     # #  and log the output if they differ
+#     # #
+#     # log_indent=$((log_indent + 1)) # increase indent until this returns
 
-    is_busybox_ping && {
-        #
-        #  busybox reports loss average as a rounded down int
-        #  the default ping parser detects this and appends a .0 to
-        #  ensure consistent notation.
-        #  to emulate this 1st round down to int, then append .0
-        #
-        percent_loss="$(float_drop_digits "$percent_loss").0"
-    }
-    _clp_alt_percentage_loss="$percent_loss"
-    percent_loss="$(echo "$ping_output" | $scr_loss_default)"
+#     is_busybox_ping && {
+#         #
+#         #  busybox reports loss average as a rounded down int
+#         #  the default ping parser detects this and appends a .0 to
+#         #  ensure consistent notation.
+#         #  to emulate this 1st round down to int, then append .0
+#         #
+#         percent_loss="$(float_drop_digits "$percent_loss").0"
+#     }
+#     _clp_alt_percentage_loss="$percent_loss"
+#     percent_loss="$(echo "$ping_output" | $scr_loss_default)"
 
-    if [ "$percent_loss" != "$_clp_alt_percentage_loss" ]; then
-        _clp_msg="This alternate[$_clp_alt_percentage_loss] and"
-        _clp_msg="$_clp_msg default[$percent_loss] loss check differ"
-        log_it "$_clp_msg"
-        save_ping_issue "$ping_output"
-    else
-        log_it "both parsers agree on [$percent_loss]"
-    fi
-}
+#     if [ "$percent_loss" != "$_clp_alt_percentage_loss" ]; then
+#         _clp_msg="This alternate[$_clp_alt_percentage_loss] and"
+#         _clp_msg="$_clp_msg default[$percent_loss] loss check differ"
+#         log_it "$_clp_msg"
+#         save_ping_issue "$ping_output"
+#     else
+#         log_it "both parsers agree on [$percent_loss]"
+#     fi
+# }
 
 is_busybox_ping() {
     #
@@ -154,6 +152,8 @@ abort_conditions() {
     #     as there is no tmux clients connected.
     #
 
+    do_not_run_check # since this is run in a loop repeat the check
+
     # shellcheck disable=SC2154
     pidfile_is_mine "$pidfile_monitor" || {
         #
@@ -174,15 +174,10 @@ abort_conditions() {
         fi
     }
 
-    do_not_run_active && {
-        log_it "Detected do_not_run_active condition, aborting"
-        return 1
-    }
-
     #
     #  Check TMUX socket, to verify tmux server is still running
     #
-    if [ "$(uname)" = "Darwin" ]; then
+    if [ "$kernel_name" = "Darwin" ]; then
         # macOS uses a different format for stat
         group_exec_permission=$(stat -F "$tmux_socket" | cut -c 7)
     else
@@ -222,6 +217,7 @@ do_monitor_loop() {
     err_count=0
     err_count_max=3 # terminate if this many errors have occurred
     exit_msg="exiting this process"
+
     log_it "Starting the monitoring loop"
     while true; do
         percent_loss=""
@@ -236,11 +232,11 @@ do_monitor_loop() {
             #
             #  If DB was removed, then a (failed) sql action was attempted
             #  this would lead to an empty DB, by removing such next call
-            #  to display_losses will recreate it and restart monitoring
+            #  to display-losses will recreate it and restart monitoring
             #
             # rm -f "$f_sqlite_db"
             error_msg "database file gone $exit_msg" -1 false
-            #  next call to $scr_display_losses will start a new monitor
+            #  next call to $f_display_losses will start a new monitor
             break
         }
         #
@@ -257,7 +253,12 @@ do_monitor_loop() {
         #  the ping output is saved to a variable, so that it can be
         #  saved to a file in case the output gives issues
         #
-        if ping_output="$($ping_cmd 2>/dev/null)"; then
+        if ping_output="$($ping_cmd 2>&1)"; then
+            [ "$no_network" = 1 ] && {
+                log_it "Network reachable"
+                no_network=0
+            }
+
             if [ -n "$ping_output" ]; then
                 percent_loss="$(echo "$ping_output" | $loss_check)" || {
                     log_it "$(basename "$loss_check") returned error"
@@ -288,11 +289,39 @@ do_monitor_loop() {
                 sleep "$cfg_ping_count"
             fi
         else
-            #
-            #  ping returned an error exit code, at least on iSH this happens when
-            #  not connected to the network
-            #
-            ping_parse_error "$error_ping_exit" "ping error exit code"
+            ping_exit_code="$?"
+
+            if [ "$kernel_name" = Darwin ]; then
+                _nnc_pattern="No route to host" # exit 2
+            elif [ -d /proc/ish ]; then
+                _nnc_pattern="Host is unreachable" # iSH
+            else
+                _nnc_pattern="Network is unreachable" # Linux
+            fi
+            case "$ping_output" in
+                *"$_nnc_pattern"*)
+                    # Network at this end seems down
+                    percent_loss="$error_ping_no_network"
+                    no_network=1
+                    log_it "No network"
+                    ;;
+                *)
+                    # log_it "ping exit code: $ping_exit_code then output"
+                    # log_it "$ping_output]"
+                    case "$kernel_name:$ping_exit_code" in
+                        Darwin:2 | Linux:1)
+                            # Not error, just no response
+                            percent_loss=100.0
+                            log_it "No ping response from host: $cfg_ping_host"
+                            ;;
+                        *)
+                            log_it "kernel: [$kernel_name] - ping [$ping_exit_code] output: [$ping_output]"
+                            ping_parse_error "$error_ping_exit" "exit code: $ping_exit_code"
+                            sleep "$cfg_ping_count"
+                            ;;
+                    esac
+                    ;;
+            esac
         fi
 
         #
@@ -302,9 +331,7 @@ do_monitor_loop() {
         #
         [ "$percent_loss" = 0.0 ] && percent_loss=0
 
-        if sqlite_transaction \
-            "INSERT INTO t_loss (loss) VALUES ($percent_loss)"; then
-
+        if sqlite_transaction "INSERT INTO t_loss (loss) VALUES ($percent_loss)"; then
             [ "$percent_loss" != 0 ] && {
                 log_it "stored in DB: $percent_loss"
 
@@ -320,6 +347,15 @@ do_monitor_loop() {
         fi
 
         abort_conditions || break
+
+        [ "$no_network" = 1 ] && [ "$kernel_name" = Linux ] && {
+            # no network connection. On Linux, ping fails almost
+            # instantly when no network, so add a sleep to keep a normalish
+            # pace in order to not flood DB (and logfile if used)
+            # Do this after updating losses, in order not to delay statusbar
+            # notification of no network
+            sleep "$cfg_ping_count"
+        }
 
         # log_it "><> main loop has completed"
     done
@@ -339,8 +375,8 @@ log_prefix="mon"
 #
 #  Include pidfile handling
 #
-# shellcheck source=scripts/pidfile_handler.sh disable=SC2154
-. "$scr_pidfile_handler"
+# shellcheck source=scripts/pidfile-handler.sh disable=SC2154
+. "$f_pidfile_handler"
 
 # log_it "+++++   Starting script: $(relative_path "$f_current_script"))   +++++"
 
@@ -348,35 +384,46 @@ pidfile_acquire "$pidfile_monitor" 3 || {
     error_msg "Could not acquire: $pid_file_short"
 }
 
+# Used to indicate that network seems to be down
+no_network=0
+
+kernel_name=$(uname -s)
+
 # shellcheck disable=SC2154
 tmux_socket="$(echo "$TMUX" | cut -d',' -f1)"
 
 # If true, output of pings with issues will be saved
-store_ping_issues=false
+store_ping_issues=true
 
 #
 #  Since loss is always <=100, indicate errors with results over 100
 #  Not crucial to remember exactly what it means,
 #  enough to know is >100 means monitor error
 #
+
+#
+#  This computer has no network connection
+#
+error_ping_no_network=101
+
 #  Failed to find %loss in ping output, most likely temporary,
 #  some pings just report:
 #    ping: sendto: Host is unreachable
 #  if network is unreachable
 #
-error_no_ping_output=101
+error_no_ping_output=102
 
 #
 #  If loss is < 0 or > 100 something went wrong, indicate error
 #  hopefully a temporary issue.
 #
-error_invalid_number=102
+error_invalid_number=103
 
 #
 #  ping returned an error, at least on iSH this happens when not
 #  connected to the network
 #
-error_ping_exit=103
+error_ping_exit=104
 
 #  parsing output gave empty result, unlikely to self correct
 error_unable_to_detect_loss=201
@@ -386,7 +433,7 @@ scr_loss_ish_deb10="$D_TPL_BASE_PATH"/scripts/ping_parsers/loss_calc_ish_deb10.s
 
 #  Ensure DB and all triggers are valid
 # shellcheck disable=SC2154
-$scr_prepare_db
+$f_prepare_db
 
 define_ping_cmd # we need the ping_cmd in kill_any_strays
 
@@ -408,4 +455,4 @@ clear_out_old_losses
 do_monitor_loop
 
 pidfile_release "$pidfile_monitor"
-log_it "monitor is shut down"
+log_it "$current_script - completed"

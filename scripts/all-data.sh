@@ -8,11 +8,6 @@
 #  Show / Clear content of all tables
 #
 
-D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
-log_prefix="a_d"
-
-. "$D_TPL_BASE_PATH"/scripts/utils.sh
-
 show_help() {
     echo "usage: $current_script show | avgs | clear"
     echo
@@ -27,12 +22,10 @@ show_help() {
 #
 #===============================================================
 
-# do_not_run_active && exit 1
-do_not_run_active && {
-    log_it "do_not_run triggered abort"
-    echo "ERROR: plugin is in a do_not_run state"
-    exit 1
-}
+D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
+log_prefix="a_d"
+
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
 
 [ -f "$f_sqlite_db" ] || {
     error_msg "Database not found - aborting"
@@ -64,12 +57,12 @@ esac
 old_ifs="$IFS"
 IFS=','
 set -- t_stats t_1_min t_loss
+# set -- t_loss
 for table; do
     echo "--------  Table: $table  --------"
     [ -n "$cmd" ] && {
-        sqlite_err_handling "$cmd FROM $table;" || {
-            error_msg "Failed to run: $cmd FROM $table"
-        }
+        # log_sql=true
+        sqlite_err_handling "$cmd FROM $table"
         echo "$sqlite_result"
     }
 
@@ -78,27 +71,13 @@ for table; do
     #
     if [ "$table" = "t_loss" ]; then
         sql_current_loss true
-        sqlite_err_handling "$sql" || {
-            _m="sqlite3 exited with: $sqlite_exit_code \n"
-            _m="${_m}when retrieving current weighted losses for table $table"
-            error_msg "$_m"
-        }
         weighted="$sqlite_result"
 
         sql_current_loss false
-        sqlite_err_handling "$sql" || {
-            _m="sqlite3 exited with: $sqlite_exit_code \n"
-            _m="$_m  when retrieving current avg losses for table $table"
-            error_msg "$_m"
-        }
         printf "average: %5.1f  weighted: %5.1f\n" "$sqlite_result" "$weighted"
     else
         sql="SELECT round(avg(loss),1) FROM $table;"
-        sqlite_err_handling "$sql" || {
-            _m="sqlite3 exited with: $sqlite_exit_code \n"
-            _m="$_m  when retrieving current avg losses for table $table"
-            error_msg "$_m"
-        }
+        sqlite_err_handling "$sql"
         printf "average: %5.1f\n" "$sqlite_result"
     fi
     echo

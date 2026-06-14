@@ -4,6 +4,9 @@ MD013:
   line_length: 92
   tables: false
 
+MD060:
+  style: consistent
+
 MD033:
   # Allowed elements
   allowed_elements: [br]

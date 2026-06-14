@@ -19,36 +19,54 @@ log_prefix="shw"
 
 . "$D_TPL_BASE_PATH"/scripts/utils.sh
 
-#  shellcheck source=scripts/pidfile_handler.sh
-. "$scr_pidfile_handler"
-
-do_not_run_active && {
-    log_it "do_not_run triggered abort"
-    echo "ERROR: plugin is in a do_not_run state"
-    exit 1
-}
+#  shellcheck source=scripts/pidfile-handler.sh
+. "$f_pidfile_handler"
 
 show_item() {
     _si_label="$1"
     _si_value="$2"
     _si_default="$3"
+    case "$_si_label" in
+        @packet-loss-prefix | @packet-loss-suffix)
+            [ -n "$_si_value" ] && _si_value="[$_si_value]"
+            [ -n "$_si_default" ] && _si_default="[$_si_default]"
+            ;;
+        *) ;;
+    esac
     if [ "$_si_label" = "headers" ]; then
-        echo "     _si_default  user setting  config variable"
-        echo "------------  ------------  ---------------"
+        echo "      Default   user setting  config variable"
+        echo "      -------   ------------  ---------------"
 
     else
         if [ "$_si_value" = "$_si_default" ]; then
-            msg="$(printf "%13s               %s" \
+            msg="$(printf "%13s                 %s" \
                 "$_si_value" "$_si_label")"
         else
-            msg="$(printf "%13s %12s  %s" \
+            msg="$(printf "%13s  %13s  %s" \
                 "$_si_default" "$_si_value" "$_si_label")"
         fi
         echo "$msg"
     fi
 }
 
-session="$(get_tmux_socket)"
+get_tmux_socket_name() {
+    #
+    #  returns name of tmux socket being used
+    #
+    if [ -n "$TMUX" ]; then
+        echo "$TMUX" | sed 's#/# #g' | cut -d, -f 1 | awk 'NF>1{print $NF}'
+    else
+        echo "standalone"
+    fi
+}
+
+#===============================================================
+#
+#   Main
+#
+#===============================================================
+
+session="$(get_tmux_socket_name)"
 
 echo "=====   Config for  session: $session   ====="
 echo

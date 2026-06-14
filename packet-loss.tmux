@@ -9,7 +9,7 @@
 #    - ensures the database is present and up to date
 #    - sets parameters in the database
 #    - ensures packet_loss_monitor is running
-#    - binds  #{packet_loss} to display_losses.sh
+#    - binds  #{packet_loss} to display-losses.sh
 #
 
 #
@@ -21,29 +21,43 @@ do_interpolation() {
     # printf '%s\n' "$1" | sed "s|$(printf '%s' "$pkt_loss_interpolation" | \
     #     sed 's/[&/\]/\\&/g')|$(printf '%s' "$pkt_loss_command" | sed 's/[&/\]/\\&/g')|g"
     _di_s=$1
+    #
+    #  Match tag with polling script, do this after monitor is started,
+    #  to avoid getting failed script warnings in status bar
+    #
+    pkt_loss_interpolation="\#{packet_loss}"
+    pkt_loss_command="#($f_display_losses)"
+
     echo "$_di_s" | sed "s|$pkt_loss_interpolation|$pkt_loss_command|g"
 }
 
 set_tmux_option() {
     _sto_option="$1"
     _sto_value="$2"
-    log_it "><> set_tmux_option($_sto_option,$_sto_value)"
+    # log_it "><> set_tmux_option($_sto_option,$_sto_value)"
 
     [ -z "$_sto_option" ] && {
         error_msg "set_tmux_option() param 1 empty!"
     }
-    [ "$TMUX" = "" ] && return # this is run standalone
-
+    [ "$TMUX" = "" ] && {
+        echo "No tmux session detected, unable to update status line"
+        return
+    }
     $TMUX_BIN set -g "$_sto_option" "$_sto_value"
 }
 
 update_tmux_option() {
     _uto_option="$1"
-    log_it "><> update_tmux_option($_uto_option)"
+    # log_it "><> update_tmux_option($_uto_option)"
 
     _uto_value="$(get_tmux_option "$_uto_option")"
     _uto_new_value="$(do_interpolation "$_uto_value")"
     set_tmux_option "$_uto_option" "$_uto_new_value"
+}
+
+do_not_run_clear() {
+    # Clear state
+    rm -f "$f_do_not_run"
 }
 
 #===============================================================
@@ -57,18 +71,23 @@ log_prefix="plg" # plugin handler
 
 . "$D_TPL_BASE_PATH"/scripts/utils.sh
 
-#
-#  By printing a NL, its easier to keep separate runs apart
-#
-log_it
+log_it "-----   $current_script   -----"
 
-"$D_TPL_BASE_PATH"/scripts/tmux-plugin-tools.sh dependency-check "sqlite3" || {
+. "$D_TPL_BASE_PATH"/scripts/tmux-plugin-tools.sh
+# Override tmux-plugin-tools log routine to use ours
+tpt_log_it() {
+    log_it "$@"
+}
+
+tpt_dependency_check "sqlite3" || {
     # shellcheck disable=SC2154
     do_not_run_create "Failed dependencies: $tpt_missing_dependencies"
     log_it "Aborting plugin init - dependency fail: $tpt_missing_dependencies"
     exit 1
 }
-do_not_run_clear # in case it was set previously
+
+do_not_run_clear      # in case it was set previously
+clear_previous_losses # remove if presssent
 
 #  Ensure a fresh param_cache has been created during plugin init
 $param_cache_written || {
@@ -77,20 +96,13 @@ $param_cache_written || {
 }
 
 #  Ensure it points to current tmux
-get_tmux_pid >"$pidfile_tmux" # helper for show_settings.sh
+get_tmux_pid >"$pidfile_tmux" # helper for show-settings.sh
 
 #
 #  Start monitor
 #
 log_it "starting monitor"
-$scr_ctrl_monitor start
-
-#
-#  Match tag with polling script, do this after monitor is started,
-#  to avoid getting failed script warnings in status bar
-#
-pkt_loss_interpolation="\#{packet_loss}"
-pkt_loss_command="#($scr_display_losses)"
+$f_ctrl_monitor start
 
 #
 #  Activate #{packet_loss} tag if used

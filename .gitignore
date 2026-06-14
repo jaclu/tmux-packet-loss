@@ -1,6 +1,16 @@
-data/
-
+# Editor backup files
 *~
+*.bak
+
+# Generic tmp files
+# Exclude files with '#' in their names anywhere in the repository
+**/*#*
 
 # olint meta linter
 .cache.olint
+
+# sql timeout override
+.sql-timeout
+
+# run-time data
+data/

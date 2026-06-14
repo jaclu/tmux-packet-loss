@@ -7,7 +7,7 @@ default, giving more emphasis to recent checks.
 ## Recent changes
 
 - Converted all scripts to POSIX, no more bash dependencies. This cuts down a lot
-  on startup times, `scripts/display_losses.sh` is 3-4 times faster!
+  on startup times, `scripts/display-losses.sh` is 3-4 times faster!
 - Losses are displayed, but no stats are saved for the first 45 seconds.
   This avoids getting initial errors before the network is re-established saved
   into the history during a laptop resume.
@@ -45,47 +45,39 @@ with a prefix character
 
 ## Operation
 
-This plugin runs a background process using repeated runs of ping to
-determine % package loss. The loss level is calculated as a weighted
-average of the stored data points by default, making the latest checks
-stand out.
+The plugin runs a background process that pings a host to measure packet loss.
+By default, loss is calculated as a weighted average, emphasizing recent data.
 
-### Termination of background monitor
+### Background monitor
 
-Unless `@packet-loss-run_disconnected` is `yes`, the background monitor
-terminates if no clients are connected. It will resume as soon as any
-client re-connects.
-
-The background process monitors the tmux server pid, and terminates if
-the tmux server exits.
+The monitor runs continuously. By default, it stops when no tmux clients are
+connected and restarts when one reconnects. Set `@packet-loss-run_disconnected`
+to `yes` to keep it running always. It exits when tmux shuts down.
 
 ### ping issues
 
-If the monitor fails to calculate loss, packet loss above 100% is reported.
-So far I have created one special case ping parser, for iSH running Debian 10.
+Error codes (displayed as loss > 100%) indicate what went wrong:
 
-| Result | Explanation                                                                                                                                                                                                                                                                                     |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 101    | Failed to find % loss in ping output. Temporary issue. Some pings don't report loss % if there is no connection to the host.                                                                                                                                                                    |
-| 102    | loss reported was < 0 or > 100, odd but hopefully temporary                                                                                                                                                                                                                                     |
-| 103    | ping reported error, on some distros this happens if there is no netork connection                                                                                                                                                                                                              |
-| 201    | Could not parse the output. This condition is unlikely to self-correct. If you file the output of `ping -c 5 8.8.4.4` as an Issue and also mention what Operating System this is and any other factors you think are relevant, I will try to fix it by including parsing of that output format. |
+| Code | Meaning                                                                                   |
+| ---- | ----------------------------------------------------------------------------------------- |
+| 101  | No network connection.                                                                    |
+| 102  | Could not find loss % in ping output (usually temporary).                                 |
+| 103  | Loss value outside 0–100% range (usually temporary).                                      |
+| 104  | Ping returned an unrecognized error.                                                      |
+| 201  | Could not parse ping output. Please file an issue with `ping -c 5 8.8.4.4` output and OS. |
 
 ## Dependencies
 
-Ensure you have the following dependencies installed:
-
-- `tmux 1.9`
+- `tmux 1.9+`
 - `sqlite3`
 
 ## Verified Environments
 
-Tmux-Packet-Loss has been tested and verified to work in the following environments:
-
 - Linux
-- MacOS
-- iSH
+- macOS
 - Windows Subsystem for Linux (WSL)
+- iSH
+- Termux
 
 ## Installation
 
@@ -123,97 +115,71 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 
 ## Configuration Variables
 
-| Variable                      | Default   | Purpose                                                                                                                                                                                                                                      |
-| ----------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| @packet-loss-ping_host        | 8.8.8.8   | The host to ping. Choosing a well-connected & replicated host like 8.8.8.8 or 1.1.1.1 gives a good idea of your general link quality.                                                                                                        |
-| @packet-loss-ping_count       | 6         | Number of pings per statistics update.                                                                                                                                                                                                       |
-| @packet-loss-history_size     | 6         | Number of results to keep when displaying loss statistics.<br>Keeping this value low is recommended since it's more useful to see current status over long-term averages.<br>For a historical overview, use `@packet-loss-hist_avg_display`. |
-|                               |           |                                                                                                                                                                                                                                              |
-| @packet-loss-weighted_average | yes       | `yes` Use weighted average focusing on the latest data points.<br> `no` Average over all data points.                                                                                                                                        |
-| @packet-loss-display_trend    | no        | `yes` Display trend with `+` prefix for higher levels and `-` prefix for lower levels.<br> `no` Do not indicate change since the previous loss level.                                                                                        |
-| @packet-loss-hist_avg_display | no        | `yes` Show historical average when displaying current losses.<br> `no` Do not show historical average.                                                                                                                                       |
-| @packet-loss-run_disconnected | no        | `yes` monitor only exits when tmux is shut down.<br>`no` monitor exits if no clients are connected and restarts when a client re-connects.                                                                                                   |
-| @packet-loss-level_disp       | 1         | Display loss if at or higher than this level.                                                                                                                                                                                                |
-| @packet-loss-level_alert      | 17        | Color loss with `color_alert` if at or above this level.<br>Suggestion: set it one higher than the percentage representing one loss in one update to avoid single packet loss triggering an alert initially.                                 |
-| @packet-loss-level_crit       | 40        | Color loss with `color_crit` if at or above this level.                                                                                                                                                                                      |
-|                               |           |                                                                                                                                                                                                                                              |
-| @packet-loss-hist_avg_minutes | 30        | Minutes to keep the historical average.                                                                                                                                                                                                      |
-| @packet-loss-hist_separator   | '\~'      | Separator for current/historical losses.                                                                                                                                                                                                     |
-|                               |           |                                                                                                                                                                                                                                              |
-| @packet-loss-color_alert      | colour226 | Use this color if the loss is at or above `@packet-loss-level_alert`.                                                                                                                                                                        |
-| @packet-loss-color_crit       | colour196 | Use this color if the loss is at or above `@packet-loss-level_crit`.                                                                                                                                                                         |
-| @packet-loss-color_bg         | black     | Background color when alert/crit colors are used in the display.                                                                                                                                                                             |
-|                               |           |                                                                                                                                                                                                                                              |
-| @packet-loss-prefix           | '\|'      | Prefix for status when displayed.                                                                                                                                                                                                            |
-| @packet-loss-suffix           | '\|'      | Suffix for status when displayed.                                                                                                                                                                                                            |
-|                               |           |                                                                                                                                                                                                                                              |
-| @packet-loss-log_file         |           | If defined this file will be used for logging.                                                                                                                                                                                               |
+| Variable                      | Default   | Purpose |
+| ----------------------------- | --------- | ------- |
+| @packet-loss-ping_host        | 8.8.8.8   | The host to ping. Choosing a well-connected & replicated host like 8.8.8.8 or 1.1.1.1 gives a good idea of your general link quality. |
+| @packet-loss-ping_count       | 6         | Number of pings per statistics update. |
+| @packet-loss-history_size     | 6         | Number of results to keep. Lower values show current status better; use `@packet-loss-hist_avg_display` for longer-term trends. |
+| | | |
+| @packet-loss-weighted_average | yes       | Bias toward recent data if `yes`, equal weight to all if `no`. |
+| @packet-loss-display_trend    | no        | Show trend indicator (`+` rising, `-` falling) if `yes`. |
+| @packet-loss-hist_avg_display | no        | Show 30-min historical average alongside current loss if `yes`. |
+| @packet-loss-run_disconnected | no        | Monitor runs always if `yes`, stops when no clients connected if `no`. |
+| @packet-loss-level_disp       | 1         | Display loss if at or higher than this level. |
+| @packet-loss-level_alert      | 17        | Color loss with `@packet-loss-color_alert` at or above this level. Tip: set one higher than single packet loss %. |
+| @packet-loss-level_crit       | 40        | Color loss with `@packet-loss-color_crit` if at or above this level. |
+| | | |
+| @packet-loss-hist_avg_minutes | 30        | Minutes to keep the historical average. |
+| @packet-loss-hist_separator   | '\~'      | Separator for current/historical losses. |
+| | | |
+| @packet-loss-color_alert      | colour226 | Color for alert-level loss. |
+| @packet-loss-color_crit       | colour196 | Color for critical-level loss. |
+| @packet-loss-color_bg         | black     | Background color for colored loss display. |
+| | | |
+| @packet-loss-prefix           | '\|'      | Prefix for status when displayed. |
+| @packet-loss-suffix           | '\|'      | Suffix for status when displayed. |
+| | | |
+| @packet-loss-log_file         |           | If defined this file will be used for logging. |
 
 ## My config
 
 ```tmux
-set -g @packet-loss-display_trend     yes
 set -g @packet-loss-hist_avg_display  yes
+set -g @packet-loss-run_disconnected  yes
 
-#
-# In combination with weighted_average, ping_count and history_size,
-# This makes a single ping loss disappear from being displayed in 15s
-#
+# Single packet loss disappears from display in ~15s
 set -g @packet-loss-level_disp   5
 
+# Yellow background for alert/crit, so set alert color to blue instead
 set -g @packet-loss-color_alert  colour21
 set -g @packet-loss-color_bg     colour226
 
+# Add spacer so plugin takes no space when there's no loss
+set -g @packet-loss-suffix "| "
 ```
 
-## Balancing reporting
+## Tuning for accuracy
 
-To obtain a clearer picture of the current situation, consider adjusting the ping
-count. A higher ping count results in more nuanced data per check. For instance,
-if only 2 packets are checked per round, the results may only be 0%, 50%, or 100%,
-lacking granularity. Increasing the ping count enhances the accuracy of each check.
+**Ping count:** Higher counts give better granularity (e.g., 2 pings can only
+show 0%, 50%, 100%) but take longer. Keep it short for real-time monitoring;
+use `@packet-loss-hist_avg_display` for longer-term trends.
 
-However, be cautious not to exceed a certain limit, as a higher ping count prolongs
-the time taken for each test. This delay may render the reported data irrelevant
-to the current link status, particularly if your focus is on real-time monitoring.
+**Status interval:** Set tmux's `status-interval` one less than
+`@packet-loss-ping_count` to sync updates (e.g., `status-interval = 5` if
+`ping_count = 6`).
 
-For longer-term averages, it is better to use @packet-loss-hist_avg_display
+## Implementation details
 
-Additionally, it's advisable to review and potentially adjust the `status-interval`
-setting to align with your reporting needs. Ensuring that the update rate for
-this plugin in the status bar remains relevant enhances the effectiveness of your
-monitoring system.
+**Clearing data:** Delete the data folder to reset the database and restart
+the monitor—an easy way to clear history without touching SQL.
 
-Given that ping is instantaneous, consider setting the `status-interval` to one
-lower than `@packet-loss-ping_count`. This adjustment synchronizes the sampling
-and reporting processes more effectively, providing timely and accurate updates.
-
-## Nerdy stuff
-
-If the data folder, where the database and status files are kept disappears,
-the database and statuses
-will be recreated and a new monitor process will be started.
-So this is a simple and quick way to clear historical data, without having to
-bother with SQL!
-
-If `@packet-loss-weighted_average` is set to yes (the default) losses
-are displayed as the largest of:
-
-- last value
-- avg of last 2
-- avg of last 3
-- avg of last 4
-- avg of last 5
-- avg of last 6
-- avg of last 7
-- avg of all
-
-If set to no, the average of all samples is always displayed.
+**Weighted average:** When enabled (default), shows the highest of: last
+value, avg of last 2–7, or avg of all. When disabled, always shows the
+average of all samples.
 
 ### Suggested Alert Levels
 
-Depending on the ping count, it is suggested to set an alert,
-so that a single lost packet won't show up as an alert.
+Recommended alert thresholds to avoid false alarms from a single lost packet:
 
 | pings       | one higher than <br>a single loss % | history size <br>for approx 30s |
 | ----------- | ----------------------------------- | ------------------------------- |
@@ -240,15 +206,13 @@ used to purge old records.
 
 ### Simulating losses
 
-To examine the plugin displaying losses in the status bar, there is an included
-test script. Run it without params to get a help summary
+Use the included test script to simulate packet loss:
 
 ```bash
 ./scripts/test_data.sh
 ```
 
-The monitor will be automatically restarted two minutes after the last run of
-`test_data`.
+Run without params for help. The monitor restarts automatically 2 minutes after the last run.
 
 ## Contributing
 

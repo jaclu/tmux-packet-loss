@@ -8,20 +8,6 @@
 #   Displays current settings for plugin
 #
 
-#
-#  Ensures terminals will use their own tmux config, and not the
-#  one that might be cached in this instance of the plugin
-#
-use_param_cache=false
-
-D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
-log_prefix="shw"
-
-. "$D_TPL_BASE_PATH"/scripts/utils.sh
-
-#  shellcheck source=scripts/pidfile-handler.sh
-. "$f_pidfile_handler"
-
 show_item() {
     _si_label="$1"
     _si_value="$2"
@@ -66,6 +52,21 @@ get_tmux_socket_name() {
 #
 #===============================================================
 
+#
+#  Ensures terminals will use their own tmux config, and not the
+#  one that might be cached in this instance of the plugin
+#
+use_param_cache=false
+
+D_TPL_BASE_PATH="$(dirname -- "$(dirname -- "$(realpath -- "$0")")")"
+log_prefix="shw"
+
+# shellcheck source=scripts/utils.sh
+. "$D_TPL_BASE_PATH"/scripts/utils.sh
+
+# shellcheck source=scripts/pidfile-handler.sh
+. "$f_pidfile_handler"
+
 session="$(get_tmux_socket_name)"
 
 echo "=====   Config for  session: $session   ====="
@@ -91,29 +92,13 @@ if [ "$session" != "standalone" ]; then
         echo
     fi
 else
-    echo
     echo "*** This is not inside any tmux session - only defaults will be displayed!"
     echo
 fi
 
 show_item "headers"
-show_item @packet-loss-ping_count "$cfg_ping_count" "$default_ping_count"
-
-[ "$session" != "standalone" ] && {
-    status_interval="$($TMUX_BIN show-option -gqv status-interval 2>/dev/null)"
-    if [ -n "$status_interval" ]; then
-        req_interval="$(echo "$cfg_ping_count - 1" | bc)"
-        if [ "$req_interval" != "$status_interval" ]; then
-            echo "
-To better match this cfg_ping_count, tmux status-interval is recommended
-to be: $req_interval  currently is: $status_interval
-            "
-            show_item "headers"
-        fi
-    fi
-}
-
 show_item "@packet-loss-ping_host" "$cfg_ping_host" "$default_ping_host"
+show_item @packet-loss-ping_count "$cfg_ping_count" "$default_ping_count"
 show_item "@packet-loss-history_size" "$cfg_history_size" "$default_history_size"
 echo
 show_item @packet-loss-reactive "$cfg_reactive" "$default_reactive"
@@ -139,7 +124,7 @@ show_item @packet-loss-suffix "$cfg_suffix" "$default_suffix"
     echo "log_file in use: $cfg_log_file"
 }
 
-[ -f "$pidfile_monitor" ] && {
+[ -n "$TMUX" ] && [ -f "$pidfile_monitor" ] && {
     echo
-    echo "Monitor running: $(pidfile_show_process "$pidfile_monitor")"
+    echo "Monitor process running: $folder_tmux_pid"
 }

@@ -436,8 +436,8 @@ get_defaults() {
     default_ping_host="8.8.8.8" #  Default host to ping
     #  how often to report packet loss statistics
     default_ping_count=6
-    #  how many ping results to keep in the primary table
-    default_history_size=6
+    #  how many ping results to keep in the primary table for approx 30s cut-off
+    default_history_size=7
 
     # To make loss more sensitive to recent spikes while allowing them to decay
     default_reactive=true

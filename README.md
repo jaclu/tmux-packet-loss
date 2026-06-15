@@ -125,14 +125,14 @@ Reload the Tmux environment with `$ tmux source-file ~/.tmux.conf` - that's it!
 | ----------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | @packet-loss-ping_host        | 8.8.8.8   | The host to ping. Choosing a well-connected & replicated host like 8.8.8.8 or 1.1.1.1 gives a good idea of your general link quality.                                      |
 | @packet-loss-ping_count       | 6         | Number of pings per statistics update.                                                                                                                                     |
-| @packet-loss-history_size     | 6         | Number of results to keep. Lower values show current status better; use `@packet-loss-hist_avg_display` for longer-term trends.                                            |
+| @packet-loss-history_size     | 7         | Number of results to keep. Lower values show current status better; use `@packet-loss-hist_avg_display` for longer-term trends.                                            |
 |                               |           |                                                                                                                                                                            |
 | @packet-loss-reactive         | yes       | Enables reactive mode: loss is computed from multiple rolling averages over recent samples and the highest value is used. If disabled, loss is the average of all samples. |
 | @packet-loss-display_trend    | no        | Show trend indicator (`+` rising, `-` falling) if `yes`.                                                                                                                   |
 | @packet-loss-hist_avg_display | no        | Show 30-min historical average alongside current loss if `yes`.                                                                                                            |
 | @packet-loss-run_disconnected | no        | Monitor runs always if `yes`, stops when no clients connected if `no`.                                                                                                     |
 | @packet-loss-level_disp       | 1         | Display loss if at or higher than this level.                                                                                                                              |
-| @packet-loss-level_alert      | 17        | Color loss with `@packet-loss-color_alert` at or above this level. Tip: set one higher than single packet loss %.                                                          |
+| @packet-loss-level_alert      | 18        | Color loss with `@packet-loss-color_alert` at or above this level. Tip: set one higher than single packet loss %.                                                          |
 | @packet-loss-level_crit       | 40        | Color loss with `@packet-loss-color_crit` if at or above this level.                                                                                                       |
 |                               |           |                                                                                                                                                                            |
 | @packet-loss-hist_avg_minutes | 30        | Minutes to keep the historical average.                                                                                                                                    |
@@ -190,12 +190,13 @@ Recommended alert thresholds to avoid false alarms from a single lost packet:
 
 | pings       | one higher than <br>a single loss % | history size <br>for approx 30s |
 | ----------- | ----------------------------------- | ------------------------------- |
-| 10          | 11                                  | 3 (27) 4 (36)                   |
-| 9           | 12                                  | 4 (32)                          |
-| 8           | 13                                  | 5 (35)                          |
-| 7           | 15                                  | 5 (30)                          |
-| 6 (default) | 17                                  | 6 (30)                          |
-| 5           | 21                                  | 8 (32)                          |
+| 10          | 11                                  | 4 (28)  5 (37)                  |
+| 9           | 12                                  | 5 (32)                          |
+| 8           | 13                                  | 5 (28)  6 (36)                  |
+| 7           | 15                                  | 6 (31)                          |
+| 6 (default) | 18                                  | 7 (31)                          |
+| 5           | 21                                  | 8 (29)                          |
+| 4           | 26                                  | 11 (31)                         |
 | 3           | 34                                  | 15 (30)                         |
 
 ### Database

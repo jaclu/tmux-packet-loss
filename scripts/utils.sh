@@ -326,29 +326,23 @@ sql_current_loss() {
         #    avg of last 4
         #    ...
         #
-        _sck_sql="SELECT max(
-        (SELECT loss FROM t_loss ORDER BY ROWID DESC limit 1      ),
-
-        (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 2  )),
-
-        (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 3  )),
-
-        (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 4  )),
-
-        (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 5  )),
-
-        (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 6  )),
-
-        (SELECT avg(loss) FROM(
-            SELECT loss FROM t_loss ORDER BY ROWID DESC limit 7  )),
-
-        (SELECT avg(loss) FROM t_loss)
-        )"
+        _sck_sql="
+SELECT max(
+"
+        _sck_i=1
+        while [ "$_sck_i" -lt "$cfg_history_size" ]; do
+            _sck_sql="$_sck_sql  (SELECT avg(loss) FROM(
+    SELECT loss FROM t_loss ORDER BY ROWID DESC limit $_sck_i  )),
+"
+            _sck_i=$((_sck_i + 1))
+            [ "$_sck_i" -gt 100 ] && {
+                # run-away loop
+                error_msg "run-away loop"
+            }
+        done
+        # last item, average of all items in t_loss
+        _sck_sql="$_sck_sql  (SELECT avg(loss) FROM t_loss)
+)"
     else
         _sck_sql="SELECT avg(loss) FROM t_loss"
     fi

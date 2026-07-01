@@ -500,8 +500,6 @@ get_plugin_params() {
 
         # shellcheck disable=SC2154 # obsolete_param defined above via eval
         default_reactive="$obsolete_param"
-
-        $TMUX_BIN display "@packet-loss-weighted_average is obsolete, use @packet-loss-reactive"
     }
     normalize_bool_param "@packet-loss-reactive" cfg_reactive "$default_reactive"
 

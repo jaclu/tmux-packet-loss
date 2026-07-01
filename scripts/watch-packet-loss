@@ -5,24 +5,16 @@
     exit 1
 }
 
-# [ -z "$1" ] && {
-#     echo "ERROR: param 1 must be location of tmux-packet-loss plugin"
-#     exit 1
-# }
-
 d_pkt_loss=$(cd "${0%/*}/.." && pwd)
 
-f_height="$d_pkt_loss"/data/watch_height
+# if [ ! -f "$f_height" ] || [ -n "$(find "$d_pkt_loss"/data/tmux.pid -newer "$f_height")" ]; then
 
-[ -n "$1" ] && rm -f "$f_height" # any param triggers removal of height file
-
-if [ ! -f "$f_height" ] || [ -n "$(find "$d_pkt_loss"/data/tmux.pid -newer "$f_height")" ]; then
-    # shellcheck disable=SC2154
-    pane_height=$($TMUX_BIN display-message -p -t "$TMUX_PANE" '#{pane_height}')
-    use_height=$((pane_height - 3))
-    echo "$use_height" >"$f_height"
-else
-    use_height=$(cat "$f_height")
-fi
+# shellcheck disable=SC2154
+pane_height=$($TMUX_BIN display-message -p -t "$TMUX_PANE" '#{pane_height}')
+use_height=$((pane_height - 3))
+#     echo "$use_height" >"$f_height"
+# else
+#     use_height=$(cat "$f_height")
+# fi
 
 "$d_pkt_loss"/scripts/all-data.sh show | tail -n "$use_height"

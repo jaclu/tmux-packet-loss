@@ -1,0 +1,34 @@
+#!/bin/sh
+
+[ -z "$TMUX_BIN" ] && {
+    echo "ERROR: This can only be run inside tmux"
+    exit 1
+}
+
+# [ -z "$1" ] && {
+#     echo "ERROR: param 1 must be location of tmux-packet-loss plugin"
+#     exit 1
+# }
+
+d_pkt_loss=$(cd "${0%/*}/.." && pwd)
+
+# # shellcheck disable=SC2154
+# if [ "$(dirname "$TMUX_CONF")" = "$HOME" ]; then
+#     d_pkt_loss="$HOME"/.tmux/plugins/tmux-packet-loss
+# else
+#     d_pkt_loss="$HOME"/t2/tmux/plugins/tmux-packet-loss
+# fi
+
+f_height="$d_pkt_loss"/data/watch_height
+
+[ -n "$1" ] && rm -f "$f_height" # any param triggers removal of height file
+
+if [ ! -f "$f_height" ] || [ -n "$(find "$d_pkt_loss"/data/tmux.pid -newer "$f_height")" ]; then
+    pane_height=$($TMUX_BIN display -p "#{pane_height}")
+    use_height=$((pane_height - 3))
+    echo "$use_height" >"$f_height"
+else
+    use_height=$(cat "$f_height")
+fi
+
+"$d_pkt_loss"/scripts/all-data.sh show | tail -n "$use_height"

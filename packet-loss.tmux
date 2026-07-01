@@ -17,6 +17,16 @@
 #  for sourcing utils.sh in the other scripts.
 #
 
+check_for_obsolere_variables() {
+    is_tmux_option_defined "@packet-loss-weighted_average" && {
+        msg="[$plugin_name] @packet-loss-weighted_average is obsolete,"
+        msg="$msg use @packet-loss-reactive"
+        log_it "$msg"
+        $TMUX_BIN display -d 0 "$msg"
+        sleep 2
+    }
+}
+
 do_interpolation() {
     # printf '%s\n' "$1" | sed "s|$(printf '%s' "$pkt_loss_interpolation" | \
     #     sed 's/[&/\]/\\&/g')|$(printf '%s' "$pkt_loss_command" | sed 's/[&/\]/\\&/g')|g"
@@ -81,6 +91,8 @@ tpt_dependency_check "sqlite3" || {
     log_it "Aborting plugin init - dependency fail: $tpt_missing_dependencies"
     exit 1
 }
+
+check_for_obsolere_variables
 
 do_not_run_clear      # in case it was set previously
 clear_previous_losses # remove if presssent

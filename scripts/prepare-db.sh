@@ -24,7 +24,7 @@ create_db() {
     #  t_loss is limited to $cfg_history_size records, in order to make
     #  statistics consistent
     #
-    _cd_sql="
+    _cdb_sql="
     CREATE TABLE t_loss (
         time_stamp TIMESTAMP DEFAULT (datetime('now')) NOT NULL,
         loss DECIMAL(5,1)
@@ -46,7 +46,7 @@ create_db() {
     PRAGMA journal_mode = WAL;
     PRAGMA user_version = $db_version;  -- replace DB if out of date
     "
-    sqlite_transaction "$_cd_sql"
+    sqlite_transaction "$_cdb_sql"
     log_it "Created DB - user_version: $db_version"
 }
 

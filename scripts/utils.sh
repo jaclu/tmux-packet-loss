@@ -256,7 +256,13 @@ sqlite_err_handling() {
         )"
         sqlite_exit_code=$?
     else
-        sqlite_result="$(sqlite3 "$f_sqlite_db" "$_seh_sql" 2>"$f_sqlite_error")"
+        sqlite_result="$(
+            sqlite3 \
+                -cmd ".timeout 5000" \
+                "$f_sqlite_db" \
+                "$_seh_sql" \
+                2>"$f_sqlite_error"
+        )"
         sqlite_exit_code=$?
     fi
 
@@ -569,7 +575,7 @@ cfg_log_file="$cfg_log_file"
 # Not derived from tmux variables, if .sql-timeout is found in the repo top folder,
 # this overrides the default timeout value. If set to 0 no timeout is used.
 #
-cfg_sql_timeout="$cfg_sql_timeout"
+cfg_sql_timeout=0
 
 EOF
     #endregion

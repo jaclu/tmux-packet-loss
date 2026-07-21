@@ -10,7 +10,7 @@
 # If given a param it will loop, displaying every $1 seconds
 #
 fill_screen() {
-    clear
+    # clear
 
     # shellcheck disable=SC2154
     pane_height=$($TMUX_BIN display-message -p -t "$TMUX_PANE" '#{pane_height}')

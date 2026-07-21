@@ -10,7 +10,7 @@
 # If given a param it will loop, displaying every $1 seconds
 #
 fill_screen() {
-    # clear
+    clear
 
     # shellcheck disable=SC2154
     pane_height=$($TMUX_BIN display-message -p -t "$TMUX_PANE" '#{pane_height}')
@@ -38,13 +38,12 @@ loop_forever() {
 #===============================================================
 
 t_sleep="$1"
+d_pkt_loss=$(cd "${0%/*}/.." && pwd)
 
 [ -z "$TMUX_BIN" ] && {
     echo "ERROR: This can only be run inside tmux"
     exit 1
 }
-
-d_pkt_loss=$(cd "${0%/*}/.." && pwd)
 
 [ -n "$t_sleep" ] && loop_forever
 

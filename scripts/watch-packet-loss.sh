@@ -14,7 +14,7 @@ fill_screen() {
 
     # shellcheck disable=SC2154
     pane_height=$($TMUX_BIN display-message -p -t "$TMUX_PANE" '#{pane_height}')
-    use_height=$((pane_height - 2))
+    use_height=$((pane_height - 4))
 
     "$d_pkt_loss"/scripts/all-data.sh show | tail -n "$use_height"
     echo "ping host: $cfg_ping_host"

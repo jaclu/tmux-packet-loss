@@ -311,7 +311,8 @@ do_monitor_loop() {
                             log_it "No ping response from host: $cfg_ping_host"
                             ;;
                         *)
-                            log_it "kernel: [$kernel_name] - ping [$ping_exit_code] output: [$ping_output]"
+                            _ping_info="ping [$ping_exit_code] output: [$ping_output]"
+                            log_it "kernel: [$kernel_name] - $_ping_info"
                             ping_parse_error "$error_ping_exit" "exit code: $ping_exit_code"
                             sleep "$cfg_ping_count"
                             ;;

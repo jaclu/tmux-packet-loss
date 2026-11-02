@@ -81,7 +81,8 @@ if [ "$session" != "standalone" ]; then
             echo
             echo "***  ERROR: This is not the folder for the $plugin_name"
             echo "***         used by your tmux session"
-            echo "***         this tmux: [$this_tmux_pid] folders tmux pid [$folder_tmux_pid]"
+            _s="tmux pid [$folder_tmux_pid]"
+            echo "***         this tmux: [$this_tmux_pid] folders $_s"
             echo
             exit 1
         }

@@ -280,7 +280,8 @@ random_sleep() {
     _rs_max_sleep=$(printf "%.0f" "$(echo "$_rs_max_sleep * 100" | bc)")
 
     # Generate random numbers
-    _rs_rand_from_random=$(hexdump -n 2 -e '/2 "%u\n"' /dev/urandom | awk '{print $1 % 100}')
+    _rs_rand_from_random=$(hexdump -n 2 -e '/2 "%u\n"' /dev/urandom \
+        | awk '{print $1 % 100}')
     _rs_rand_from_urandom=$(od -An -N2 -i /dev/urandom | awk '{print $1}')
 
     # Calculate random number between _rs_min_sleep and _rs_max_sleep with two decimal places

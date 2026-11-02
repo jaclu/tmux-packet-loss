@@ -1,7 +1,0 @@
-
-
-# needs extra length due to is_float() using an excessively long
-# awk pattern
-max-line-length=99
-
-# ignore=E003,E004

@@ -114,17 +114,26 @@ is_bool() {
 }
 
 is_float() {
-    _if_input=$1
+    _if_v=${1#[-+]}
 
-    if awk -v val="$_if_input" '
-        BEGIN {
-            pat="^[-+]?[0-9]+(\\.[0-9]*)?([eE][-+]?[0-9]+)?$|^[-+]?\\.[0-9]+([eE][-+]?[0-9]+)?$"
-            exit !(val ~ pat)
-        }'; then
+    case $_if_v in
+        *[eE]*)
+            _if_e=${_if_v#*[eE]}
+            _if_e=${_if_e#[-+]}
+            _if_v=${_if_v%%[eE]*}
+            case $_if_e in
+                '' | *[!0-9]*) return 1 ;;
+                *) ;;
+            esac
+            ;;
+        *) ;;
+    esac
 
-        return 0
-    fi
-    return 1
+    case $_if_v in
+        '' | '.' | *.*.* | *[!0-9.]*) return 1 ;;
+        *) ;;
+    esac
+    return 0
 }
 
 lowercase_it() {

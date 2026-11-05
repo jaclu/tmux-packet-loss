@@ -220,7 +220,8 @@ Use the included test script to simulate packet loss:
 ./scripts/test_data.sh
 ```
 
-Run without params for help. The monitor restarts automatically 2 minutes after the last run.
+Run without params for help. The monitor restarts automatically 2 minutes after the
+last run.
 
 ## Contributing
 

@@ -369,7 +369,8 @@ tpt_parse_cmd_line() {
             echo
             echo "dependency-check 'space separated string of dependencies'"
             echo "  If tmux >= 3.2 a popup will be used to display failed dependencies"
-            echo "  For older tmux versions and if called from outside tmux, It will be printed."
+            echo "  For older tmux versions and if called from outside tmux,"
+            echo "  It will be printed."
             echo
             echo "env"
             echo "  Display environment picked up"

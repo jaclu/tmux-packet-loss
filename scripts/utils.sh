@@ -118,12 +118,14 @@ is_float() {
 
     if awk -v val="$_if_input" '
         BEGIN {
-            pat="^[-+]?[0-9]+(\\.[0-9]*)?([eE][-+]?[0-9]+)?$|^[-+]?\\.[0-9]+([eE][-+]?[0-9]+)?$"
+            pat = "^[-+]?[0-9]+(\\.[0-9]*)?([eE][-+]?[0-9]+)?$"
+            pat = pat "|^[-+]?\\.[0-9]+([eE][-+]?[0-9]+)?$"
             exit !(val ~ pat)
-        }'; then
-
+        }
+    '; then
         return 0
     fi
+
     return 1
 }
 
@@ -501,7 +503,8 @@ get_plugin_params() {
         # shellcheck disable=SC2154 # obsolete_param defined above via eval
         default_reactive="$obsolete_param"
 
-        $TMUX_BIN display "@packet-loss-weighted_average is obsolete, use @packet-loss-reactive"
+        $TMUX_BIN display \
+            "@packet-loss-weighted_average is obsolete, use @packet-loss-reactive"
     }
     normalize_bool_param "@packet-loss-reactive" cfg_reactive "$default_reactive"
 
